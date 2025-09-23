@@ -41,6 +41,7 @@
     "uplot": "^1.6.32",
     "uplot-react": "^1.2.2",
     "wasmoon": "^1.16.0",
+    "enjin2-wasm": "file:../unwn-vcv/unwn/enjin2/build_wasm",
     "webdfu": "^1.0.5",
     "workbox-webpack-plugin": "^7.3.0"
   },

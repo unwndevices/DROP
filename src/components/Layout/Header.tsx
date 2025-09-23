@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { FaCog, FaCaretLeft, FaCaretRight } from 'react-icons/fa';
 import './Header.css';
 
 interface Template {
@@ -11,6 +12,8 @@ interface HeaderProps {
   onSave?: () => void;
   onLoad?: () => void;
   onSettings?: () => void;
+  onToolsToggle?: () => void;
+  isNavbarVisible?: boolean;
   templates?: Template[];
   onTemplateSelect?: (code: string) => void;
   toolName?: string;
@@ -21,6 +24,8 @@ export const Header: React.FC<HeaderProps> = ({
   onSave,
   onLoad,
   onSettings,
+  onToolsToggle,
+  isNavbarVisible = true,
   templates = [],
   onTemplateSelect,
   toolName = "DROP",
@@ -51,10 +56,21 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="drop-header">
       <div className="drop-header-content">
-        <h1 className="drop-title">
-          <span className="drop-title-main">{toolName}</span>
-          <span className="drop-title-sub">{toolDescription}</span>
-        </h1>
+        <div className="drop-title-section">
+          {onToolsToggle && (
+            <span
+              className="drop-tools-toggle"
+              onClick={onToolsToggle}
+              title={isNavbarVisible ? 'Hide Tools Panel' : 'Show Tools Panel'}
+            >
+              {isNavbarVisible ? <FaCaretLeft size={20} /> : <FaCaretRight size={20} />}
+            </span>
+          )}
+          <h1 className="drop-title">
+            <span className="drop-title-main">{toolName}</span>
+            <span className="drop-title-sub">{toolDescription}</span>
+          </h1>
+        </div>
 
         <nav className="drop-nav">
           {templates.length > 0 && onTemplateSelect && (
@@ -101,13 +117,16 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
           {onSettings && (
-            <button
-              className="drop-nav-button btn-secondary"
-              onClick={onSettings}
-              title="Settings"
-            >
-              SETTINGS
-            </button>
+            <>
+              <div className="drop-nav-divider" />
+              <button
+                className="drop-nav-button btn-secondary"
+                onClick={onSettings}
+                title="Settings"
+              >
+                <FaCog />
+              </button>
+            </>
           )}
         </nav>
       </div>

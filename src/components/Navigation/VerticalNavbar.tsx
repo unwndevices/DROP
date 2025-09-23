@@ -25,7 +25,12 @@ export const VerticalNavbar: React.FC<VerticalNavbarProps> = ({
       <div className="navbar-header">
         <div className="navbar-logo">
           <span className="logo-text">DROP</span>
-          <span className="logo-subtitle">Datum Research Open Platform</span>
+          <span className="logo-subtitle">
+            <span className="accent-letter">D</span>atum{' '}
+            <span className="accent-letter">R</span>esearch{' '}
+            <span className="accent-letter">O</span>pen{' '}
+            <span className="accent-letter">P</span>latform
+          </span>
         </div>
       </div>
 

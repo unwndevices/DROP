@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug enjin2 Lua Execution</title>
+</head>
+<body>
+    <h1>Debug enjin2 Lua Execution</h1>
+    <div id="output"></div>
+    <button id="testBtn">Test Lua Script</button>
+    
+    <script type="module">
+        const output = document.getElementById('output');
+        const testBtn = document.getElementById('testBtn');
+        
+        function log(message) {
+            output.innerHTML += message + '<br>';
+            console.log(message);
+        }
+        
+        async function loadEnjin2() {
+            try {
+                log('Loading enjin2 WebAssembly module...');
+                
+                const script = document.createElement('script');
+                script.src = '/enjin2.js';
+                script.type = 'module';
+                
+                await new Promise((resolve, reject) => {
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+                
+                // Wait for module to be available
+                let attempts = 0;
+                while (!window.Enjin2Module && attempts < 50) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+                
+                if (!window.Enjin2Module) {
+                    throw new Error('Enjin2Module not found');
+                }
+                
+                log('Creating enjin2 module instance...');
+                const enjin2Module = await window.Enjin2Module();
+                
+                log('Creating LuaScriptSystem...');
+                const scriptSystem = new enjin2Module.LuaScriptSystem();
+                const initialized = scriptSystem.initialize();
+                log('Lua initialized: ' + initialized);
+                
+                if (!initialized) {
+                    throw new Error('Failed to initialize Lua');
+                }
+                
+                log('Creating canvas...');
+                const canvas = new enjin2Module.Canvas4_128x128();
+                const luaCanvas = enjin2Module.createLuaCanvas128();
+                
+                log('Setting canvas...');
+                scriptSystem.setCanvas(luaCanvas);
+                
+                log('Setting up global functions...');
+                const setupSuccess = enjin2Module.setupGlobalLuaFunctions(scriptSystem);
+                log('Setup success: ' + setupSuccess);
+                
+                return { enjin2Module, scriptSystem, canvas, luaCanvas };
+                
+            } catch (error) {
+                log('Error loading enjin2: ' + error.message);
+                throw error;
+            }
+        }
+        
+        testBtn.addEventListener('click', async () => {
+            try {
+                const { scriptSystem } = await loadEnjin2();
+                
+                log('Testing basic Lua...');
+                let result = scriptSystem.executeScript('return 2 + 2');
+                log('Basic test result: success=' + result.success + ', error=' + result.error);
+                
+                log('Testing getWidth function...');
+                result = scriptSystem.executeScript('return getWidth()');
+                log('getWidth result: success=' + result.success + ', error=' + result.error);
+                
+                log('Testing the actual script from PixelArtGenerator...');
+                const testScript = `
+                    -- Test the exact script that's failing
+                    clear(0)  -- Clear to black (enjin2 native API)
+                    
+                    -- Canvas dimensions and center (enjin2 native API) 
+                    local w = getWidth()
+                    local h = getHeight()
+                    local cx = w / 2
+                    local cy = h / 2
+                    
+                    return "Success: w=" .. w .. ", h=" .. h
+                `;
+                
+                result = scriptSystem.executeScript(testScript);
+                log('Pixel art script result: success=' + result.success + ', error=' + result.error);
+                
+                if (!result.success) {
+                    log('Script failed on line with error: ' + result.error);
+                    
+                    // Try to see what globals exist
+                    log('Checking what globals exist...');
+                    result = scriptSystem.executeScript(`
+                        local globals = {}
+                        for k, v in pairs(_G) do
+                            if type(v) == "function" then
+                                table.insert(globals, k)
+                            end
+                        end
+                        return table.concat(globals, ", ")
+                    `);
+                    log('Available global functions: ' + (result.success ? 'success' : result.error));
+                }
+                
+            } catch (error) {
+                log('Test error: ' + error.message);
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>

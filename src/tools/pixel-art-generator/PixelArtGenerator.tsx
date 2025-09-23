@@ -1,368 +1,451 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { MainContent, SplitLayout, Panel } from '../../components/Layout/MainContent';
-import { PixelArtPreview, PixelArtCodeEditor, PixelArtExportModal } from '../../components/PixelArt';
-import { LuaPixelService } from '../../services/PixelArt/LuaPixelService';
+import { PixelArtPreview, PixelArtExportModal } from '../../components/PixelArt';
+import { Enjin2PixelService } from '../../services/PixelArt/Enjin2PixelService';
 import type { PixelArtFrame, PixelCanvas } from '../../services/PixelArt/LuaPixelService';
-import { LuaFactory } from 'wasmoon';
-import './PixelArtGenerator.css';
+import type { LuaPixelService } from '../../services/PixelArt/LuaPixelService';
+import { PIXEL_ART_PRESETS, getDefaultPreset, getPresetById } from '../../services/PixelArt/PixelArtPresets';
+// enjin2 WebAssembly module will be loaded dynamically from public directory
 
-// Default example script showcasing Love2D-style graphics API
-const DEFAULT_SCRIPT = `-- Waveform Transition: Sine → Triangle → Square
--- Animation progresses through three waveform types over time
--- Uses f (frame index) and f_amt (total frames) for smooth transitions
-
-graphics.clear(0)  -- Clear to black
-
--- Canvas dimensions and center
-local w = graphics.getWidth()
-local h = graphics.getHeight()
-local cx = w / 2
-local cy = h / 2
-
--- Animation progress (0 to 1 over all frames)
-local progress = f / (f_amt - 1)
-
--- Waveform parameters
-local amplitude = 25  -- Wave height
-local frequency = 1   -- Single revolution across width
-
--- Helper functions
-local function clamp(value, min_val, max_val)
-    return math.max(min_val, math.min(max_val, value))
-end
-
--- Smooth transition function (ease in/out)
-local function smoothstep(t)
-    t = clamp(t, 0, 1)
-    return t * t * (3 - 2 * t)
-end
-
--- Calculate which waveforms to blend and their weights
-local sine_val, triangle_val, square_val = 0, 0, 0
-
-if progress < 0.5 then
-    -- First half: Sine to Triangle
-    local blend = smoothstep(progress * 2)  -- 0 to 1 over first half
-    sine_val = 1 - blend
-    triangle_val = blend
-else
-    -- Second half: Triangle to Square  
-    local blend = smoothstep((progress - 0.5) * 2)  -- 0 to 1 over second half
-    triangle_val = 1 - blend
-    square_val = blend
-end
-
--- Generate waveform points
-local points = {}
-for x = 0, w - 1 do
-    local t = x / w * frequency * 2 * math.pi
-    local y_value = 0
-    
-    -- Calculate each waveform value
-    local sine = math.sin(t)
-    
-    -- Triangle wave (sawtooth approach for cleaner transitions)
-    local cycle_pos = (t / (2 * math.pi)) % 1
-    local triangle
-    if cycle_pos < 0.5 then
-        triangle = 4 * cycle_pos - 1  -- -1 to 1 over first half
-    else
-        triangle = 3 - 4 * cycle_pos   -- 1 to -1 over second half
-    end
-    
-    -- Square wave
-    local square = math.sin(t) >= 0 and 1 or -1
-    
-    -- Blend the waveforms (weights always sum to 1, maintaining amplitude)
-    y_value = sine_val * sine + triangle_val * triangle + square_val * square
-    
-    -- Scale and center the wave
-    local y = cy + y_value * amplitude
-    table.insert(points, {x = x, y = y})
-end
-
--- Draw the waveform using lines with thickness
-for i = 1, #points - 1 do
-    local p1 = points[i]
-    local p2 = points[i + 1]
-    
-    -- Color based on current phase
-    local brightness = 0.9
-    if sine_val > 0.5 then
-        brightness = 0.7  -- Dimmer for sine
-    elseif triangle_val > 0.5 then
-        brightness = 0.85  -- Medium for triangle
-    else
-        brightness = 1.0  -- Brightest for square
-    end
-    
-    local color_value = math.floor(brightness * 15)
-    
-    -- Draw multiple lines for thickness (works for all angles)
-    line(p1.x, p1.y, p2.x, p2.y, color_value)  -- Center line
-    line(p1.x, p1.y + 1, p2.x, p2.y + 1, color_value)  -- Line above
-    line(p1.x, p1.y - 1, p2.x, p2.y - 1, color_value)  -- Line below
-    line(p1.x + 1, p1.y, p2.x + 1, p2.y, color_value)  -- Line right
-    line(p1.x - 1, p1.y, p2.x - 1, p2.y, color_value)  -- Line left
-end
-
--- Draw center line for reference
-graphics.setColor(0.2)
-graphics.line(0, cy, w - 1, cy)
-
--- Draw phase indicator text  
-local phase_text = ""
-if sine_val > 0.5 then
-    phase_text = "SINE"
-elseif triangle_val > 0.5 then
-    phase_text = "TRIANGLE" 
-else
-    phase_text = "SQUARE"
-end
-
-graphics.setColor(0.8)
-graphics.print(phase_text, 5, 5)
-graphics.print("FRAME " .. f, 5, h - 12)`;
-
-// Singleton service instance
-let pixelServiceInstance: LuaPixelService | null = null;
-
-const getPixelService = (): LuaPixelService => {
-  if (!pixelServiceInstance) {
-    pixelServiceInstance = new LuaPixelService(127, 127);
-  }
-  return pixelServiceInstance;
-};
+// Import design system components
+import {
+  ToolLayout,
+  Button,
+  Card,
+  CardHeader,
+  CardBody,
+  StatusIndicator,
+  Input,
+  Select,
+  PixelArtEditor
+} from '../../design-system';
 
 export const PixelArtGenerator: React.FC = () => {
-  const [pixelService] = useState(() => getPixelService());
-  const [script, setScript] = useState(() => {
+  // Current preset state
+  const [currentPreset, setCurrentPreset] = useState(() => {
     try {
-      const saved = localStorage.getItem('drop-pixel-script');
-      if (saved) {
-        const scriptData = JSON.parse(saved);
-        return scriptData.content || DEFAULT_SCRIPT;
-      }
-    } catch (error) {
-      console.warn('DROP: Failed to load saved pixel script:', error);
+      const saved = localStorage.getItem('drop-pixel-art-preset');
+      return saved || getDefaultPreset().id;
+    } catch {
+      return getDefaultPreset().id;
     }
-    return DEFAULT_SCRIPT;
   });
+
+  const [script, setScript] = useState(() => {
+    // Try to load saved script, otherwise use default preset
+    try {
+      const saved = localStorage.getItem('drop-pixel-art-script');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Check if it's a recent save with preset info
+        if (parsed.presetId && parsed.content) {
+          setCurrentPreset(parsed.presetId);
+          return parsed.content;
+        }
+        return parsed.content || getDefaultPreset().script;
+      }
+      return getDefaultPreset().script;
+    } catch {
+      return getDefaultPreset().script;
+    }
+  });
+
+  const [canvas, setCanvas] = useState<PixelCanvas>({
+    width: 128,
+    height: 128,
+    data: new Uint8Array(128 * 128)
+  });
+
   const [frameCount, setFrameCount] = useState(() => {
     try {
-      const saved = localStorage.getItem('drop-pixel-settings');
+      const saved = localStorage.getItem('drop-pixel-art-settings');
       if (saved) {
-        const settings = JSON.parse(saved);
-        return settings.frameCount || 60;
+        return JSON.parse(saved).frameCount;
       }
-    } catch (error) {
-      console.warn('DROP: Failed to load saved pixel settings:', error);
+      // Use frame count from current preset
+      const preset = getPresetById(currentPreset) || getDefaultPreset();
+      return preset.frameCount;
+    } catch {
+      return getDefaultPreset().frameCount;
     }
-    return 60;
   });
-  const [canvasWidth, setCanvasWidth] = useState(() => {
-    try {
-      const saved = localStorage.getItem('drop-pixel-settings');
-      if (saved) {
-        const settings = JSON.parse(saved);
-        return settings.canvasWidth || 127;
-      }
-    } catch (error) {
-      console.warn('DROP: Failed to load saved pixel settings:', error);
-    }
-    return 127;
-  });
-  const [canvasHeight, setCanvasHeight] = useState(() => {
-    try {
-      const saved = localStorage.getItem('drop-pixel-settings');
-      if (saved) {
-        const settings = JSON.parse(saved);
-        return settings.canvasHeight || 127;
-      }
-    } catch (error) {
-      console.warn('DROP: Failed to load saved pixel settings:', error);
-    }
-    return 127;
-  });
-  const [currentCanvas, setCurrentCanvas] = useState<PixelCanvas | null>(null);
+
+  const [currentFrame] = useState(0);
   const [frames, setFrames] = useState<PixelArtFrame[]>([]);
-  const [isExecuting, setIsExecuting] = useState(false);
-  const [errors, setErrors] = useState<Array<{ message: string; line?: number }>>([]);
-  const [executionTime, setExecutionTime] = useState<number | null>(null);
-  const [statusMessage, setStatusMessage] = useState<string>('Ready to generate pixel art');
+  const [isGenerating, setIsGenerating] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [errors, setErrors] = useState<Array<{ message: string; line?: number }>>([]);
+  const [pixelService, setPixelService] = useState<LuaPixelService | null>(null);
 
-  // Initialize services
+  // Auto-save script with preset info
   useEffect(() => {
-    const initServices = async () => {
-      try {
-        setStatusMessage('Initializing Lua engine...');
-        const luaFactory = new LuaFactory();
-        await pixelService.initializeLua(luaFactory);
-        setStatusMessage('Ready to generate pixel art');
-      } catch (error) {
-        setStatusMessage(`Initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        setErrors([{ message: `Failed to initialize: ${error instanceof Error ? error.message : 'Unknown error'}` }]);
-      }
+    const scriptData = {
+      content: script,
+      presetId: currentPreset,
+      timestamp: new Date().toISOString()
     };
+    localStorage.setItem('drop-pixel-art-script', JSON.stringify(scriptData));
+  }, [script, currentPreset]);
 
-    initServices();
-  }, [pixelService]);
-
-  // Auto-save script content whenever it changes
-  useEffect(() => {
-    if (script) {
-      const scriptData = {
-        content: script,
-        timestamp: new Date().toISOString()
-      };
-      localStorage.setItem('drop-pixel-script', JSON.stringify(scriptData));
-    }
-  }, [script]);
-
-  // Auto-save settings whenever they change
+  // Auto-save settings
   useEffect(() => {
     const settings = {
       frameCount,
-      canvasWidth,
-      canvasHeight,
+      currentFrame,
+      currentPreset,
       timestamp: new Date().toISOString()
     };
-    localStorage.setItem('drop-pixel-settings', JSON.stringify(settings));
-  }, [frameCount, canvasWidth, canvasHeight]);
+    localStorage.setItem('drop-pixel-art-settings', JSON.stringify(settings));
+  }, [frameCount, currentFrame, currentPreset]);
 
-  // Execute script
-  const executeScript = useCallback(async (code: string) => {
-    if (isExecuting) return;
+  // Auto-save current preset
+  useEffect(() => {
+    localStorage.setItem('drop-pixel-art-preset', currentPreset);
+  }, [currentPreset]);
 
-    setIsExecuting(true);
+  const generateFrames = useCallback(async () => {
+    if (!script.trim()) {
+      setErrors([{ message: 'Script cannot be empty', line: 1 }]);
+      return;
+    }
+
+    console.log('🚀 Starting pixel art generation...');
+    setIsGenerating(true);
     setErrors([]);
-    setStatusMessage('Executing script...');
-
-    const startTime = performance.now();
 
     try {
-      // Validate script first
-      const validation = await pixelService.validateScript();
-      if (!validation.valid) {
-        setErrors(validation.errors.map(error => ({ message: error })));
-        setStatusMessage('Script validation failed');
-        return;
-      }
+      console.log('📦 Creating Enjin2PixelService...');
+      const service = new Enjin2PixelService(canvas.width, canvas.height);
+      console.log('✅ Service created successfully');
 
-      if (frameCount === 1) {
-        // Single frame execution
-        setStatusMessage('Generating single frame...');
-        const frame = await pixelService.executeFrame(code, 0, frameCount);
-        setCurrentCanvas(frame.canvas);
-        setFrames([frame]);
-        setStatusMessage('Single frame generated successfully');
+      // Load enjin2 WebAssembly module via script tag (required for Vite public files)
+      console.log('🔄 Loading enjin2 WebAssembly module...');
+      const enjin2ModuleFactory = await new Promise<any>((resolve, reject) => {
+        // First check if the module factory is already available as a global
+        if ((window as any).Enjin2Module) {
+          console.log('✅ Enjin2Module already available globally');
+          resolve((window as any).Enjin2Module);
+          return;
+        }
+        
+        console.log('📥 Loading enjin2.js via script tag...');
+        
+        // Load the script and wait for the ES6 export to be available
+        const script = document.createElement('script');
+        script.src = '/enjin2.js';
+        script.type = 'module';
+        
+        // Create a unique callback name to avoid conflicts
+        const callbackName = `enjin2Callback_${Date.now()}`;
+        
+        // Set up a global callback that will be called from the module
+        (window as any)[callbackName] = (moduleFactory: any) => {
+          console.log('✅ Module factory received via callback');
+          delete (window as any)[callbackName]; // Clean up
+          resolve(moduleFactory);
+        };
+        
+        script.onload = async () => {
+          console.log('📜 enjin2.js script loaded');
+          
+          try {
+            // Try to get the module by executing a dynamic import in the global scope
+            const moduleText = `
+              import Enjin2Module from '/enjin2.js';
+              window.${callbackName}(Enjin2Module);
+            `;
+            
+            const moduleScript = document.createElement('script');
+            moduleScript.type = 'module';
+            moduleScript.textContent = moduleText;
+            document.head.appendChild(moduleScript);
+            
+            // Clean up after a delay
+            setTimeout(() => {
+              document.head.removeChild(moduleScript);
+            }, 1000);
+            
+          } catch (error) {
+            console.error('❌ Failed to import module:', error);
+            reject(error);
+          }
+        };
+        
+        script.onerror = (error) => {
+          console.error('❌ Failed to load enjin2.js:', error);
+          reject(new Error('Failed to load enjin2.js'));
+        };
+        
+        document.head.appendChild(script);
+        
+        // Timeout after 10 seconds
+        setTimeout(() => {
+          if ((window as any)[callbackName]) {
+            delete (window as any)[callbackName];
+            reject(new Error('Module loading timed out'));
+          }
+        }, 10000);
+      });
+      
+      // Initialize with enjin2 WebAssembly module factory
+      console.log('🔧 Initializing enjin2 service...');
+      await service.initializeEnjin2(enjin2ModuleFactory);
+      console.log('✅ enjin2 service initialized');
+
+      console.log('🎬 Generating frames...');
+      const frames = await service.generateFrames(script, frameCount);
+      console.log('✅ Frames generated:', frames.length);
+
+      if (frames && frames.length > 0) {
+        setFrames(frames);
+        setPixelService(service as unknown as LuaPixelService); // Store the initialized service
+        if (frames.length > 0) {
+          setCanvas(frames[currentFrame]?.canvas || frames[0].canvas);
+        }
+        console.log(`Generated ${frames.length} frames`);
       } else {
-        // Multi-frame animation
-        setStatusMessage(`Generating ${frameCount} frames...`);
-        const generatedFrames = await pixelService.generateFrames(code, frameCount);
-        setFrames(generatedFrames);
-        setCurrentCanvas(generatedFrames[0]?.canvas || null);
-        setStatusMessage(`Animation generated: ${frameCount} frames`);
+        setErrors([{ message: 'Failed to generate frames' }]);
+        console.error('Pixel art generation failed: No frames generated');
       }
-
-      const endTime = performance.now();
-      setExecutionTime(endTime - startTime);
-
     } catch (error) {
-      console.error('Pixel art execution error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown execution error';
-      setErrors([{ message: errorMessage }]);
-      setStatusMessage('Execution failed');
+      console.error('❌ Generation failed:', error);
+      setErrors([{
+        message: error instanceof Error ? error.message : 'Unknown generation error',
+        line: 1
+      }]);
+      console.error('Generation error:', error);
     } finally {
-      setIsExecuting(false);
+      console.log('🏁 Generation process completed');
+      setIsGenerating(false);
     }
-  }, [pixelService, frameCount, isExecuting]);
+  }, [script, frameCount, canvas.width, canvas.height, currentFrame]);
 
-  // Handle frame count changes
-  const handleFrameCountChange = useCallback((count: number) => {
-    const clampedCount = Math.max(1, Math.min(1024, count));
-    setFrameCount(clampedCount);
+  // Update canvas when frame changes
+  useEffect(() => {
+    if (frames.length > 0 && frames[currentFrame]) {
+      setCanvas(frames[currentFrame].canvas);
+    }
+  }, [currentFrame, frames]);
+
+  const handleCanvasSizeChange = useCallback((dimension: 'width' | 'height', value: number) => {
+    const newSize = Math.max(1, Math.min(255, value));
+    setCanvas(prev => ({
+      ...prev,
+      [dimension]: newSize,
+      data: new Uint8Array(prev.width * prev.height)
+    }));
+    setFrames([]); // Clear frames when canvas size changes
   }, []);
 
-  // Clear canvas
-  const clearCanvas = useCallback(() => {
-    setCurrentCanvas(null);
+  const handlePresetChange = useCallback((presetId: string) => {
+    const preset = getPresetById(presetId) || getDefaultPreset();
+    setCurrentPreset(preset.id);
+    setScript(preset.script);
+    setFrameCount(preset.frameCount);
+    setFrames([]); // Clear existing frames
+    setErrors([]); // Clear errors
+  }, []);
+
+  const handleResetScript = useCallback(() => {
+    // Clear localStorage data and reset to default preset
+    localStorage.removeItem('drop-pixel-art-script');
+    localStorage.removeItem('drop-pixel-art-settings');
+    localStorage.removeItem('drop-pixel-art-preset');
+    
+    const defaultPreset = getDefaultPreset();
+    setCurrentPreset(defaultPreset.id);
+    setScript(defaultPreset.script);
+    setFrameCount(defaultPreset.frameCount);
     setFrames([]);
     setErrors([]);
-    setStatusMessage('Canvas cleared');
   }, []);
 
-  return (
-    <div className="pixel-art-generator-tool">
-      <MainContent>
-        <SplitLayout
-          left={
-            <Panel title="LUA PIXEL SCRIPT" className="script-panel">
-              <PixelArtCodeEditor
-                value={script}
-                onChange={setScript}
-                onExecute={executeScript}
-                onClear={clearCanvas}
-                onExport={() => setIsExportModalOpen(true)}
-                errors={errors}
-                frameCount={frameCount}
-                onFrameCountChange={handleFrameCountChange}
-                canvasWidth={canvasWidth}
-                onCanvasWidthChange={setCanvasWidth}
-                canvasHeight={canvasHeight}
-                onCanvasHeightChange={setCanvasHeight}
-                isExecuting={isExecuting}
-                canExport={currentCanvas !== null || frames.length > 0}
-                className="pixel-script-editor"
-              />
-
-            </Panel>
-          }
-          right={
-            <Panel title="PIXEL ART PREVIEW" className="preview-panel">
-              <PixelArtPreview
-                frames={frames}
-                currentCanvas={currentCanvas || undefined}
-                showAnimation={frameCount > 1}
-                animationSpeed={50}
-                className="main-preview"
-              />
-            </Panel>
-          }
-        />
-      </MainContent>
-
-      <div className="tool-status">
-        <div className="status-left">
-          <div className="status-item">
-            <span>Pixel Art Generator</span>
+  // Create left panel (Code Editor & Settings)
+  const leftPanel = (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div style={{
+        padding: 'var(--ds-spacing-sm)',
+        borderBottom: '1px solid var(--ds-color-border-muted)',
+        backgroundColor: 'var(--ds-color-background-secondary)'
+      }}>
+        {/* Preset controls row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-lg)', marginBottom: 'var(--ds-spacing-sm)' }}>
+          <Select
+            label="Preset"
+            value={currentPreset}
+            onChange={(e) => handlePresetChange(e.target.value)}
+            size="sm"
+            style={{ minWidth: '200px' }}
+            options={PIXEL_ART_PRESETS.map(preset => ({
+              value: preset.id,
+              label: preset.name
+            }))}
+          />
+          <Button
+            variant="secondary"
+            onClick={handleResetScript}
+            size="sm"
+          >
+            Reset
+          </Button>
+          {/* Show current preset description */}
+          <div style={{ 
+            fontSize: 'var(--ds-font-size-sm)', 
+            color: 'var(--ds-color-text-muted)',
+            fontStyle: 'italic',
+            maxWidth: '300px'
+          }}>
+            {(() => {
+              const preset = getPresetById(currentPreset);
+              return preset ? preset.description : '';
+            })()}
           </div>
-          {executionTime && (
-            <div className="status-item success">
-              <span>Execution: {executionTime.toFixed(1)}ms</span>
-            </div>
-          )}
-          {frameCount > 1 && (
-            <div className="status-item">
-              <span>Animation: {frameCount} frames</span>
-            </div>
-          )}
         </div>
-        <div className="status-right">
-          <div className="status-item">
-            <span>{isExecuting ? 'Generating...' : statusMessage}</span>
-          </div>
+        
+        {/* Canvas and generation controls row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-lg)' }}>
+          <Input
+            label="Width"
+            labelPosition="left"
+            type="number"
+            value={canvas.width}
+            onChange={(e) => handleCanvasSizeChange('width', parseInt(e.target.value) || 128)}
+            min={1}
+            max={255}
+            size="sm"
+            style={{ width: '120px' }}
+          />
+          <Input
+            label="Height"
+            labelPosition="left"
+            type="number"
+            value={canvas.height}
+            onChange={(e) => handleCanvasSizeChange('height', parseInt(e.target.value) || 127)}
+            min={1}
+            max={255}
+            size="sm"
+            style={{ width: '120px' }}
+          />
+          <Input
+            label="Frame Count"
+            labelPosition="left"
+            type="number"
+            value={frameCount}
+            onChange={(e) => setFrameCount(Math.max(1, parseInt(e.target.value) || 1))}
+            min={1}
+            max={1000}
+            size="sm"
+            style={{ width: '120px' }}
+          />
+          <Button
+            variant="primary"
+            onClick={generateFrames}
+            disabled={isGenerating}
+          >
+            {isGenerating ? 'Generating...' : 'Generate'}
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => setIsExportModalOpen(true)}
+            disabled={frames.length === 0}
+          >
+            Export
+          </Button>
         </div>
       </div>
 
-      <PixelArtExportModal
-        frames={frames}
-        currentCanvas={currentCanvas || undefined}
-        pixelService={pixelService}
-        isOpen={isExportModalOpen}
-        onClose={() => setIsExportModalOpen(false)}
-      />
+      <div style={{ flex: 1, padding: 'var(--ds-spacing-sm)', overflow: 'hidden' }}>
+        <PixelArtEditor
+          value={script}
+          onChange={setScript}
+          onExecute={generateFrames}
+          errors={errors}
+        />
+      </div>
+
+      {errors.length > 0 && (
+        <div style={{ padding: 'var(--ds-spacing-sm)', borderTop: '1px solid var(--ds-color-border-muted)' }}>
+          {errors.map((error, index) => (
+            <StatusIndicator key={index} variant="error" style={{ marginBottom: 'var(--ds-spacing-sm)' }}>
+              {error.line && <span>Line {error.line}: </span>}
+              {error.message}
+            </StatusIndicator>
+          ))}
+        </div>
+      )}
     </div>
+  );
+
+  // Create right panel (Preview)
+  const rightPanel = (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, padding: 'var(--ds-spacing-sm)', overflow: 'hidden' }}>
+        <Card style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <CardHeader>Pixel Art Preview</CardHeader>
+          <CardBody style={{ flex: 1, overflow: 'hidden' }}>
+            <PixelArtPreview
+              frames={frames}
+              currentCanvas={canvas}
+              showAnimation={true}
+            />
+          </CardBody>
+        </Card>
+      </div>
+    </div>
+  );
+
+  // Create status bar content
+  const statusBar = (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+      <div style={{ display: 'flex', gap: 'var(--ds-spacing-lg)', alignItems: 'center' }}>
+        <span>Pixel Art Generator</span>
+        <span style={{ color: 'var(--ds-color-text-muted)' }}>
+          Preset: {(() => {
+            const preset = getPresetById(currentPreset);
+            return preset ? preset.name : 'Unknown';
+          })()}
+        </span>
+        {frames.length > 0 && (
+          <span style={{ color: 'var(--ds-color-success)' }}>
+            Generated: {frames.length} frames • {canvas.width}×{canvas.height} pixels
+          </span>
+        )}
+        {isGenerating && (
+          <span style={{ color: 'var(--ds-color-warning)' }}>Generating pixel art...</span>
+        )}
+        {errors.length > 0 && (
+          <span style={{ color: 'var(--ds-color-error)' }}>{errors.length} error{errors.length !== 1 ? 's' : ''}</span>
+        )}
+      </div>
+      <div>
+        <span>
+          {frames.length > 0
+            ? `Frame ${currentFrame + 1} of ${frames.length}`
+            : 'No frames'
+          }
+        </span>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      <ToolLayout
+        panels={{
+          left: leftPanel,
+          right: rightPanel
+        }}
+        statusBar={statusBar}
+      />
+
+      {isExportModalOpen && pixelService && (
+        <PixelArtExportModal
+          frames={frames}
+          currentCanvas={canvas}
+          pixelService={pixelService}
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+        />
+      )}
+    </>
   );
 };

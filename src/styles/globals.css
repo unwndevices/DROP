@@ -33,7 +33,7 @@
   --color-info-rgb: 59, 130, 246;
   --color-border-muted-rgb: var(--initial-accent-dark-rgb, 158, 190, 14);
 
-  --font-mono: 'Fira Mono', 'Monaco', 'Consolas', 'Courier New', monospace;
+  --font-mono: 'Geist Mono', 'Fira Mono', 'Monaco', 'Consolas', 'Courier New', monospace;
 
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -340,16 +340,10 @@ select {
   background: var(--color-background-secondary);
   border: 1px solid var(--color-border-muted);
   color: var(--color-text-primary);
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: 0.875rem;
+  font-size: var(--ds-font-size-md);
   border-radius: var(--border-radius-md);
   transition: all var(--transition-fast);
   width: 100%;
-}
-
-/* Fix number input spinner overlap */
-input[type="number"] {
-  padding-right: calc(var(--spacing-md) + 20px); /* Extra space for spinner */
 }
 
 .input:focus,
@@ -378,26 +372,15 @@ select:disabled {
   font-size: 0.7rem;
 }
 
-.input-xs[type="number"] {
-  padding-right: calc(var(--spacing-xs) + 18px);
-}
 
 .input-sm {
   padding: var(--spacing-xs) var(--spacing-sm);
   font-size: 0.75rem;
 }
 
-.input-sm[type="number"] {
-  padding-right: calc(var(--spacing-sm) + 18px);
-}
-
 .input-lg {
   padding: var(--spacing-md) var(--spacing-lg);
   font-size: 1rem;
-}
-
-.input-lg[type="number"] {
-  padding-right: calc(var(--spacing-lg) + 22px);
 }
 
 /* Input variants */
@@ -439,13 +422,13 @@ select {
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
-  background: transparent;
   cursor: pointer;
   padding: 0;
+  background: var(--color-text-tertiary);
 }
 
 input[type="range"]::-webkit-slider-track {
-  background: var(--color-background-tertiary);
+  background: var(--color-text-tertiary);
   height: 4px;
   border-radius: var(--border-radius-sm);
 }

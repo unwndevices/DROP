@@ -1,8 +1,18 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { SimpleSpectrumChart } from '../../components/Visualizer/SimpleSpectrumChart';
-import { MainContent, SplitLayout, Panel } from '../../components/Layout/MainContent';
 import { DatumFileService } from '../../services/DatumPersistence/DatumFileService';
 import type { Datum } from '../../services/DataModel/types';
+
+// Import design system components
+import { 
+  ToolLayout, 
+  Button, 
+  Card, 
+  CardHeader, 
+  CardBody, 
+  StatusIndicator,
+  Timeline
+} from '../../design-system';
 
 export const DatumViewer: React.FC = () => {
   const [spectralData, setSpectralData] = useState<Datum | null>(null);
@@ -10,6 +20,25 @@ export const DatumViewer: React.FC = () => {
   const [isImporting, setIsImporting] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  // Auto-play effect
+  useEffect(() => {
+    if (!isPlaying || !spectralData?.frames || spectralData.frames.length === 0) return;
+
+    const interval = setInterval(() => {
+      setCurrentFrame((prev) => {
+        const nextFrame = (prev + 1) % spectralData.frames.length;
+        // Stop playing when we reach the end and loop back to start
+        if (nextFrame === 0 && prev === spectralData.frames.length - 1) {
+          setIsPlaying(false);
+        }
+        return nextFrame;
+      });
+    }, 100); // 10 FPS
+
+    return () => clearInterval(interval);
+  }, [isPlaying, spectralData?.frames]);
 
   const handleImportDatum = useCallback(async () => {
     if (isImporting) return;
@@ -135,165 +164,187 @@ export const DatumViewer: React.FC = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  // Create left panel (File Information)
+  const leftPanel = (
+    <div className="p-3">
+      {!spectralData ? (
+        <Card>
+          <CardBody>
+            <div
+              className={`drop-zone ${dragActive ? 'active' : ''}`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
+              <div className="drop-zone-content">
+                <div className="drop-zone-icon">📁</div>
+                <h3>Drop datum files here</h3>
+                <p>or use the Import buttons in the header</p>
+                <div className="supported-formats">
+                  <small>Supported: .datum, .dat, .json</small>
+                </div>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>Datum Properties</CardHeader>
+          <CardBody>
+            <div className="info-grid">
+              <div className="info-item">
+                <label>Name:</label>
+                <span>{spectralData.name || 'Unnamed'}</span>
+              </div>
+              <div className="info-item">
+                <label>Frames:</label>
+                <span>{spectralData.frameCount.toLocaleString()}</span>
+              </div>
+              <div className="info-item">
+                <label>Bands:</label>
+                <span>{spectralData.bandCount}</span>
+              </div>
+            </div>
+
+            {spectralData.description && (
+              <div className="mt-3">
+                <h4>Description</h4>
+                <p>{spectralData.description}</p>
+              </div>
+            )}
+
+            <div className="mt-3">
+              <h4>Timestamps</h4>
+              <div className="info-grid">
+                {spectralData.createdAt && (
+                  <div className="info-item">
+                    <label>Created:</label>
+                    <span>{new Date(spectralData.createdAt).toLocaleString()}</span>
+                  </div>
+                )}
+                {spectralData.modifiedAt && (
+                  <div className="info-item">
+                    <label>Modified:</label>
+                    <span>{new Date(spectralData.modifiedAt).toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-3">
+              <h4>Statistics</h4>
+              <div className="info-grid">
+                <div className="info-item">
+                  <label>Data Points:</label>
+                  <span>{(spectralData.frameCount * spectralData.bandCount).toLocaleString()}</span>
+                </div>
+                <div className="info-item">
+                  <label>Memory Size:</label>
+                  <span>{formatFileSize(spectralData.frameCount * spectralData.bandCount * 4)}</span>
+                </div>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+      )}
+
+      {importError && (
+        <StatusIndicator variant="error" className="mt-3">
+          <strong>Import Error:</strong> {importError}
+        </StatusIndicator>
+      )}
+    </div>
+  );
+
+  // Create right panel (Spectral Preview)
+  const rightPanel = (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, padding: 'var(--ds-spacing-md)', overflow: 'hidden' }}>
+        <Card style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+          <CardHeader>Spectral Preview</CardHeader>
+          <CardBody style={{ flex: 1, overflow: 'hidden' }}>
+            <SimpleSpectrumChart
+              frames={spectralData?.frames || []}
+              currentFrame={currentFrame}
+              onFrameChange={setCurrentFrame}
+              showControls={false}
+              className={`${spectralData ? '' : 'empty'} ${isImporting ? 'loading' : ''}`}
+            />
+          </CardBody>
+        </Card>
+      </div>
+      
+      {/* Timeline Controls */}
+      <Timeline
+        currentFrame={currentFrame}
+        totalFrames={spectralData?.frameCount || 0}
+        isPlaying={isPlaying}
+        onFrameChange={setCurrentFrame}
+        onPlayToggle={() => setIsPlaying(!isPlaying)}
+        disabled={!spectralData || isImporting}
+      />
+    </div>
+  );
+
+  // Create status bar content
+  const statusBar = (
+    <div className="flex justify-between items-center w-full">
+      <div className="flex gap-4 items-center">
+        <span>Datum Viewer</span>
+        {spectralData && (
+          <span className="text-success">
+            Loaded: {spectralData.name || 'Unnamed'} ({spectralData.frameCount}f × {spectralData.bandCount}b)
+          </span>
+        )}
+        {importError && (
+          <span className="text-error">Error: {importError}</span>
+        )}
+        {isImporting && (
+          <span className="text-warning">Importing datum...</span>
+        )}
+      </div>
+      <div>
+        <span>{isImporting ? 'Loading' : spectralData ? 'Loaded' : 'Ready'}</span>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="datum-viewer-tool">
-      <div className="datum-viewer-header">
-        <div className="tool-actions">
-          <button
+    <ToolLayout
+      header={{
+        actions: [
+          <Button
+            key="import"
+            variant="primary"
             onClick={handleImportDatum}
-            className="tool-button primary btn-primary"
             disabled={isImporting}
           >
             {isImporting ? 'Importing...' : 'Import Datum'}
-          </button>
-          <button
+          </Button>,
+          <Button
+            key="json"
+            variant="secondary"
             onClick={handleImportFromJson}
-            className="tool-button btn-secondary"
             disabled={isImporting}
           >
             Import JSON
-          </button>
-          {spectralData && (
-            <button
+          </Button>,
+          ...(spectralData ? [
+            <Button
+              key="clear"
+              variant="secondary"
               onClick={handleClearData}
-              className="tool-button secondary btn-secondary"
             >
               Clear
-            </button>
-          )}
-        </div>
-      </div>
-
-      <MainContent>
-        <SplitLayout
-          left={
-            <Panel title="File Information" className="file-info">
-              {!spectralData ? (
-                <div
-                  className={`drop-zone ${dragActive ? 'active' : ''}`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                >
-                  <div className="drop-zone-content">
-                    <div className="drop-zone-icon">📁</div>
-                    <h3>Drop datum files here</h3>
-                    <p>or use the Import buttons above</p>
-                    <div className="supported-formats">
-                      <small>Supported: .datum, .dat, .json</small>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="datum-info">
-                  <div className="info-section">
-                    <h3>Datum Properties</h3>
-                    <div className="info-grid">
-                      <div className="info-item">
-                        <label>Name:</label>
-                        <span>{spectralData.name || 'Unnamed'}</span>
-                      </div>
-                      <div className="info-item">
-                        <label>Frames:</label>
-                        <span>{spectralData.frameCount.toLocaleString()}</span>
-                      </div>
-                      <div className="info-item">
-                        <label>Bands:</label>
-                        <span>{spectralData.bandCount}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {spectralData.description && (
-                    <div className="info-section">
-                      <h3>Description</h3>
-                      <p>{spectralData.description}</p>
-                    </div>
-                  )}
-
-                  <div className="info-section">
-                    <h3>Timestamps</h3>
-                    <div className="info-grid">
-                      {spectralData.createdAt && (
-                        <div className="info-item">
-                          <label>Created:</label>
-                          <span>{new Date(spectralData.createdAt).toLocaleString()}</span>
-                        </div>
-                      )}
-                      {spectralData.modifiedAt && (
-                        <div className="info-item">
-                          <label>Modified:</label>
-                          <span>{new Date(spectralData.modifiedAt).toLocaleString()}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="info-section">
-                    <h3>Statistics</h3>
-                    <div className="info-grid">
-                      <div className="info-item">
-                        <label>Data Points:</label>
-                        <span>{(spectralData.frameCount * spectralData.bandCount).toLocaleString()}</span>
-                      </div>
-                      <div className="info-item">
-                        <label>Memory Size:</label>
-                        <span>{formatFileSize(spectralData.frameCount * spectralData.bandCount * 4)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {importError && (
-                <div className="import-error">
-                  <h4>Import Error</h4>
-                  <p>{importError}</p>
-                </div>
-              )}
-            </Panel>
-          }
-          right={
-            <Panel title="Spectral Preview" className="visualizer">
-              <SimpleSpectrumChart
-                frames={spectralData?.frames || []}
-                currentFrame={currentFrame}
-                onFrameChange={setCurrentFrame}
-                className={`${spectralData ? '' : 'empty'} ${isImporting ? 'loading' : ''}`}
-              />
-            </Panel>
-          }
-        />
-      </MainContent>
-
-      <div className="tool-status">
-        <div className="status-left">
-          <div className="status-item">
-            <span>Datum Viewer</span>
-          </div>
-          {spectralData && (
-            <div className="status-item success">
-              <span>Loaded: {spectralData.name || 'Unnamed'} ({spectralData.frameCount}f × {spectralData.bandCount}b)</span>
-            </div>
-          )}
-          {importError && (
-            <div className="status-item error">
-              <span>Error: {importError}</span>
-            </div>
-          )}
-          {isImporting && (
-            <div className="status-item executing">
-              <span>Importing datum...</span>
-            </div>
-          )}
-        </div>
-        <div className="status-right">
-          <div className="status-item">
-            <span>{isImporting ? 'Loading' : spectralData ? 'Loaded' : 'Ready'}</span>
-          </div>
-        </div>
-      </div>
-    </div>
+            </Button>
+          ] : [])
+        ]
+      }}
+      panels={{
+        left: leftPanel,
+        right: rightPanel
+      }}
+      statusBar={statusBar}
+    />
   );
 };

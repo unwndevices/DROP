@@ -9,13 +9,15 @@ interface SimpleSpectrumChartProps {
   currentFrame: number;
   onFrameChange: (frame: number) => void;
   className?: string;
+  showControls?: boolean;
 }
 
 export const SimpleSpectrumChart: React.FC<SimpleSpectrumChartProps> = ({
   frames,
   currentFrame,
   onFrameChange,
-  className = ''
+  className = '',
+  showControls = true
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isPlaying, setIsPlaying] = useState(() => {
@@ -240,29 +242,31 @@ export const SimpleSpectrumChart: React.FC<SimpleSpectrumChartProps> = ({
         </div>
       </div>
 
-      <div className="drop-simple-controls">
-        <button
-          className="drop-play-button btn-primary"
-          onClick={() => setIsPlaying(!isPlaying)}
-          title={isPlaying ? 'Pause' : 'Play'}
-        >
-          {isPlaying ? <FaPause /> : <FaPlay />}
-        </button>
-        
-        <div className="drop-frame-controls">
-          <span className="drop-frame-info">
-            Frame: {currentFrame + 1}/{frameCount}
-          </span>
-          <input
-            type="range"
-            className="drop-frame-slider"
-            min="0"
-            max={Math.max(0, frameCount - 1)}
-            value={currentFrame}
-            onChange={(e) => onFrameChange(parseInt(e.target.value))}
-          />
+      {showControls && (
+        <div className="drop-simple-controls">
+          <button
+            className="drop-play-button btn-primary"
+            onClick={() => setIsPlaying(!isPlaying)}
+            title={isPlaying ? 'Pause' : 'Play'}
+          >
+            {isPlaying ? <FaPause /> : <FaPlay />}
+          </button>
+          
+          <div className="drop-frame-controls">
+            <span className="drop-frame-info">
+              Frame: {currentFrame + 1}/{frameCount}
+            </span>
+            <input
+              type="range"
+              className="drop-frame-slider"
+              min="0"
+              max={Math.max(0, frameCount - 1)}
+              value={currentFrame}
+              onChange={(e) => onFrameChange(parseInt(e.target.value))}
+            />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }; 

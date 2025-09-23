@@ -1,8 +1,15 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { MainContent, SplitLayout, Panel } from '../../components/Layout/MainContent';
 import { DeviceConnectionPanel, RealTimeDataChart } from '../../components/DeviceBridge';
 import { DeviceService } from '../../services/DeviceBridge/DeviceService';
 import type { DeviceInfo, RealTimeData } from '../../services/DeviceBridge/types';
+
+// Import design system components
+import { 
+  ToolLayout, 
+  Card, 
+  CardHeader, 
+  CardBody
+} from '../../design-system';
 
 // Singleton DeviceService instance
 let deviceServiceInstance: DeviceService | null = null;
@@ -113,88 +120,134 @@ export const DeviceBridge: React.FC = () => {
     return 'Over 1h ago';
   };
 
-  return (
-    <div className="device-bridge-tool">
-      <MainContent>
-        <SplitLayout
-          left={
-            <Panel title="DEVICE CONNECTION" className="device-panel">
-              <DeviceConnectionPanel deviceService={deviceService} />
-            </Panel>
-          }
-        
-        right={
-          <Panel title="REAL-TIME DATA" className="visualization-panel">
-            <RealTimeDataChart 
-              deviceService={deviceService}
-              className="main-chart"
-            />
-            
-            {connectionCount === 0 && (
-              <div className="no-data-state">
-                <div className="no-data-content">
-                  <div className="no-data-icon">📡</div>
-                  <h3>No Device Connected</h3>
-                  <p>
-                    Connect your Eisei device to see real-time spectral data, 
-                    performance metrics, and interactive parameter controls.
-                  </p>
-                  <div className="supported-devices">
-                    <h4>Supported Devices:</h4>
-                    <ul>
-                      <li>Eisei ESP32-S3 Audio Processor</li>
-                      <li>Eisei Daisy Seed Audio Engine</li>
-                      <li>Custom hardware with compatible protocol</li>
-                    </ul>
-                  </div>
+  // Create left panel (Device Connection)
+  const leftPanel = (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Card style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <CardHeader>Device Connection</CardHeader>
+        <CardBody style={{ flex: 1 }}>
+          <DeviceConnectionPanel deviceService={deviceService} />
+        </CardBody>
+      </Card>
+    </div>
+  );
+
+  // Create right panel (Real-Time Data)
+  const rightPanel = (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-md)' }}>
+      <Card style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <CardHeader>Real-Time Data</CardHeader>
+        <CardBody style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          {connectionCount === 0 ? (
+            <div style={{ 
+              flex: 1, 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              textAlign: 'center',
+              padding: 'var(--ds-spacing-xl)'
+            }}>
+              <div>
+                <div style={{ fontSize: '4rem', marginBottom: 'var(--ds-spacing-md)' }}>📡</div>
+                <h3 style={{ marginBottom: 'var(--ds-spacing-sm)' }}>No Device Connected</h3>
+                <p style={{ 
+                  color: 'var(--ds-color-text-secondary)', 
+                  marginBottom: 'var(--ds-spacing-lg)',
+                  maxWidth: '400px'
+                }}>
+                  Connect your Eisei device to see real-time spectral data, 
+                  performance metrics, and interactive parameter controls.
+                </p>
+                <div style={{ textAlign: 'left' }}>
+                  <h4 style={{ marginBottom: 'var(--ds-spacing-sm)' }}>Supported Devices:</h4>
+                  <ul style={{ 
+                    color: 'var(--ds-color-text-secondary)',
+                    paddingLeft: 'var(--ds-spacing-lg)'
+                  }}>
+                    <li>Eisei ESP32-S3 Audio Processor</li>
+                    <li>Eisei Daisy Seed Audio Engine</li>
+                    <li>Custom hardware with compatible protocol</li>
+                  </ul>
                 </div>
               </div>
-            )}
+            </div>
+          ) : (
+            <div style={{ flex: 1, overflow: 'hidden' }}>
+              <RealTimeDataChart 
+                deviceService={deviceService}
+                className="main-chart"
+              />
+            </div>
+          )}
+        </CardBody>
+      </Card>
 
-            {deviceInfo && (
-              <div className="device-capabilities">
-                <h4>Device Capabilities</h4>
-                <div className="capabilities-grid">
-                  {deviceInfo.capabilities.map((capability, index) => (
-                    <div key={index} className="capability-tag">
-                      {capability}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </Panel>
-        }
-      />
-    </MainContent>
+      {deviceInfo && (
+        <Card>
+          <CardHeader>Device Capabilities</CardHeader>
+          <CardBody>
+            <div style={{ 
+              display: 'flex', 
+              flexWrap: 'wrap', 
+              gap: 'var(--ds-spacing-xs)' 
+            }}>
+              {deviceInfo.capabilities.map((capability, index) => (
+                <span
+                  key={index}
+                  style={{
+                    display: 'inline-block',
+                    padding: 'var(--ds-spacing-xs) var(--ds-spacing-sm)',
+                    backgroundColor: 'var(--ds-color-background-tertiary)',
+                    border: '1px solid var(--ds-color-border-muted)',
+                    borderRadius: 'var(--ds-border-radius-sm)',
+                    fontSize: 'var(--ds-font-size-xs)',
+                    color: 'var(--ds-color-text-secondary)'
+                  }}
+                >
+                  {capability}
+                </span>
+              ))}
+            </div>
+          </CardBody>
+        </Card>
+      )}
+    </div>
+  );
 
-    <div className="tool-status">
-      <div className="status-left">
-        <div className="status-item">
-          <span>Device Bridge</span>
-        </div>
+  // Create status bar content
+  const statusBar = (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+      <div style={{ display: 'flex', gap: 'var(--ds-spacing-lg)', alignItems: 'center' }}>
+        <span>Device Bridge</span>
         {connectionCount > 0 && (
-          <div className="status-item success">
-            <span>Status: {statusMessage}</span>
-          </div>
+          <span style={{ color: 'var(--ds-color-success)' }}>
+            Status: {statusMessage}
+          </span>
         )}
         {deviceInfo && (
-          <div className="status-item success">
-            <span>Device: {deviceInfo.name} v{deviceInfo.version}</span>
-          </div>
+          <span style={{ color: 'var(--ds-color-success)' }}>
+            Device: {deviceInfo.name} v{deviceInfo.version}
+          </span>
         )}
         {lastDataUpdate && (
-          <div className="status-item">
-            <span>Data: {formatLastUpdate()}</span>
-          </div>
+          <span style={{ color: 'var(--ds-color-info)' }}>
+            Data: {formatLastUpdate()}
+          </span>
         )}
       </div>
-      <div className="status-right">
-        <div className="status-item">
-          <span>{connectionCount > 0 ? 'Connected' : 'Ready'}</span>
-        </div>
+      <div>
+        <span>{connectionCount > 0 ? 'Connected' : 'Ready'}</span>
       </div>
     </div>
-  </div>
+  );
+
+  return (
+    <ToolLayout
+      panels={{
+        left: leftPanel,
+        right: rightPanel
+      }}
+      statusBar={statusBar}
+    />
   );
 };

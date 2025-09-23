@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test enjin2 WebAssembly</title>
+</head>
+<body>
+    <h1>Testing enjin2 WebAssembly Module</h1>
+    <div id="output"></div>
+    <canvas id="canvas" width="128" height="128" style="border: 1px solid black; image-rendering: pixelated; width: 256px; height: 256px;"></canvas>
+    
+    <script type="module">
+        const output = document.getElementById('output');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        function log(message) {
+            output.innerHTML += message + '<br>';
+            console.log(message);
+        }
+        
+        try {
+            log('Loading enjin2 WebAssembly module...');
+            
+            // Load the enjin2 module from public directory
+            const script = document.createElement('script');
+            script.src = '/enjin2.js';
+            script.type = 'module';
+            
+            script.onload = async () => {
+                try {
+                    log('Script loaded, waiting for Enjin2Module...');
+                    
+                    // Wait for the module to be available
+                    let attempts = 0;
+                    while (!window.Enjin2Module && attempts < 50) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        attempts++;
+                    }
+                    
+                    if (!window.Enjin2Module) {
+                        throw new Error('Enjin2Module not found after loading');
+                    }
+                    
+                    log('Creating enjin2 module instance...');
+                    const enjin2Module = await window.Enjin2Module();
+                    
+                    log('Module loaded successfully! Available constructors:');
+                    log('- Canvas4_128x128: ' + (enjin2Module.Canvas4_128x128 ? 'available' : 'missing'));
+                    log('- LuaScriptSystem: ' + (enjin2Module.LuaScriptSystem ? 'available' : 'missing'));
+                    log('- createLuaCanvas128: ' + (enjin2Module.createLuaCanvas128 ? 'available' : 'missing'));
+                    
+                    // Test Canvas4_128x128
+                    log('Testing Canvas4_128x128...');
+                    const canvas4 = new enjin2Module.Canvas4_128x128();
+                    log('Canvas created successfully');
+                    
+                    // Test clear with number parameter
+                    log('Testing clear(0)...');
+                    canvas4.clear(0);
+                    log('Clear successful');
+                    
+                    // Test setPixel
+                    log('Testing setPixel...');
+                    canvas4.setPixel(10, 10, 15);
+                    canvas4.setPixel(20, 20, 8);
+                    canvas4.setPixel(30, 30, 4);
+                    log('SetPixel successful');
+                    
+                    // Test getPixel
+                    log('Testing getPixel...');
+                    const pixel = canvas4.getPixel(10, 10);
+                    log('Pixel at (10,10): ' + pixel);
+                    
+                    // Test LuaScriptSystem
+                    log('Testing LuaScriptSystem...');
+                    const scriptSystem = new enjin2Module.LuaScriptSystem();
+                    const initialized = scriptSystem.initialize();
+                    log('Lua initialized: ' + initialized);
+                    
+                    if (initialized) {
+                        // Test basic Lua execution
+                        const result = scriptSystem.executeScript('return 2 + 2');
+                        log('Lua test result: success=' + result.success + ', error=' + result.error);
+                    }
+                    
+                    // Render canvas to HTML canvas
+                    log('Rendering to HTML canvas...');
+                    const canvasData = enjin2Module.getCanvasData128(canvas4);
+                    const imageData = ctx.createImageData(128, 128);
+                    
+                    for (let i = 0; i < canvasData.length; i++) {
+                        const gray = canvasData[i] * 17; // Convert 4-bit to 8-bit
+                        const pixelIndex = i * 4;
+                        imageData.data[pixelIndex] = gray;     // Red
+                        imageData.data[pixelIndex + 1] = gray; // Green  
+                        imageData.data[pixelIndex + 2] = gray; // Blue
+                        imageData.data[pixelIndex + 3] = 255;  // Alpha
+                    }
+                    
+                    ctx.putImageData(imageData, 0, 0);
+                    log('Rendering complete - you should see white pixels on black background');
+                    
+                } catch (error) {
+                    log('Error: ' + error.message);
+                    console.error(error);
+                }
+            };
+            
+            script.onerror = () => {
+                log('Failed to load enjin2.js script');
+            };
+            
+            document.head.appendChild(script);
+            
+        } catch (error) {
+            log('Error: ' + error.message);
+            console.error(error);
+        }
+    </script>
+</body>
+</html>

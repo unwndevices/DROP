@@ -43,6 +43,11 @@
   letter-spacing: 0.5px;
 }
 
+.accent-letter {
+  color: var(--color-amber);
+  font-weight: 700;
+}
+
 .navbar-tools {
   flex: 1;
   padding: var(--spacing-md) 0;

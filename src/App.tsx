@@ -17,13 +17,9 @@ import { pwaService } from './services/PWAService';
 import { debugLuaGlobals } from './debug-lua-globals';
 import './styles/globals.css';
 import './components/Navigation/VerticalNavbar.css';
-import './tools/spectral-analysis/SpectralAnalysis.css';
-import './tools/datum-viewer/DatumViewer.css';
 import './tools/esp32-flasher/ESP32Flasher.css';
 import './tools/daisy-flasher/DaisyFlasher.css';
-import './tools/ui-graphics/UIGraphicsConverter.css';
 import './tools/device-bridge/DeviceBridge.css';
-import './tools/pixel-art-generator/PixelArtGenerator.css';
 
 // Tools configuration
 const TOOLS: Tool[] = [
@@ -65,6 +61,7 @@ const AppContent: React.FC = () => {
     return TOOLS.find(tool => tool.id === savedToolId) || TOOLS[0];
   });
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isNavbarVisible, setIsNavbarVisible] = useState(true);
 
   const handleToolChange = useCallback((tool: Tool) => {
     setActiveTool(tool);
@@ -87,6 +84,10 @@ const AppContent: React.FC = () => {
 
   const handleCloseSettings = useCallback(() => {
     setIsSettingsOpen(false);
+  }, []);
+
+  const handleToggleNavbar = useCallback(() => {
+    setIsNavbarVisible(prev => !prev);
   }, []);
 
   const handleToggleBiggerEditor = useCallback(() => {
@@ -115,15 +116,19 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="drop-app">
-      <VerticalNavbar
-        tools={TOOLS}
-        activeTool={activeTool}
-        onToolChange={handleToolChange}
-      />
+      {isNavbarVisible && (
+        <VerticalNavbar
+          tools={TOOLS}
+          activeTool={activeTool}
+          onToolChange={handleToolChange}
+        />
+      )}
 
       <div className="app-with-navbar">
         <Header
           onSettings={handleSettings}
+          onToolsToggle={handleToggleNavbar}
+          isNavbarVisible={isNavbarVisible}
           toolName={activeTool.name}
           toolDescription={activeTool.description}
         />

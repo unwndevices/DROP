@@ -15,6 +15,20 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Path mapping */
+    "baseUrl": ".",
+    "paths": {
+      "@/design-system/*": ["src/design-system/*"],
+      "@/components/*": ["src/components/*"],
+      "@/tools/*": ["src/tools/*"],
+      "@/services/*": ["src/services/*"],
+      "@/styles/*": ["src/styles/*"],
+      "@/contexts/*": ["src/contexts/*"],
+      "@/hooks/*": ["src/hooks/*"],
+      "@/utils/*": ["src/utils/*"],
+      "@/types/*": ["src/types/*"]
+    },
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,

@@ -1,0 +1,107 @@
+/* Unified CodeEditor Component Styles */
+
+.unified-code-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--ds-color-background);
+  border: 1px solid var(--ds-color-border-muted);
+  border-radius: var(--ds-border-radius-md);
+  overflow: hidden;
+}
+
+.unified-code-editor .cm-editor {
+  height: 100% !important;
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-font-size-sm);
+}
+
+.unified-code-editor .cm-editor.cm-focused {
+  height: 100% !important;
+}
+
+.unified-code-editor .cm-scroller {
+  height: 100% !important;
+}
+
+.unified-code-editor .cm-content {
+  padding: var(--ds-spacing-sm);
+}
+
+.unified-code-editor .cm-focused {
+  outline: none;
+  border-color: var(--ds-color-accent);
+  box-shadow: var(--ds-shadow-glow);
+}
+
+/* Editor controls for legacy compatibility */
+.editor-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--ds-spacing-sm) var(--ds-spacing-sm);
+  background: var(--ds-color-background-secondary);
+  border-top: 1px solid var(--ds-color-border-muted);
+  gap: var(--ds-spacing-sm);
+}
+
+.frame-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-spacing-sm);
+}
+
+.frame-controls label {
+  font-size: var(--ds-font-size-sm);
+  color: var(--ds-color-text-secondary);
+  white-space: nowrap;
+}
+
+.frame-controls input {
+  width: 100px;
+}
+
+/* Error display */
+.editor-errors {
+  max-height: 30vh;
+  overflow-y: auto;
+  background: var(--ds-color-background-secondary);
+  border-top: 1px solid var(--ds-color-border-muted);
+}
+
+.editor-error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-spacing-sm);
+  padding: var(--ds-spacing-sm) var(--ds-spacing-sm);
+  border-bottom: 1px solid var(--ds-color-border-muted);
+  font-size: var(--ds-font-size-sm);
+}
+
+.editor-error:last-child {
+  border-bottom: none;
+}
+
+.error-line {
+  color: var(--ds-color-error);
+  font-weight: var(--ds-font-weight-semibold);
+  white-space: nowrap;
+}
+
+.error-message {
+  color: var(--ds-color-text-secondary);
+  line-height: 1.4;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .editor-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--ds-spacing-sm);
+  }
+
+  .frame-controls {
+    justify-content: space-between;
+  }
+}
