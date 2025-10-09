@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Play, Pause, Code } from 'lucide-react';
 import * as Slider from '@radix-ui/react-slider';
 
@@ -24,9 +24,31 @@ const PREVIEW_SCALE = 4;
 const STORAGE_KEYS = {
   IMAGES: 'drop-ui-graphics-images',
   FPS: 'drop-ui-graphics-fps',
-  RANGE: 'drop-ui-graphics-range',
+  LEVELS: 'drop-ui-graphics-levels',
   FILENAME: 'drop-ui-graphics-filename',
   EXPORT_MODE: 'drop-ui-graphics-export-mode'
+};
+
+type LevelSettings = {
+  black: number;
+  gray: number;
+  white: number;
+};
+
+const DEFAULT_LEVELS: LevelSettings = {
+  black: 0,
+  gray: 128,
+  white: 255
+};
+
+const clampLevelValue = (value: number) => Math.min(Math.max(Math.round(value), 0), 255);
+
+const normalizeLevels = (incoming: LevelSettings): LevelSettings => {
+  const black = clampLevelValue(incoming.black);
+  const white = clampLevelValue(Math.max(incoming.white, incoming.black + 1));
+  const grayCandidate = clampLevelValue(incoming.gray);
+  const gray = Math.min(Math.max(grayCandidate, black), white);
+  return { black, gray, white };
 };
 
 export const UIGraphicsConverter: React.FC = () => {
@@ -37,9 +59,21 @@ export const UIGraphicsConverter: React.FC = () => {
     const savedFps = localStorage.getItem(STORAGE_KEYS.FPS);
     return savedFps ? parseInt(savedFps) : 12;
   });
-  const [range, setRange] = useState<[number, number]>(() => {
-    const savedRange = localStorage.getItem(STORAGE_KEYS.RANGE);
-    return savedRange ? JSON.parse(savedRange) : [0, 255];
+  const [levels, setLevels] = useState<LevelSettings>(() => {
+    const savedLevels = localStorage.getItem(STORAGE_KEYS.LEVELS);
+    if (savedLevels) {
+      try {
+        const parsed = JSON.parse(savedLevels) as Partial<LevelSettings>;
+        return normalizeLevels({
+          black: typeof parsed.black === 'number' ? parsed.black : DEFAULT_LEVELS.black,
+          gray: typeof parsed.gray === 'number' ? parsed.gray : DEFAULT_LEVELS.gray,
+          white: typeof parsed.white === 'number' ? parsed.white : DEFAULT_LEVELS.white
+        });
+      } catch {
+        return DEFAULT_LEVELS;
+      }
+    }
+    return DEFAULT_LEVELS;
   });
   const [filename, setFilename] = useState(() => {
     return localStorage.getItem(STORAGE_KEYS.FILENAME) || '';
@@ -57,14 +91,90 @@ export const UIGraphicsConverter: React.FC = () => {
   const currentFrameRef = useRef(0);
   const copyResetRef = useRef<number | null>(null);
 
+  const updateLevels = useCallback((partial: Partial<LevelSettings>) => {
+    setLevels((prev) => normalizeLevels({ ...prev, ...partial }));
+  }, []);
+
+  const mappedLevels = useMemo(() => {
+    return {
+      black: levels.black / 255,
+      gray: levels.gray / 255,
+      white: levels.white / 255
+    };
+  }, [levels]);
+
+  const remapGrayscale = useCallback(
+    (value: number) => {
+      const { black, gray, white } = mappedLevels;
+      const clampedInput = Math.min(Math.max(value, 0), 1);
+
+      if (clampedInput <= 0.5) {
+        const t = clampedInput / 0.5;
+        const result = black + t * (gray - black);
+        return Math.min(Math.max(result, 0), 1);
+      }
+
+      const t = (clampedInput - 0.5) / 0.5;
+      const result = gray + t * (white - gray);
+      return Math.min(Math.max(result, 0), 1);
+    },
+    [mappedLevels]
+  );
+
+  const applyLevelsToContext = useCallback(
+    (ctx: CanvasRenderingContext2D, width: number, height: number) => {
+      const imageData = ctx.getImageData(0, 0, width, height);
+      const data = imageData.data;
+
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const grayscale = 0.299 * r + 0.587 * g + 0.114 * b;
+        const normalized = grayscale / 255;
+        const adjusted = remapGrayscale(normalized);
+        const value = Math.round(adjusted * 255);
+        data[i] = value;
+        data[i + 1] = value;
+        data[i + 2] = value;
+      }
+
+      ctx.putImageData(imageData, 0, 0);
+    },
+    [remapGrayscale]
+  );
+
+  const levelSliderValues = useMemo(() => [levels.black, levels.gray, levels.white], [levels]);
+
+  const handleLevelSliderChange = useCallback(
+    (value: number[]) => {
+      if (value.length !== 3) return;
+      const [black, gray, white] = value.map(clampLevelValue);
+      updateLevels({ black, gray, white });
+    },
+    [updateLevels]
+  );
+
+  const handleLevelInputChange = useCallback(
+    (key: keyof LevelSettings) => (event: React.ChangeEvent<HTMLInputElement>) => {
+      const parsed = parseInt(event.target.value, 10);
+      if (Number.isNaN(parsed)) {
+        updateLevels({ [key]: 0 });
+        return;
+      }
+      updateLevels({ [key]: parsed });
+    },
+    [updateLevels]
+  );
+
   // Save settings to localStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.FPS, fps.toString());
   }, [fps]);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.RANGE, JSON.stringify(range));
-  }, [range]);
+    localStorage.setItem(STORAGE_KEYS.LEVELS, JSON.stringify(levels));
+  }, [levels]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.FILENAME, filename);
@@ -148,8 +258,9 @@ export const UIGraphicsConverter: React.FC = () => {
 
     if (currentImg) {
       ctx.drawImage(currentImg, 0, 0, targetWidth, targetHeight);
+      applyLevelsToContext(ctx, targetWidth, targetHeight);
     }
-  }, [displayFrame, images]);
+  }, [displayFrame, images, applyLevelsToContext]);
 
   useEffect(() => {
     drawFrame();
@@ -181,7 +292,6 @@ export const UIGraphicsConverter: React.FC = () => {
     }
 
     const baseFilename = (filename || '').trim() || DEFAULT_FILENAME;
-    const rangeSpan = Math.max(range[1] - range[0], 1);
     const fourBitFrames: Uint8Array[] = [];
     const oneBitFrames: Uint8Array[] = [];
 
@@ -222,22 +332,21 @@ export const UIGraphicsConverter: React.FC = () => {
     const oddWidthPadMask4Bit = frameWidth % 2 !== 0 ? 0xF0 : null;
     const unusedBitMask1Bit = frameWidth % 8 === 0 ? null : (1 << (8 - (frameWidth % 8))) - 1;
 
+    const grayThreshold = mappedLevels.gray;
+
     images.forEach((img) => {
       ctx.clearRect(0, 0, frameWidth, frameHeight);
       ctx.drawImage(img, 0, 0, frameWidth, frameHeight);
       const { data } = ctx.getImageData(0, 0, frameWidth, frameHeight);
-      const normalized = new Float32Array(frameWidth * frameHeight);
+      const adjusted = new Float32Array(frameWidth * frameHeight);
 
       for (let i = 0; i < data.length; i += 4) {
         const r = data[i];
         const g = data[i + 1];
         const b = data[i + 2];
         const grayscale = 0.299 * r + 0.587 * g + 0.114 * b;
-        const normalizedValue = Math.min(
-          Math.max((grayscale - range[0]) / rangeSpan, 0),
-          1
-        );
-        normalized[i / 4] = normalizedValue;
+        const normalizedValue = remapGrayscale(grayscale / 255);
+        adjusted[i / 4] = normalizedValue;
       }
 
       if (includePacked4Bit) {
@@ -246,7 +355,7 @@ export const UIGraphicsConverter: React.FC = () => {
           const srcRowOffset = y * frameWidth;
           const dstRowOffset = y * bytesPerRow4Bit;
           for (let x = 0; x < frameWidth; x++) {
-            const gray = normalized[srcRowOffset + x];
+            const gray = adjusted[srcRowOffset + x];
             const nibble = Math.min(Math.max(Math.round(gray * 15), 0), 15);
             const byteIndex = dstRowOffset + Math.floor(x / 2);
             if ((x & 1) === 0) {
@@ -271,7 +380,7 @@ export const UIGraphicsConverter: React.FC = () => {
           const dstRowOffset = y * bytesPerRow1Bit;
           for (let x = 0; x < frameWidth; x++) {
             const idx = rowOffset + x;
-            if (normalized[idx] >= 0.5) {
+            if (adjusted[idx] >= grayThreshold) {
               const byteIndex = dstRowOffset + Math.floor(x / 8);
               const bit = 7 - (x % 8);
               packed[byteIndex] |= 1 << bit;
@@ -295,7 +404,7 @@ export const UIGraphicsConverter: React.FC = () => {
     lines.push(`// Filename: ${baseFilename}`);
     lines.push(`// Frame count: ${images.length}`);
     lines.push(`// FPS: ${fps}`);
-    lines.push(`// Color range: ${range[0]}-${range[1]}`);
+    lines.push(`// Levels: black=${levels.black}, gray=${levels.gray}, white=${levels.white}`);
     lines.push('');
     lines.push('#include <stdint.h>');
     lines.push('');
@@ -421,28 +530,6 @@ export const UIGraphicsConverter: React.FC = () => {
             </Slider.Root>
           </div>
 
-          <div className="mb-3">
-            <label className="text-sm font-medium">Color Range: {range[0]} - {range[1]}</label>
-            <div className="flex gap-2">
-              <Input
-                type="number"
-                value={range[0]}
-                onChange={(e) => setRange([parseInt(e.target.value) || 0, range[1]])}
-                min={0}
-                max={255}
-                size="sm"
-              />
-              <Input
-                type="number"
-                value={range[1]}
-                onChange={(e) => setRange([range[0], parseInt(e.target.value) || 255])}
-                min={0}
-                max={255}
-                size="sm"
-              />
-            </div>
-          </div>
-
           <div className="flex gap-2">
             <Button
               variant="primary"
@@ -463,6 +550,67 @@ export const UIGraphicsConverter: React.FC = () => {
               <Code size={16} />
               Generate
             </Button>
+          </div>
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader>Level Controls</CardHeader>
+        <CardBody>
+          <div className="mb-3">
+            <label className="text-sm font-medium">Black / Gray / White</label>
+            <Slider.Root
+              className="relative flex items-center w-full h-5"
+              value={levelSliderValues}
+              onValueChange={handleLevelSliderChange}
+              max={255}
+              min={0}
+              step={1}
+              minStepsBetweenThumbs={1}
+            >
+              <Slider.Track className="bg-secondary relative grow h-1 rounded-full">
+                <Slider.Range className="absolute bg-accent h-full rounded-full" />
+              </Slider.Track>
+              {levelSliderValues.map((_, index) => (
+                <Slider.Thumb
+                  key={`level-thumb-${index}`}
+                  className="block w-3 h-3 bg-accent rounded-full focus:outline-none focus:shadow-glow"
+                />
+              ))}
+            </Slider.Root>
+            <small className="text-muted">
+              Adjust levels before packing to tune grayscale intensity across the animation.
+            </small>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2">
+            <Input
+              label="Black"
+              type="number"
+              value={levels.black}
+              onChange={handleLevelInputChange('black')}
+              min={0}
+              max={levels.gray}
+              size="sm"
+            />
+            <Input
+              label="Gray"
+              type="number"
+              value={levels.gray}
+              onChange={handleLevelInputChange('gray')}
+              min={levels.black}
+              max={levels.white}
+              size="sm"
+            />
+            <Input
+              label="White"
+              type="number"
+              value={levels.white}
+              onChange={handleLevelInputChange('white')}
+              min={levels.gray}
+              max={255}
+              size="sm"
+            />
           </div>
         </CardBody>
       </Card>
