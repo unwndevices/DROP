@@ -214,6 +214,14 @@ export const UIGraphicsConverter: React.FC = () => {
         .join('\n');
     };
 
+    const bytesPerRow4Bit = includePacked4Bit ? Math.ceil(frameWidth / 2) : 0;
+    const bytesPerFrame4Bit = includePacked4Bit ? bytesPerRow4Bit * frameHeight : 0;
+    const bytesPerRow1Bit = includePacked1Bit ? Math.ceil(frameWidth / 8) : 0;
+    const bytesPerFrame1Bit = includePacked1Bit ? bytesPerRow1Bit * frameHeight : 0;
+
+    const oddWidthPadMask4Bit = frameWidth % 2 !== 0 ? 0xF0 : null;
+    const unusedBitMask1Bit = frameWidth % 8 === 0 ? null : (1 << (8 - (frameWidth % 8))) - 1;
+
     images.forEach((img) => {
       ctx.clearRect(0, 0, frameWidth, frameHeight);
       ctx.drawImage(img, 0, 0, frameWidth, frameHeight);
@@ -233,26 +241,47 @@ export const UIGraphicsConverter: React.FC = () => {
       }
 
       if (includePacked4Bit) {
-        const packed = new Uint8Array(Math.ceil(normalized.length / 2));
-        for (let i = 0; i < normalized.length; i += 2) {
-          const high = Math.round(normalized[i] * 15);
-          const low = i + 1 < normalized.length ? Math.round(normalized[i + 1] * 15) : 0;
-          packed[i / 2] = (high << 4) | low;
+        const packed = new Uint8Array(bytesPerFrame4Bit);
+        for (let y = 0; y < frameHeight; y++) {
+          const srcRowOffset = y * frameWidth;
+          const dstRowOffset = y * bytesPerRow4Bit;
+          for (let x = 0; x < frameWidth; x++) {
+            const gray = normalized[srcRowOffset + x];
+            const nibble = Math.min(Math.max(Math.round(gray * 15), 0), 15);
+            const byteIndex = dstRowOffset + Math.floor(x / 2);
+            if ((x & 1) === 0) {
+              packed[byteIndex] = (packed[byteIndex] & 0x0F) | (nibble << 4);
+            } else {
+              packed[byteIndex] = (packed[byteIndex] & 0xF0) | nibble;
+            }
+          }
+
+          if (oddWidthPadMask4Bit !== null) {
+            const lastByteIndex = dstRowOffset + bytesPerRow4Bit - 1;
+            packed[lastByteIndex] &= oddWidthPadMask4Bit;
+          }
         }
         fourBitFrames.push(packed);
       }
 
       if (includePacked1Bit) {
-        const bytesPerRow = Math.ceil(frameWidth / 8);
-        const packed = new Uint8Array(bytesPerRow * frameHeight);
+        const packed = new Uint8Array(bytesPerFrame1Bit);
         for (let y = 0; y < frameHeight; y++) {
+          const rowOffset = y * frameWidth;
+          const dstRowOffset = y * bytesPerRow1Bit;
           for (let x = 0; x < frameWidth; x++) {
-            const idx = y * frameWidth + x;
+            const idx = rowOffset + x;
             if (normalized[idx] >= 0.5) {
-              const byteIndex = y * bytesPerRow + Math.floor(x / 8);
+              const byteIndex = dstRowOffset + Math.floor(x / 8);
               const bit = 7 - (x % 8);
               packed[byteIndex] |= 1 << bit;
             }
+          }
+
+          if (unusedBitMask1Bit !== null) {
+            const lastByteIndex = dstRowOffset + bytesPerRow1Bit - 1;
+            const clearMask = 0xFF ^ unusedBitMask1Bit;
+            packed[lastByteIndex] &= clearMask;
           }
         }
         oneBitFrames.push(packed);
@@ -276,8 +305,8 @@ export const UIGraphicsConverter: React.FC = () => {
     lines.push('');
 
     if (includePacked4Bit) {
-      const bytesPerFrame4Bit = Math.ceil(frameWidth * frameHeight / 2);
       const arrayName = `${identifierBase}_frames_4bit`;
+      lines.push(`static const uint16_t ${identifierBase}_frame_stride_4bit = ${bytesPerRow4Bit};`);
       lines.push(`static const uint16_t ${identifierBase}_frame_bytes_4bit = ${bytesPerFrame4Bit};`);
       lines.push(`// 4-bit packed frames (2 pixels per byte)`);
       lines.push(`static const uint8_t ${arrayName}[${images.length}][${bytesPerFrame4Bit}] = {`);
@@ -287,8 +316,6 @@ export const UIGraphicsConverter: React.FC = () => {
     }
 
     if (includePacked1Bit) {
-      const bytesPerRow1Bit = Math.ceil(frameWidth / 8);
-      const bytesPerFrame1Bit = bytesPerRow1Bit * frameHeight;
       const arrayName = `${identifierBase}_frames_1bit`;
       lines.push(`static const uint16_t ${identifierBase}_frame_stride_1bit = ${bytesPerRow1Bit};`);
       lines.push(`static const uint16_t ${identifierBase}_frame_bytes_1bit = ${bytesPerFrame1Bit};`);
