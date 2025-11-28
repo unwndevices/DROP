@@ -294,6 +294,7 @@ export const UIGraphicsConverter: React.FC = () => {
     const baseFilename = (filename || '').trim() || DEFAULT_FILENAME;
     const fourBitFrames: Uint8Array[] = [];
     const oneBitFrames: Uint8Array[] = [];
+    const isSingleFrame = images.length === 1;
 
     const ensureIdentifier = (name: string) => {
       const sanitized = name.replace(/[^a-zA-Z0-9_]/g, '_');
@@ -315,13 +316,20 @@ export const UIGraphicsConverter: React.FC = () => {
       return rows.join('\n');
     };
 
-    const formatFrameSection = (framesData: Uint8Array[]) => {
-      return framesData
-        .map((frame, index) => {
-          const formattedBytes = formatByteArray(frame);
-          return `  { // Frame ${index}\n${formattedBytes}\n  },`;
-        })
-        .join('\n');
+    const formatFrameSection = (framesData: Uint8Array[], isSingleFrame: boolean) => {
+      if (isSingleFrame) {
+        // Single frame - output as simple array
+        const formattedBytes = formatByteArray(framesData[0]);
+        return formattedBytes;
+      } else {
+        // Multiple frames - output as array of frames
+        return framesData
+          .map((frame, index) => {
+            const formattedBytes = formatByteArray(frame);
+            return `  { // Frame ${index}\n${formattedBytes}\n  },`;
+          })
+          .join('\n');
+      }
     };
 
     const bytesPerRow4Bit = includePacked4Bit ? Math.ceil(frameWidth / 2) : 0;
@@ -400,39 +408,72 @@ export const UIGraphicsConverter: React.FC = () => {
     const identifierBase = ensureIdentifier(baseFilename);
     const lines: string[] = [];
 
-    lines.push('// Generated UI Graphics Animation');
-    lines.push(`// Filename: ${baseFilename}`);
-    lines.push(`// Frame count: ${images.length}`);
-    lines.push(`// FPS: ${fps}`);
-    lines.push(`// Levels: black=${levels.black}, gray=${levels.gray}, white=${levels.white}`);
-    lines.push('');
-    lines.push('#include <stdint.h>');
-    lines.push('');
-    lines.push(`static const uint16_t ${identifierBase}_frame_width = ${frameWidth};`);
-    lines.push(`static const uint16_t ${identifierBase}_frame_height = ${frameHeight};`);
-    lines.push(`static const uint16_t ${identifierBase}_frame_count = ${images.length};`);
-    lines.push('');
-
-    if (includePacked4Bit) {
-      const arrayName = `${identifierBase}_frames_4bit`;
-      lines.push(`static const uint16_t ${identifierBase}_frame_stride_4bit = ${bytesPerRow4Bit};`);
-      lines.push(`static const uint16_t ${identifierBase}_frame_bytes_4bit = ${bytesPerFrame4Bit};`);
-      lines.push(`// 4-bit packed frames (2 pixels per byte)`);
-      lines.push(`static const uint8_t ${arrayName}[${images.length}][${bytesPerFrame4Bit}] = {`);
-      lines.push(formatFrameSection(fourBitFrames));
-      lines.push('};');
+    if (isSingleFrame) {
+      // Single frame output format
+      lines.push('// Generated UI Graphics Image');
+      lines.push(`// Filename: ${baseFilename}`);
+      lines.push(`// Single frame image`);
+      lines.push(`// Levels: black=${levels.black}, gray=${levels.gray}, white=${levels.white}`);
       lines.push('');
-    }
-
-    if (includePacked1Bit) {
-      const arrayName = `${identifierBase}_frames_1bit`;
-      lines.push(`static const uint16_t ${identifierBase}_frame_stride_1bit = ${bytesPerRow1Bit};`);
-      lines.push(`static const uint16_t ${identifierBase}_frame_bytes_1bit = ${bytesPerFrame1Bit};`);
-      lines.push(`// 1-bit packed frames (${bytesPerRow1Bit} byte${bytesPerRow1Bit !== 1 ? 's' : ''} per row)`);
-      lines.push(`static const uint8_t ${arrayName}[${images.length}][${bytesPerFrame1Bit}] = {`);
-      lines.push(formatFrameSection(oneBitFrames));
-      lines.push('};');
+      lines.push('#include <stdint.h>');
       lines.push('');
+      lines.push(`static const uint16_t ${identifierBase}_width = ${frameWidth};`);
+      lines.push(`static const uint16_t ${identifierBase}_height = ${frameHeight};`);
+      lines.push('');
+
+      if (includePacked4Bit) {
+        const arrayName = `${identifierBase}_data_4bit`;
+        lines.push(`// 4-bit packed image data (2 pixels per byte)`);
+        lines.push(`static const uint8_t ${arrayName}[${bytesPerFrame4Bit}] = {`);
+        lines.push(formatFrameSection(fourBitFrames, true));
+        lines.push('};');
+        lines.push('');
+      }
+
+      if (includePacked1Bit) {
+        const arrayName = `${identifierBase}_data_1bit`;
+        lines.push(`// 1-bit packed image data (${bytesPerRow1Bit} byte${bytesPerRow1Bit !== 1 ? 's' : ''} per row)`);
+        lines.push(`static const uint8_t ${arrayName}[${bytesPerFrame1Bit}] = {`);
+        lines.push(formatFrameSection(oneBitFrames, true));
+        lines.push('};');
+        lines.push('');
+      }
+    } else {
+      // Multi-frame animation output format
+      lines.push('// Generated UI Graphics Animation');
+      lines.push(`// Filename: ${baseFilename}`);
+      lines.push(`// Frame count: ${images.length}`);
+      lines.push(`// FPS: ${fps}`);
+      lines.push(`// Levels: black=${levels.black}, gray=${levels.gray}, white=${levels.white}`);
+      lines.push('');
+      lines.push('#include <stdint.h>');
+      lines.push('');
+      lines.push(`static const uint16_t ${identifierBase}_frame_width = ${frameWidth};`);
+      lines.push(`static const uint16_t ${identifierBase}_frame_height = ${frameHeight};`);
+      lines.push(`static const uint16_t ${identifierBase}_frame_count = ${images.length};`);
+      lines.push('');
+
+      if (includePacked4Bit) {
+        const arrayName = `${identifierBase}_frames_4bit`;
+        lines.push(`static const uint16_t ${identifierBase}_frame_stride_4bit = ${bytesPerRow4Bit};`);
+        lines.push(`static const uint16_t ${identifierBase}_frame_bytes_4bit = ${bytesPerFrame4Bit};`);
+        lines.push(`// 4-bit packed frames (2 pixels per byte)`);
+        lines.push(`static const uint8_t ${arrayName}[${images.length}][${bytesPerFrame4Bit}] = {`);
+        lines.push(formatFrameSection(fourBitFrames, false));
+        lines.push('};');
+        lines.push('');
+      }
+
+      if (includePacked1Bit) {
+        const arrayName = `${identifierBase}_frames_1bit`;
+        lines.push(`static const uint16_t ${identifierBase}_frame_stride_1bit = ${bytesPerRow1Bit};`);
+        lines.push(`static const uint16_t ${identifierBase}_frame_bytes_1bit = ${bytesPerFrame1Bit};`);
+        lines.push(`// 1-bit packed frames (${bytesPerRow1Bit} byte${bytesPerRow1Bit !== 1 ? 's' : ''} per row)`);
+        lines.push(`static const uint8_t ${arrayName}[${images.length}][${bytesPerFrame1Bit}] = {`);
+        lines.push(formatFrameSection(oneBitFrames, false));
+        lines.push('};');
+        lines.push('');
+      }
     }
 
     lines.push('// End of generated data');
@@ -472,6 +513,27 @@ export const UIGraphicsConverter: React.FC = () => {
 
     void copyAction();
   }, [generatedCode]);
+
+  const handleSaveFile = useCallback(() => {
+    if (!generatedCode) return;
+
+    const baseFilename = (filename || '').trim() || DEFAULT_FILENAME;
+    const finalFilename = `${baseFilename}.h`;
+
+    try {
+      const blob = new Blob([generatedCode], { type: 'text/x-c-header' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = finalFilename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to save file', error);
+    }
+  }, [generatedCode, filename]);
 
   const togglePlayback = () => {
     setIsPlaying(!isPlaying);
@@ -699,7 +761,15 @@ export const UIGraphicsConverter: React.FC = () => {
       <Card>
         <CardHeader>Generated Code</CardHeader>
         <CardBody>
-          <div className="flex justify-end mb-2">
+          <div className="flex justify-end gap-2 mb-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleSaveFile}
+              disabled={!generatedCode}
+            >
+              Save
+            </Button>
             <Button
               variant="secondary"
               size="sm"

@@ -6,7 +6,9 @@ import type { Datum, SpectralFrame } from '../DataModel/types';
 // Constants from spec
 const DATUM_MAGIC = [0x44, 0x41, 0x54, 0x4D]; // "DATM"
 const DATUM_VERSION = 1;
-const DATUM_HEADER_SIZE = 160;
+// Header size: 4+4+4+20+4+4+4+8+32+32+8+8+4+1+1+65 = 203 bytes
+// (matches firmware DatumFileHeader with __attribute__((packed)))
+const DATUM_HEADER_SIZE = 203;
 
 // Binary format structures
 export interface DatumHeader {
