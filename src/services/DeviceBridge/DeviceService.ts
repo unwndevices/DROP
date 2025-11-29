@@ -18,6 +18,17 @@ export class DeviceService {
   private parameters: Map<string, DeviceParameter> = new Map();
   private deviceInfo: DeviceInfo | null = null;
   
+  // Serial port references for text command sending
+  private serialPorts: Map<string, any> = new Map();
+  private serialWriters: Map<string, WritableStreamDefaultWriter<Uint8Array>> = new Map();
+  private serialReaders: Map<string, ReadableStreamDefaultReader<Uint8Array>> = new Map();
+  
+  // Text response buffer for parsing line-based responses
+  private textResponseBuffer: string = '';
+  
+  // Track active read loops for cancellation
+  private readLoopActive: Map<string, boolean> = new Map();
+  
   // Default configuration
   private defaultBluetoothOptions: BluetoothOptions = {
     serviceUUID: '6e400001-b5a3-f393-e0a9-e50e24dcca9e', // Nordic UART Service
@@ -162,13 +173,23 @@ export class DeviceService {
 
       this.connections.set(connection.id, connection);
       
+      // Store port reference for text commands
+      this.serialPorts.set(connection.id, port);
+      
+      // Setup writer for sending commands
+      const writer = port.writable.getWriter();
+      this.serialWriters.set(connection.id, writer);
+      
       // Setup serial communication
-      await this.setupSerialCommunication(port, config);
+      await this.setupSerialCommunication(port, config, connection.id);
       
       this.emit({
         type: 'DEVICE_CONNECTED',
         payload: { connection }
       });
+      
+      // Sync parameter values from device
+      await this.syncParametersFromDevice(connection.id);
 
       return connection.id;
     } catch (error) {
@@ -206,29 +227,93 @@ export class DeviceService {
 
   private async setupSerialCommunication(
     port: any, 
-    _config: SerialOptions
+    _config: SerialOptions,
+    connectionId: string
   ): Promise<void> {
     const reader = port.readable.getReader();
+    this.serialReaders.set(connectionId, reader);
+    this.readLoopActive.set(connectionId, true);
     
     // Start reading loop
-    this.startSerialReadLoop(reader);
-    
-    // Request device info
-    await this.requestDeviceInfo();
+    this.startSerialReadLoop(reader, connectionId);
   }
 
-  private async startSerialReadLoop(reader: any): Promise<void> {
+  private async startSerialReadLoop(reader: any, connectionId: string): Promise<void> {
+    const decoder = new TextDecoder();
+    
     try {
-      while (true) {
+      while (this.readLoopActive.get(connectionId)) {
         const { value, done } = await reader.read();
-        if (done) break;
+        if (done || !this.readLoopActive.get(connectionId)) break;
         
-        this.handleIncomingData(value);
+        // Handle as text response (line-based protocol)
+        const text = decoder.decode(value, { stream: true });
+        this.handleTextResponse(text, connectionId);
       }
-    } catch (error) {
-      console.error('Serial read error:', error);
+    } catch (error: any) {
+      // Only log if not a cancellation
+      if (error?.name !== 'AbortError' && this.readLoopActive.get(connectionId)) {
+        console.error('Serial read error:', error);
+        // Handle disconnection
+        const connection = this.connections.get(connectionId);
+        if (connection?.isConnected) {
+          connection.isConnected = false;
+          this.emit({
+            type: 'DEVICE_DISCONNECTED',
+            payload: { connectionId }
+          });
+        }
+      }
     } finally {
-      reader.releaseLock();
+      try {
+        reader.releaseLock();
+      } catch (e) {
+        // Reader may already be released
+      }
+      this.serialReaders.delete(connectionId);
+    }
+  }
+  
+  private handleTextResponse(text: string, _connectionId: string): void {
+    // Accumulate text in buffer
+    this.textResponseBuffer += text;
+    
+    // Process complete lines
+    const lines = this.textResponseBuffer.split('\n');
+    
+    // Keep incomplete line in buffer
+    this.textResponseBuffer = lines.pop() || '';
+    
+    // Process complete lines
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      if (trimmedLine.length === 0) continue;
+      
+      // Parse parameter responses (format: "param-name value")
+      this.parseParameterResponse(trimmedLine);
+    }
+  }
+  
+  private parseParameterResponse(line: string): void {
+    // Expected format: "param-name value" (e.g., "blur-attack 0.3000")
+    const match = line.match(/^(blur-attack|blur-decay|osc-gain)\s+([\d.]+)/);
+    if (match) {
+      const [, paramId, valueStr] = match;
+      const value = parseFloat(valueStr);
+      
+      if (!isNaN(value)) {
+        // Update local parameter cache
+        const param = this.parameters.get(paramId);
+        if (param) {
+          param.value = value;
+        }
+        
+        // Emit parameter change event
+        this.emit({
+          type: 'PARAMETER_CHANGED',
+          payload: { parameterId: paramId, value }
+        });
+      }
     }
   }
 
@@ -441,6 +526,49 @@ export class DeviceService {
     const connection = this.connections.get(connectionId);
     if (connection) {
       connection.isConnected = false;
+      
+      // Stop the read loop first
+      this.readLoopActive.set(connectionId, false);
+      
+      // Cancel the reader to break out of the read loop
+      const reader = this.serialReaders.get(connectionId);
+      if (reader) {
+        try {
+          await reader.cancel();
+        } catch (e) {
+          // Reader may already be cancelled
+        }
+        this.serialReaders.delete(connectionId);
+      }
+      
+      // Clean up writer
+      const writer = this.serialWriters.get(connectionId);
+      if (writer) {
+        try {
+          writer.releaseLock();
+        } catch (e) {
+          // Writer may already be released
+        }
+        this.serialWriters.delete(connectionId);
+      }
+      
+      // Close the port
+      const port = this.serialPorts.get(connectionId);
+      if (port) {
+        try {
+          await port.close();
+        } catch (e) {
+          // Port may already be closed
+        }
+        this.serialPorts.delete(connectionId);
+      }
+      
+      // Clean up read loop tracking
+      this.readLoopActive.delete(connectionId);
+      
+      // Clear text buffer
+      this.textResponseBuffer = '';
+      
       this.connections.delete(connectionId);
       
       this.emit({
@@ -452,5 +580,117 @@ export class DeviceService {
 
   isConnected(): boolean {
     return Array.from(this.connections.values()).some(conn => conn.isConnected);
+  }
+  
+  // ============================================
+  // Text Command Interface for Serial Devices
+  // ============================================
+  
+  /**
+   * Send a text command to all connected serial devices
+   * @param command The command string (without newline)
+   */
+  async sendTextCommand(command: string): Promise<void> {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(command + '\n');
+    
+    for (const [connectionId, writer] of this.serialWriters.entries()) {
+      const connection = this.connections.get(connectionId);
+      if (connection?.isConnected) {
+        try {
+          await writer.write(data);
+        } catch (error) {
+          console.error(`Failed to send command to ${connectionId}:`, error);
+        }
+      }
+    }
+  }
+  
+  /**
+   * Sync parameter values from the device (called on connect)
+   */
+  private async syncParametersFromDevice(connectionId: string): Promise<void> {
+    // Initialize default parameters
+    this.parameters.set('blur-attack', {
+      id: 'blur-attack',
+      name: 'Blur Attack',
+      type: 'float',
+      value: 0.3,
+      min: 0,
+      max: 1,
+      step: 0.01,
+      description: 'Blur attack time'
+    });
+    
+    this.parameters.set('blur-decay', {
+      id: 'blur-decay',
+      name: 'Blur Decay',
+      type: 'float',
+      value: 0.1,
+      min: 0,
+      max: 1,
+      step: 0.01,
+      description: 'Blur decay time'
+    });
+    
+    this.parameters.set('osc-gain', {
+      id: 'osc-gain',
+      name: 'Oscillator Gain',
+      type: 'float',
+      value: 0.9,
+      min: 0,
+      max: 1,
+      step: 0.01,
+      description: 'Base oscillator amplitude'
+    });
+    
+    // Query current values from device
+    const writer = this.serialWriters.get(connectionId);
+    if (writer) {
+      const encoder = new TextEncoder();
+      // Send GET commands (no argument = get current value)
+      await writer.write(encoder.encode('blur-attack\n'));
+      await writer.write(encoder.encode('blur-decay\n'));
+      await writer.write(encoder.encode('osc-gain\n'));
+    }
+  }
+  
+  // ============================================
+  // High-Level Parameter Control Methods
+  // ============================================
+  
+  /**
+   * Set blur attack value (0-1)
+   */
+  async setBlurAttack(value: number): Promise<void> {
+    const clampedValue = Math.max(0, Math.min(1, value));
+    await this.sendTextCommand(`blur-attack ${clampedValue.toFixed(4)}`);
+  }
+  
+  /**
+   * Set blur decay value (0-1)
+   */
+  async setBlurDecay(value: number): Promise<void> {
+    const clampedValue = Math.max(0, Math.min(1, value));
+    await this.sendTextCommand(`blur-decay ${clampedValue.toFixed(4)}`);
+  }
+  
+  /**
+   * Set oscillator base gain (0-1)
+   */
+  async setOscillatorGain(value: number): Promise<void> {
+    const clampedValue = Math.max(0, Math.min(1, value));
+    await this.sendTextCommand(`osc-gain ${clampedValue.toFixed(4)}`);
+  }
+  
+  /**
+   * Get current parameter value from cache
+   */
+  getParameterValue(parameterId: string): number | null {
+    const param = this.parameters.get(parameterId);
+    if (param && typeof param.value === 'number') {
+      return param.value;
+    }
+    return null;
   }
 }

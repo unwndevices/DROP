@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { DeviceConnectionPanel, RealTimeDataChart } from '../../components/DeviceBridge';
 import { DeviceService } from '../../services/DeviceBridge/DeviceService';
 import type { DeviceInfo, RealTimeData } from '../../services/DeviceBridge/types';
@@ -10,6 +10,26 @@ import {
   CardHeader, 
   CardBody
 } from '../../design-system';
+
+// Debounce helper
+function useDebouncedCallback<T extends (...args: any[]) => any>(
+  callback: T,
+  delay: number
+): T {
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  return useCallback(
+    ((...args: Parameters<T>) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        callback(...args);
+      }, delay);
+    }) as T,
+    [callback, delay]
+  );
+}
 
 // Singleton DeviceService instance
 let deviceServiceInstance: DeviceService | null = null;
@@ -26,6 +46,18 @@ export const DeviceBridge: React.FC = () => {
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null);
   const [lastDataUpdate, setLastDataUpdate] = useState<Date | null>(null);
   const [statusMessage, setStatusMessage] = useState<string>('No devices connected');
+  
+  // Parameter states
+  const [blurAttack, setBlurAttack] = useState(0.3);
+  const [blurDecay, setBlurDecay] = useState(0.1);
+  const [oscGain, setOscGain] = useState(0.9);
+  
+  // Track confirmed state for visual feedback
+  const [confirmedParams, setConfirmedParams] = useState<Record<string, number | null>>({
+    'blur-attack': null,
+    'blur-decay': null,
+    'osc-gain': null
+  });
 
   // Update connection status
   useEffect(() => {
@@ -69,6 +101,31 @@ export const DeviceBridge: React.FC = () => {
       console.error('DROP Device Bridge: Connection error:', event.payload.error);
       setStatusMessage(`Connection error: ${event.payload.error}`);
     };
+    
+    const handleParameterChanged = (event: any) => {
+      const { parameterId, value } = event.payload;
+      
+      // Update value
+      switch (parameterId) {
+        case 'blur-attack':
+          setBlurAttack(value);
+          break;
+        case 'blur-decay':
+          setBlurDecay(value);
+          break;
+        case 'osc-gain':
+          setOscGain(value);
+          break;
+      }
+      
+      // Set confirmed state for visual feedback
+      setConfirmedParams(prev => ({ ...prev, [parameterId]: value }));
+      
+      // Clear confirmed state after animation
+      setTimeout(() => {
+        setConfirmedParams(prev => ({ ...prev, [parameterId]: null }));
+      }, 800);
+    };
 
     // Register event listeners
     deviceService.addEventListener('DEVICE_CONNECTED', handleDeviceConnected);
@@ -76,6 +133,7 @@ export const DeviceBridge: React.FC = () => {
     deviceService.addEventListener('DEVICE_INFO_RECEIVED', handleDeviceInfo);
     deviceService.addEventListener('DATA_RECEIVED', handleDataReceived);
     deviceService.addEventListener('CONNECTION_ERROR', handleConnectionError);
+    deviceService.addEventListener('PARAMETER_CHANGED', handleParameterChanged);
 
     // Initial status update
     updateStatus();
@@ -86,6 +144,7 @@ export const DeviceBridge: React.FC = () => {
       deviceService.removeEventListener('DEVICE_INFO_RECEIVED', handleDeviceInfo);
       deviceService.removeEventListener('DATA_RECEIVED', handleDataReceived);
       deviceService.removeEventListener('CONNECTION_ERROR', handleConnectionError);
+      deviceService.removeEventListener('PARAMETER_CHANGED', handleParameterChanged);
     };
   }, [deviceService]);
 
@@ -107,6 +166,47 @@ export const DeviceBridge: React.FC = () => {
     checkBrowserSupport();
   }, [checkBrowserSupport]);
 
+  // Debounced parameter update functions
+  const debouncedSetBlurAttack = useDebouncedCallback(
+    useCallback((value: number) => {
+      deviceService.setBlurAttack(value);
+    }, [deviceService]),
+    50
+  );
+  
+  const debouncedSetBlurDecay = useDebouncedCallback(
+    useCallback((value: number) => {
+      deviceService.setBlurDecay(value);
+    }, [deviceService]),
+    50
+  );
+  
+  const debouncedSetOscGain = useDebouncedCallback(
+    useCallback((value: number) => {
+      deviceService.setOscillatorGain(value);
+    }, [deviceService]),
+    50
+  );
+
+  // Parameter change handlers
+  const handleBlurAttackChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    setBlurAttack(value);
+    debouncedSetBlurAttack(value);
+  }, [debouncedSetBlurAttack]);
+  
+  const handleBlurDecayChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    setBlurDecay(value);
+    debouncedSetBlurDecay(value);
+  }, [debouncedSetBlurDecay]);
+  
+  const handleOscGainChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value);
+    setOscGain(value);
+    debouncedSetOscGain(value);
+  }, [debouncedSetOscGain]);
+
   const formatLastUpdate = () => {
     if (!lastDataUpdate) return 'Never';
     const now = new Date();
@@ -120,13 +220,151 @@ export const DeviceBridge: React.FC = () => {
     return 'Over 1h ago';
   };
 
-  // Create left panel (Device Connection)
+  const isConnected = connectionCount > 0;
+  
+  // Parameter control component with amber styling
+  const ParameterSlider: React.FC<{
+    label: string;
+    paramId: string;
+    value: number;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    disabled: boolean;
+    confirmed: number | null;
+  }> = ({ label, paramId, value, onChange, disabled, confirmed }) => {
+    const isConfirmed = confirmed !== null;
+    
+    return (
+      <div style={{ 
+        marginBottom: '16px',
+        opacity: disabled ? 0.4 : 1,
+        transition: 'opacity 0.2s'
+      }}>
+        <div style={{ 
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '6px'
+        }}>
+          <label style={{
+            fontSize: '0.7rem',
+            fontWeight: 500,
+            color: disabled ? 'var(--color-text-muted)' : 'var(--color-text-secondary)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px'
+          }}>
+            {label}
+          </label>
+          <span style={{
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.75rem',
+            color: isConfirmed ? 'var(--color-amber)' : (disabled ? 'var(--color-text-muted)' : 'var(--color-text-primary)'),
+            minWidth: '45px',
+            textAlign: 'right',
+            transition: 'color 0.2s',
+            fontWeight: isConfirmed ? 600 : 400
+          }}>
+            {value.toFixed(2)}
+            {isConfirmed && ' ✓'}
+          </span>
+        </div>
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+          style={{
+            width: '100%',
+            height: '6px',
+            WebkitAppearance: 'none',
+            appearance: 'none',
+            background: disabled ? 'var(--color-background-secondary)' : 'var(--color-background-tertiary)',
+            borderRadius: '3px',
+            outline: 'none',
+            cursor: disabled ? 'not-allowed' : 'pointer',
+            transition: 'background 0.2s',
+            accentColor: 'var(--color-amber)'
+          }}
+        />
+      </div>
+    );
+  };
+
+  // Create left panel (Device Connection + Parameter Controls)
   const leftPanel = (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Card style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-md)' }}>
+      <Card style={{ display: 'flex', flexDirection: 'column' }}>
         <CardHeader>Device Connection</CardHeader>
-        <CardBody style={{ flex: 1 }}>
+        <CardBody>
           <DeviceConnectionPanel deviceService={deviceService} />
+        </CardBody>
+      </Card>
+      
+      <Card style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <CardHeader>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <span>Parameter Controls</span>
+            {!isConnected && (
+              <span style={{ 
+                fontSize: '0.65rem', 
+                color: 'var(--color-text-muted)',
+                fontWeight: 400,
+                textTransform: 'none',
+                letterSpacing: 'normal'
+              }}>
+                Connect device to enable
+              </span>
+            )}
+          </div>
+        </CardHeader>
+        <CardBody>
+          <ParameterSlider
+            label="Blur Attack"
+            paramId="blur-attack"
+            value={blurAttack}
+            onChange={handleBlurAttackChange}
+            disabled={!isConnected}
+            confirmed={confirmedParams['blur-attack']}
+          />
+          
+          <ParameterSlider
+            label="Blur Decay"
+            paramId="blur-decay"
+            value={blurDecay}
+            onChange={handleBlurDecayChange}
+            disabled={!isConnected}
+            confirmed={confirmedParams['blur-decay']}
+          />
+          
+          <ParameterSlider
+            label="Oscillator Gain"
+            paramId="osc-gain"
+            value={oscGain}
+            onChange={handleOscGainChange}
+            disabled={!isConnected}
+            confirmed={confirmedParams['osc-gain']}
+          />
+          
+          {!isConnected && (
+            <div style={{
+              marginTop: '12px',
+              padding: '12px',
+              background: 'var(--color-background-secondary)',
+              borderRadius: 'var(--border-radius-sm)',
+              border: '1px solid var(--color-border-muted)'
+            }}>
+              <p style={{
+                fontSize: '0.75rem',
+                color: 'var(--color-text-muted)',
+                margin: 0,
+                lineHeight: 1.5
+              }}>
+                These controls will become active when a Daisy device is connected via USB serial.
+              </p>
+            </div>
+          )}
         </CardBody>
       </Card>
     </div>
