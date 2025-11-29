@@ -1,0 +1,21 @@
+{
+  "name": "enjin2-wasm",
+  "version": "1.0.0",
+  "description": "enjin2 WebAssembly module for Lua-based pixel art generation",
+  "main": "enjin2.js",
+  "types": "enjin2.d.ts",
+  "files": [
+    "enjin2.js",
+    "enjin2.wasm",
+    "enjin2.d.ts"
+  ],
+  "keywords": [
+    "wasm",
+    "webassembly",
+    "lua",
+    "pixel-art",
+    "enjin2"
+  ],
+  "license": "MIT"
+}
+

@@ -1,10 +1,10 @@
 // Device Bridge Service for ESP32/Daisy Communication
-import type { 
-  DeviceConnection, 
-  DeviceInfo, 
-  DeviceParameter, 
-  RealTimeData, 
-  DeviceEvent, 
+import type {
+  DeviceConnection,
+  DeviceInfo,
+  DeviceParameter,
+  RealTimeData,
+  DeviceEvent,
   DeviceEventHandler,
   BluetoothOptions,
   SerialOptions,
@@ -17,18 +17,18 @@ export class DeviceService {
   private eventHandlers: Map<string, DeviceEventHandler<any>[]> = new Map();
   private parameters: Map<string, DeviceParameter> = new Map();
   private deviceInfo: DeviceInfo | null = null;
-  
+
   // Serial port references for text command sending
   private serialPorts: Map<string, any> = new Map();
   private serialWriters: Map<string, WritableStreamDefaultWriter<Uint8Array>> = new Map();
   private serialReaders: Map<string, ReadableStreamDefaultReader<Uint8Array>> = new Map();
-  
+
   // Text response buffer for parsing line-based responses
   private textResponseBuffer: string = '';
-  
+
   // Track active read loops for cancellation
   private readLoopActive: Map<string, boolean> = new Map();
-  
+
   // Default configuration
   private defaultBluetoothOptions: BluetoothOptions = {
     serviceUUID: '6e400001-b5a3-f393-e0a9-e50e24dcca9e', // Nordic UART Service
@@ -65,7 +65,7 @@ export class DeviceService {
       'DEVICE_CONNECTED', 'DEVICE_DISCONNECTED', 'PARAMETER_CHANGED',
       'DATA_RECEIVED', 'CONNECTION_ERROR', 'DEVICE_INFO_RECEIVED'
     ];
-    
+
     eventTypes.forEach(type => {
       this.eventHandlers.set(type, []);
     });
@@ -73,7 +73,7 @@ export class DeviceService {
 
   // Event Management
   addEventListener<T extends DeviceEvent>(
-    eventType: T['type'], 
+    eventType: T['type'],
     handler: DeviceEventHandler<T>
   ): void {
     const handlers = this.eventHandlers.get(eventType) || [];
@@ -82,7 +82,7 @@ export class DeviceService {
   }
 
   removeEventListener<T extends DeviceEvent>(
-    eventType: T['type'], 
+    eventType: T['type'],
     handler: DeviceEventHandler<T>
   ): void {
     const handlers = this.eventHandlers.get(eventType) || [];
@@ -104,7 +104,7 @@ export class DeviceService {
     }
 
     const config = { ...this.defaultBluetoothOptions, ...options };
-    
+
     try {
       const device = await (navigator as any).bluetooth.requestDevice({
         filters: [{ services: [config.serviceUUID] }],
@@ -117,7 +117,7 @@ export class DeviceService {
 
       const server = await device.gatt.connect();
       const service = await server.getPrimaryService(config.serviceUUID);
-      
+
       const connection: DeviceConnection = {
         id: device.id || crypto.randomUUID(),
         type: 'bluetooth',
@@ -127,10 +127,10 @@ export class DeviceService {
       };
 
       this.connections.set(connection.id, connection);
-      
+
       // Setup characteristics for communication
       await this.setupBluetoothCommunication(service, config);
-      
+
       this.emit({
         type: 'DEVICE_CONNECTED',
         payload: { connection }
@@ -152,7 +152,7 @@ export class DeviceService {
     }
 
     const config = { ...this.defaultSerialOptions, ...options };
-    
+
     try {
       const port = await (navigator as any).serial.requestPort();
       await port.open({
@@ -172,22 +172,22 @@ export class DeviceService {
       };
 
       this.connections.set(connection.id, connection);
-      
+
       // Store port reference for text commands
       this.serialPorts.set(connection.id, port);
-      
+
       // Setup writer for sending commands
       const writer = port.writable.getWriter();
       this.serialWriters.set(connection.id, writer);
-      
+
       // Setup serial communication
       await this.setupSerialCommunication(port, config, connection.id);
-      
+
       this.emit({
         type: 'DEVICE_CONNECTED',
         payload: { connection }
       });
-      
+
       // Sync parameter values from device
       await this.syncParametersFromDevice(connection.id);
 
@@ -202,14 +202,14 @@ export class DeviceService {
   }
 
   private async setupBluetoothCommunication(
-    service: any, 
+    service: any,
     config: BluetoothOptions
   ): Promise<void> {
     // Setup data stream characteristic for real-time data
     const dataCharacteristic = await service.getCharacteristic(
       config.characteristicUUIDs.dataStream
     );
-    
+
     await dataCharacteristic.startNotifications();
     dataCharacteristic.addEventListener('characteristicvaluechanged', (event: any) => {
       const value = event.target.value;
@@ -220,32 +220,32 @@ export class DeviceService {
 
     // Setup parameter characteristic (for future parameter updates)
     await service.getCharacteristic(config.characteristicUUIDs.parameters);
-    
+
     // Request device info
     await this.requestDeviceInfo();
   }
 
   private async setupSerialCommunication(
-    port: any, 
+    port: any,
     _config: SerialOptions,
     connectionId: string
   ): Promise<void> {
     const reader = port.readable.getReader();
     this.serialReaders.set(connectionId, reader);
     this.readLoopActive.set(connectionId, true);
-    
+
     // Start reading loop
     this.startSerialReadLoop(reader, connectionId);
   }
 
   private async startSerialReadLoop(reader: any, connectionId: string): Promise<void> {
     const decoder = new TextDecoder();
-    
+
     try {
       while (this.readLoopActive.get(connectionId)) {
         const { value, done } = await reader.read();
         if (done || !this.readLoopActive.get(connectionId)) break;
-        
+
         // Handle as text response (line-based protocol)
         const text = decoder.decode(value, { stream: true });
         this.handleTextResponse(text, connectionId);
@@ -273,46 +273,66 @@ export class DeviceService {
       this.serialReaders.delete(connectionId);
     }
   }
-  
+
   private handleTextResponse(text: string, _connectionId: string): void {
     // Accumulate text in buffer
     this.textResponseBuffer += text;
-    
+
     // Process complete lines
     const lines = this.textResponseBuffer.split('\n');
-    
+
     // Keep incomplete line in buffer
     this.textResponseBuffer = lines.pop() || '';
-    
+
     // Process complete lines
     for (const line of lines) {
       const trimmedLine = line.trim();
       if (trimmedLine.length === 0) continue;
-      
+
       // Parse parameter responses (format: "param-name value")
       this.parseParameterResponse(trimmedLine);
     }
   }
-  
+
   private parseParameterResponse(line: string): void {
     // Expected format: "param-name value" (e.g., "blur-attack 0.3000")
-    const match = line.match(/^(blur-attack|blur-decay|osc-gain)\s+([\d.]+)/);
+    const match = line.match(/^(blur-attack|blur-decay|osc-gain|resonance|tape-drive|tape-hyst|bandwidth|interpolation)\s+([\d.]+)/);
     if (match) {
       const [, paramId, valueStr] = match;
-      const value = parseFloat(valueStr);
-      
-      if (!isNaN(value)) {
+
+      if (paramId === 'interpolation') {
+        // For interpolation, convert numeric value to string
+        const interpolationTypes = ['linear', 'cosine', 'cubic'];
+        const interpIndex = Math.round(parseFloat(valueStr));
+        const value = interpolationTypes[interpIndex] || 'linear';
+
         // Update local parameter cache
         const param = this.parameters.get(paramId);
         if (param) {
           param.value = value;
         }
-        
+
         // Emit parameter change event
         this.emit({
           type: 'PARAMETER_CHANGED',
           payload: { parameterId: paramId, value }
         });
+      } else {
+        const value = parseFloat(valueStr);
+
+        if (!isNaN(value)) {
+          // Update local parameter cache
+          const param = this.parameters.get(paramId);
+          if (param) {
+            param.value = value;
+          }
+
+          // Emit parameter change event
+          this.emit({
+            type: 'PARAMETER_CHANGED',
+            payload: { parameterId: paramId, value }
+          });
+        }
       }
     }
   }
@@ -321,7 +341,7 @@ export class DeviceService {
     try {
       // Parse the incoming binary data
       const message = this.parseBinaryMessage(data);
-      
+
       switch (message.type) {
         case 'data_stream':
           this.emit({
@@ -329,7 +349,7 @@ export class DeviceService {
             payload: { data: message.payload as RealTimeData }
           });
           break;
-          
+
         case 'info_response':
           this.deviceInfo = message.payload as DeviceInfo;
           this.updateParameters(this.deviceInfo.parameters);
@@ -338,7 +358,7 @@ export class DeviceService {
             payload: { info: this.deviceInfo }
           });
           break;
-          
+
         case 'parameter_update':
           const update = message.payload as ParameterUpdate;
           this.updateParameter(update.parameterId, update.value);
@@ -359,7 +379,7 @@ export class DeviceService {
     const type = data[0];
     const length = (data[1] << 8) | data[2];
     const payload = data.slice(3, 3 + length);
-    
+
     let messageType: DeviceMessage['type'];
     switch (type) {
       case 0x01: messageType = 'data_stream'; break;
@@ -367,7 +387,7 @@ export class DeviceService {
       case 0x03: messageType = 'parameter_update'; break;
       default: throw new Error(`Unknown message type: ${type}`);
     }
-    
+
     return {
       type: messageType,
       payload: this.deserializePayload(messageType, payload),
@@ -396,22 +416,22 @@ export class DeviceService {
     // Parse 20-band spectral data + additional metrics
     const view = new DataView(data.buffer);
     let offset = 0;
-    
+
     const timestamp = view.getUint32(offset, true);
     offset += 4;
-    
+
     const spectralData: number[] = [];
     for (let i = 0; i < 20; i++) {
       spectralData.push(view.getFloat32(offset, true));
       offset += 4;
     }
-    
+
     const cpuUsage = view.getFloat32(offset, true);
     offset += 4;
-    
+
     const latency = view.getFloat32(offset, true);
     offset += 4;
-    
+
     return {
       timestamp,
       spectralData,
@@ -432,7 +452,7 @@ export class DeviceService {
     const paramIdLength = view.getUint8(0);
     const paramId = new TextDecoder().decode(data.slice(1, 1 + paramIdLength));
     const value = view.getFloat32(1 + paramIdLength, true);
-    
+
     return { parameterId: paramId, value };
   }
 
@@ -442,7 +462,7 @@ export class DeviceService {
     if (!parameter) {
       throw new Error(`Parameter ${parameterId} not found`);
     }
-    
+
     // Validate value
     if (typeof value === 'number' && parameter.min !== undefined && value < parameter.min) {
       throw new Error(`Value ${value} below minimum ${parameter.min}`);
@@ -450,18 +470,18 @@ export class DeviceService {
     if (typeof value === 'number' && parameter.max !== undefined && value > parameter.max) {
       throw new Error(`Value ${value} above maximum ${parameter.max}`);
     }
-    
+
     // Update local parameter
     parameter.value = value;
     this.parameters.set(parameterId, parameter);
-    
+
     // Send to device
     await this.sendParameterUpdate(parameterId, value);
   }
 
   private async sendParameterUpdate(parameterId: string, value: number | boolean | string): Promise<void> {
     const message = this.createParameterMessage(parameterId, value);
-    
+
     // Send via all connected devices
     for (const connection of this.connections.values()) {
       if (connection.isConnected) {
@@ -473,13 +493,13 @@ export class DeviceService {
   private createParameterMessage(parameterId: string, value: number | boolean | string): Uint8Array {
     const paramIdBytes = new TextEncoder().encode(parameterId);
     const valueBytes = new Float32Array([typeof value === 'number' ? value : value ? 1 : 0]);
-    
+
     const message = new Uint8Array(1 + 1 + paramIdBytes.length + 4);
     message[0] = 0x10; // Parameter update message type
     message[1] = paramIdBytes.length;
     message.set(paramIdBytes, 2);
     message.set(new Uint8Array(valueBytes.buffer), 2 + paramIdBytes.length);
-    
+
     return message;
   }
 
@@ -488,14 +508,14 @@ export class DeviceService {
     if (!connection || !connection.isConnected) {
       throw new Error(`Connection ${connectionId} not available`);
     }
-    
+
     // Implementation depends on connection type
     // This would need to be completed with actual BLE/Serial sending logic
   }
 
   private async requestDeviceInfo(): Promise<void> {
     const message = new Uint8Array([0x20]); // Info request message type
-    
+
     for (const connection of this.connections.values()) {
       if (connection.isConnected) {
         await this.sendMessage(connection.id, message);
@@ -526,10 +546,10 @@ export class DeviceService {
     const connection = this.connections.get(connectionId);
     if (connection) {
       connection.isConnected = false;
-      
+
       // Stop the read loop first
       this.readLoopActive.set(connectionId, false);
-      
+
       // Cancel the reader to break out of the read loop
       const reader = this.serialReaders.get(connectionId);
       if (reader) {
@@ -540,7 +560,7 @@ export class DeviceService {
         }
         this.serialReaders.delete(connectionId);
       }
-      
+
       // Clean up writer
       const writer = this.serialWriters.get(connectionId);
       if (writer) {
@@ -551,7 +571,7 @@ export class DeviceService {
         }
         this.serialWriters.delete(connectionId);
       }
-      
+
       // Close the port
       const port = this.serialPorts.get(connectionId);
       if (port) {
@@ -562,15 +582,15 @@ export class DeviceService {
         }
         this.serialPorts.delete(connectionId);
       }
-      
+
       // Clean up read loop tracking
       this.readLoopActive.delete(connectionId);
-      
+
       // Clear text buffer
       this.textResponseBuffer = '';
-      
+
       this.connections.delete(connectionId);
-      
+
       this.emit({
         type: 'DEVICE_DISCONNECTED',
         payload: { connectionId }
@@ -581,11 +601,11 @@ export class DeviceService {
   isConnected(): boolean {
     return Array.from(this.connections.values()).some(conn => conn.isConnected);
   }
-  
+
   // ============================================
   // Text Command Interface for Serial Devices
   // ============================================
-  
+
   /**
    * Send a text command to all connected serial devices
    * @param command The command string (without newline)
@@ -593,7 +613,7 @@ export class DeviceService {
   async sendTextCommand(command: string): Promise<void> {
     const encoder = new TextEncoder();
     const data = encoder.encode(command + '\n');
-    
+
     for (const [connectionId, writer] of this.serialWriters.entries()) {
       const connection = this.connections.get(connectionId);
       if (connection?.isConnected) {
@@ -605,7 +625,7 @@ export class DeviceService {
       }
     }
   }
-  
+
   /**
    * Sync parameter values from the device (called on connect)
    */
@@ -621,7 +641,7 @@ export class DeviceService {
       step: 0.01,
       description: 'Blur attack time'
     });
-    
+
     this.parameters.set('blur-decay', {
       id: 'blur-decay',
       name: 'Blur Decay',
@@ -632,7 +652,7 @@ export class DeviceService {
       step: 0.01,
       description: 'Blur decay time'
     });
-    
+
     this.parameters.set('osc-gain', {
       id: 'osc-gain',
       name: 'Oscillator Gain',
@@ -643,7 +663,60 @@ export class DeviceService {
       step: 0.01,
       description: 'Base oscillator amplitude'
     });
-    
+
+    this.parameters.set('resonance', {
+      id: 'resonance',
+      name: 'Resonance',
+      type: 'float',
+      value: 1.0,
+      min: 0.1,
+      max: 4.0,
+      step: 0.01,
+      description: 'Filter resonance'
+    });
+
+    this.parameters.set('tape-drive', {
+      id: 'tape-drive',
+      name: 'Tape Drive',
+      type: 'float',
+      value: 0.5,
+      min: 0,
+      max: 1,
+      step: 0.01,
+      description: 'Tape saturation drive amount'
+    });
+
+    this.parameters.set('tape-hyst', {
+      id: 'tape-hyst',
+      name: 'Tape Hysteresis',
+      type: 'float',
+      value: 0.5,
+      min: 0,
+      max: 1,
+      step: 0.01,
+      description: 'Tape hysteresis effect'
+    });
+
+    this.parameters.set('bandwidth', {
+      id: 'bandwidth',
+      name: 'Bandwidth',
+      type: 'float',
+      value: 1.0,
+      min: 0.1,
+      max: 2.0,
+      step: 0.01,
+      description: 'Filter bandwidth'
+    });
+
+    this.parameters.set('interpolation', {
+      id: 'interpolation',
+      name: 'Interpolation',
+      type: 'enum',
+      value: 'linear',
+      options: ['linear', 'cosine', 'cubic'],
+      description: 'Interpolation type for smooth transitions'
+    });
+
     // Query current values from device
     const writer = this.serialWriters.get(connectionId);
     if (writer) {
@@ -652,13 +725,18 @@ export class DeviceService {
       await writer.write(encoder.encode('blur-attack\n'));
       await writer.write(encoder.encode('blur-decay\n'));
       await writer.write(encoder.encode('osc-gain\n'));
+      await writer.write(encoder.encode('resonance\n'));
+      await writer.write(encoder.encode('tape-drive\n'));
+      await writer.write(encoder.encode('tape-hyst\n'));
+      await writer.write(encoder.encode('bandwidth\n'));
+      await writer.write(encoder.encode('interpolation\n'));
     }
   }
-  
+
   // ============================================
   // High-Level Parameter Control Methods
   // ============================================
-  
+
   /**
    * Set blur attack value (0-1)
    */
@@ -666,7 +744,7 @@ export class DeviceService {
     const clampedValue = Math.max(0, Math.min(1, value));
     await this.sendTextCommand(`blur-attack ${clampedValue.toFixed(4)}`);
   }
-  
+
   /**
    * Set blur decay value (0-1)
    */
@@ -674,7 +752,7 @@ export class DeviceService {
     const clampedValue = Math.max(0, Math.min(1, value));
     await this.sendTextCommand(`blur-decay ${clampedValue.toFixed(4)}`);
   }
-  
+
   /**
    * Set oscillator base gain (0-1)
    */
@@ -682,10 +760,53 @@ export class DeviceService {
     const clampedValue = Math.max(0, Math.min(1, value));
     await this.sendTextCommand(`osc-gain ${clampedValue.toFixed(4)}`);
   }
-  
+
   /**
-   * Get current parameter value from cache
-   */
+    * Set resonance (0.1-4.0)
+    */
+  async setResonance(value: number): Promise<void> {
+    const clampedValue = Math.max(0.1, Math.min(4.0, value));
+    await this.sendTextCommand(`resonance ${clampedValue.toFixed(4)}`);
+  }
+
+  /**
+    * Set tape drive (0-1)
+    */
+  async setTapeDrive(value: number): Promise<void> {
+    const clampedValue = Math.max(0, Math.min(1, value));
+    await this.sendTextCommand(`tape-drive ${clampedValue.toFixed(4)}`);
+  }
+
+  /**
+    * Set tape hysteresis (0-1)
+    */
+  async setTapeHyst(value: number): Promise<void> {
+    const clampedValue = Math.max(0, Math.min(1, value));
+    await this.sendTextCommand(`tape-hyst ${clampedValue.toFixed(4)}`);
+  }
+
+  /**
+    * Set bandwidth (0.1-2.0)
+    */
+  async setBandwidth(value: number): Promise<void> {
+    const clampedValue = Math.max(0.1, Math.min(2.0, value));
+    await this.sendTextCommand(`bandwidth ${clampedValue.toFixed(4)}`);
+  }
+
+  /**
+    * Set interpolation type ('linear', 'cosine', 'cubic')
+    */
+  async setInterpolation(value: string): Promise<void> {
+    const interpolationTypes = ['linear', 'cosine', 'cubic'];
+    const index = interpolationTypes.indexOf(value);
+    if (index !== -1) {
+      await this.sendTextCommand(`interpolation ${index}`);
+    }
+  }
+
+  /**
+    * Get current parameter value from cache
+    */
   getParameterValue(parameterId: string): number | null {
     const param = this.parameters.get(parameterId);
     if (param && typeof param.value === 'number') {

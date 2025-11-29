@@ -1,0 +1,307 @@
+/* ParameterControl Component Styles */
+
+.parameter-control {
+  /* Removed background/border to blend with parent Card */
+  margin-bottom: 1rem;
+  transition: opacity 0.2s ease;
+}
+
+.parameter-control--disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.parameter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.parameter-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.parameter-value {
+  font-size: 0.8rem;
+  color: var(--color-amber);
+  font-family: var(--font-mono, 'Monaco', 'Menlo', monospace);
+  font-weight: 600;
+}
+
+.parameter-input-container {
+  margin-bottom: 0.5rem;
+}
+
+/* Slider + Input Row */
+.slider-input-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.slider-container {
+  flex: 1;
+  position: relative;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.slider-container--dragging {
+  cursor: grabbing;
+}
+
+/* Tooltip */
+.slider-tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  background: var(--color-amber);
+  color: var(--color-background);
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: var(--font-mono, 'Monaco', 'Menlo', monospace);
+  font-weight: 600;
+  white-space: nowrap;
+  z-index: 10;
+  pointer-events: none;
+  animation: tooltipFadeIn 0.1s ease;
+}
+
+.slider-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--color-amber);
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(3px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Track */
+.slider-track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 6px;
+  background: var(--color-background-tertiary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+/* Track Fill - solid color, no gradient */
+.slider-track-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: var(--color-amber);
+  border-radius: 3px;
+}
+
+/* Thumb - bigger */
+.slider-thumb {
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  background: var(--color-text-primary);
+  border: 2px solid var(--color-amber);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 2;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.slider-container:hover .slider-thumb {
+  transform: translate(-50%, -50%) scale(1.1);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+}
+
+.slider-container--dragging .slider-thumb {
+  transform: translate(-50%, -50%) scale(1.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Hidden native input */
+.slider-input-hidden {
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: 28px;
+  opacity: 0 !important;
+  cursor: pointer;
+  margin: 0;
+  z-index: 3;
+}
+
+
+.slider-input-hidden:disabled {
+  cursor: not-allowed;
+}
+
+/* Value Input */
+.value-input-container {
+  flex-shrink: 0;
+}
+
+.value-input {
+  width: 60px;
+  padding: 6px 10px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  color: var(--color-text-primary);
+  font-family: var(--font-mono, 'Monaco', 'Menlo', monospace);
+  font-size: 0.8rem;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.value-input:focus {
+  border-color: var(--color-amber);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-amber) 25%, transparent);
+}
+
+.value-input:disabled {
+  background: var(--color-background-secondary);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+/* Toggle Control */
+.toggle-control {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 28px;
+  cursor: pointer;
+}
+
+.toggle-control--disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.parameter-checkbox {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-background-secondary);
+  transition: 0.2s;
+  border-radius: 28px;
+}
+
+.toggle-slider::before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: var(--color-text-muted);
+  transition: 0.2s;
+  border-radius: 50%;
+}
+
+.parameter-checkbox:checked+.toggle-slider {
+  background-color: var(--color-amber);
+}
+
+.parameter-checkbox:checked+.toggle-slider::before {
+  transform: translateX(32px);
+  background-color: var(--color-background);
+}
+
+/* Select Control */
+.parameter-select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.parameter-select:focus {
+  border-color: var(--color-amber);
+}
+
+.parameter-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Text Control */
+.parameter-text {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  font-size: 0.8rem;
+  outline: none;
+}
+
+.parameter-text:focus {
+  border-color: var(--color-amber);
+}
+
+.parameter-text:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Description */
+.parameter-description {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin: 0.25rem 0 0 0;
+  line-height: 1.3;
+}
+
+/* Range Display */
+.parameter-range {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+}

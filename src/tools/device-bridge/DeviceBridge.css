@@ -7,6 +7,103 @@
   padding: 0;
 }
 
+/* Two-column flow layout */
+.device-bridge-columns {
+  columns: 2;
+  column-gap: var(--ds-spacing-lg);
+  column-fill: auto;
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--ds-spacing-md);
+}
+
+.device-bridge-columns > * {
+  break-inside: avoid;
+  margin-bottom: var(--ds-spacing-md);
+}
+
+.parameter-control-item {
+  break-inside: avoid;
+}
+
+/* Parameter controls section styling */
+.device-bridge-parameters {
+  background: var(--ds-color-background-secondary);
+  border: 1px solid var(--ds-color-border-muted);
+  border-radius: var(--ds-border-radius-md);
+  padding: var(--ds-spacing-md);
+  break-inside: avoid;
+}
+
+/* Remove extra margin from last child in parameter container */
+.device-bridge-parameters > *:last-child {
+  margin-bottom: 0;
+}
+
+.interpolation-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 0.5rem;
+}
+
+.interpolation-button-group {
+  display: flex;
+  gap: 0;
+  margin-bottom: 0.5rem;
+  transition: opacity 0.2s ease;
+}
+
+.interpolation-button-group > button {
+  flex: 1;
+  border-radius: 0;
+  border-right-width: 0;
+}
+
+.interpolation-button-group > button:first-child {
+  border-top-left-radius: var(--ds-border-radius-sm);
+  border-bottom-left-radius: var(--ds-border-radius-sm);
+}
+
+.interpolation-button-group > button:last-child {
+  border-top-right-radius: var(--ds-border-radius-sm);
+  border-bottom-right-radius: var(--ds-border-radius-sm);
+  border-right-width: 1px;
+}
+
+.interpolation-button-group > button:focus {
+  z-index: 1;
+  position: relative;
+}
+
+.interpolation-disabled .interpolation-button-group,
+.interpolation-disabled .interpolation-label,
+.interpolation-disabled .interpolation-helper {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.interpolation-helper {
+  font-size: 0.75rem;
+  color: var(--ds-color-text-secondary);
+  margin: 0;
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 900px) {
+  .device-bridge-columns {
+    columns: 1;
+    height: auto;
+    max-height: 100%;
+  }
+}
+
+/* Parameter Control Component */
+
+
 .device-panel {
   background: var(--color-background);
   overflow-y: auto;
