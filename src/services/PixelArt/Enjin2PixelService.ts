@@ -73,6 +73,9 @@ export class Enjin2PixelService {
       }
 
       // Set the canvas for the script system
+      if (!this.luaCanvas) {
+        throw new Error('Failed to create LuaCanvas');
+      }
       this.scriptSystem.setCanvas(this.luaCanvas);
 
       // Initialize enjin2 native Lua API

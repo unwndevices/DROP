@@ -18,20 +18,25 @@ export interface LuaScriptSystem {
 
 export interface LuaCanvas {
   // Canvas wrapper for Lua integration
+  getWidth(): number;
+  getHeight(): number;
 }
 
 export interface Canvas4_128x128 {
   clear(color: number): void;
-  // Other canvas methods will be added via automatic conversion
+  setPixel(x: number, y: number, color: number): void;
+  getPixel(x: number, y: number): number;
 }
 
 export interface Enjin2Module {
   LuaScriptSystem: new () => LuaScriptSystem;
   Canvas4_128x128: new () => Canvas4_128x128;
   createLuaCanvas128(): LuaCanvas;
-  getCanvasData128(canvas: Canvas4_128x128): ArrayBuffer;
+  createLuaCanvasFromCanvas128(canvas: Canvas4_128x128): LuaCanvas;
+  getCanvasData128(canvas: Canvas4_128x128): Uint8Array;
   setupGlobalLuaFunctions(scriptSystem: LuaScriptSystem): boolean;
   debugLuaBindings(scriptSystem: LuaScriptSystem): boolean;
+  testFunction?(): number;
 }
 
 // Global enjin2 module factory
