@@ -5,27 +5,31 @@
   --ds-color-background: var(--color-background);
   --ds-color-background-secondary: var(--color-background-secondary);
   --ds-color-background-tertiary: var(--color-background-tertiary);
-  
+
   --ds-color-text-primary: var(--color-text-primary);
   --ds-color-text-secondary: var(--color-text-secondary);
   --ds-color-text-muted: var(--color-text-muted);
   --ds-color-text-tertiary: var(--color-text-tertiary);
-  
+
   --ds-color-border: var(--color-border);
   --ds-color-border-muted: var(--color-border-muted);
-  
+  --ds-color-border-subtle: var(--color-border-subtle);
+
   --ds-color-primary: var(--color-amber);
   --ds-color-accent: var(--color-amber);
   --ds-color-accent-dark: var(--color-amber-dark);
   --ds-color-accent-light: var(--color-amber-light);
-  
+  --ds-color-accent-glow: var(--color-amber-glow);
+
   --ds-color-success: var(--color-success);
   --ds-color-error: var(--color-error);
   --ds-color-warning: var(--color-warning);
   --ds-color-info: var(--color-info);
-  
+
   /* Typography */
   --ds-font-mono: var(--font-mono);
+  --ds-font-sans: var(--font-sans);
+
   --ds-font-size-xs: 0.7rem;
   --ds-font-size-sm: 0.75rem;
   --ds-font-size-base: 0.875rem;
@@ -35,17 +39,18 @@
   --ds-font-size-3xl: 1.5rem;
   --ds-font-size-4xl: 1.875rem;
   --ds-font-size-5xl: 2.25rem;
+
   --ds-font-weight-light: 300;
   --ds-font-weight-normal: 400;
   --ds-font-weight-medium: 500;
   --ds-font-weight-semibold: 600;
   --ds-font-weight-bold: 700;
-  
+
   /* Line heights */
   --ds-line-height-tight: 1.2;
   --ds-line-height-normal: 1.4;
   --ds-line-height-relaxed: 1.6;
-  
+
   /* Spacing */
   --ds-spacing-xs: var(--spacing-xs);
   --ds-spacing-sm: var(--spacing-sm);
@@ -53,12 +58,13 @@
   --ds-spacing-lg: var(--spacing-lg);
   --ds-spacing-xl: var(--spacing-xl);
   --ds-spacing-xxl: var(--spacing-xxl);
-  
+
   /* Border radius */
   --ds-border-radius-sm: var(--border-radius-sm);
   --ds-border-radius-md: var(--border-radius-md);
   --ds-border-radius-lg: var(--border-radius-lg);
-  
+  --ds-border-radius-full: var(--border-radius-full);
+
   /* Shadows */
   --ds-shadow-sm: var(--shadow-sm);
   --ds-shadow-md: var(--shadow-md);
@@ -66,17 +72,24 @@
   --ds-shadow-glow: var(--shadow-glow);
   --ds-shadow-glow-strong: var(--shadow-glow-strong);
   --ds-shadow-error: var(--shadow-error);
-  
+
+  /* Effects */
+  --ds-backdrop-blur: var(--backdrop-blur);
+  --ds-surface-glass: var(--surface-glass);
+  --ds-surface-glass-hover: var(--surface-glass-hover);
+
   /* Transitions */
   --ds-transition-fast: var(--transition-fast);
   --ds-transition-medium: var(--transition-medium);
   --ds-transition-slow: var(--transition-slow);
+  --ds-transition-bounce: var(--transition-bounce);
 }
 
 /* Standardized Typography Styles */
 
 /* Headings */
-h1, .ds-h1 {
+h1,
+.ds-h1 {
   font-family: var(--ds-font-mono);
   font-size: var(--ds-font-size-4xl);
   font-weight: var(--ds-font-weight-medium);
@@ -86,7 +99,8 @@ h1, .ds-h1 {
   letter-spacing: -0.025em;
 }
 
-h2, .ds-h2 {
+h2,
+.ds-h2 {
   font-family: var(--ds-font-mono);
   font-size: var(--ds-font-size-3xl);
   font-weight: var(--ds-font-weight-normal);
@@ -96,7 +110,8 @@ h2, .ds-h2 {
   letter-spacing: -0.025em;
 }
 
-h3, .ds-h3 {
+h3,
+.ds-h3 {
   font-family: var(--ds-font-mono);
   font-size: var(--ds-font-size-2xl);
   font-weight: var(--ds-font-weight-normal);
@@ -105,7 +120,8 @@ h3, .ds-h3 {
   margin: 0 0 var(--ds-spacing-md) 0;
 }
 
-h4, .ds-h4 {
+h4,
+.ds-h4 {
   font-family: var(--ds-font-mono);
   font-size: var(--ds-font-size-xl);
   font-weight: var(--ds-font-weight-normal);
@@ -114,7 +130,8 @@ h4, .ds-h4 {
   margin: 0 0 var(--ds-spacing-sm) 0;
 }
 
-h5, .ds-h5 {
+h5,
+.ds-h5 {
   font-family: var(--ds-font-mono);
   font-size: var(--ds-font-size-lg);
   font-weight: var(--ds-font-weight-normal);
@@ -123,7 +140,8 @@ h5, .ds-h5 {
   margin: 0 0 var(--ds-spacing-sm) 0;
 }
 
-h6, .ds-h6 {
+h6,
+.ds-h6 {
   font-family: var(--ds-font-mono);
   font-size: var(--ds-font-size-base);
   font-weight: var(--ds-font-weight-normal);
@@ -135,7 +153,8 @@ h6, .ds-h6 {
 }
 
 /* Body text */
-p, .ds-p {
+p,
+.ds-p {
   font-family: var(--ds-font-mono);
   font-size: var(--ds-font-size-base);
   font-weight: var(--ds-font-weight-normal);

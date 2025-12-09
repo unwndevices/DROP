@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { marked } from 'marked';
-import './FirmwareSelector.css';
+import { Button, Select, StatusIndicator, Card, CardBody } from '../../design-system';
 
 interface SimpleRelease {
   version: string;
@@ -100,70 +100,83 @@ export const FirmwareSelector: React.FC<FirmwareSelectorProps> = ({
 
   if (fetchError && versions.length === 0) {
     return (
-      <div className="firmware-selector error">
-        <h3>Firmware Version</h3>
-        <div className="error-message">
-          <p>Unable to fetch firmware versions: {fetchError}</p>
-          <button onClick={fetchVersions} className="retry-button btn-secondary">
-            Retry
-          </button>
-        </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-md)' }}>
+        <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>Firmware Version</h3>
+        <StatusIndicator variant="error">
+          Unable to fetch firmware versions: {fetchError}
+        </StatusIndicator>
+        <Button onClick={fetchVersions} variant="secondary">
+          Retry
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="firmware-selector">
-      <h3>Firmware Version</h3>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-md)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>Firmware Version</h3>
+      </div>
 
-      <div className="version-controls">
-        <select
-          value={selectedVersion}
-          onChange={(e) => setSelectedVersion(e.target.value)}
-          className="version-select"
-          disabled={disabled || loading || versions.length === 0}
-        >
-          <option value="">Select version...</option>
-          {versions.map(version => (
-            <option key={version.version} value={version.version}>
-              {version.version} - {version.releaseDate}
-            </option>
-          ))}
-        </select>
+      <div style={{ display: 'flex', gap: 'var(--ds-spacing-md)', alignItems: 'flex-end' }}>
+        <div style={{ flex: 1 }}>
+          <Select
+            label="Select Version"
+            value={selectedVersion}
+            onChange={(e) => setSelectedVersion(e.target.value)}
+            disabled={disabled || loading || versions.length === 0}
+            options={[
+              { value: '', label: 'Select version...' },
+              ...versions.map(version => ({
+                value: version.version,
+                label: `${version.version} - ${version.releaseDate}`
+              }))
+            ]}
+          />
+        </div>
 
         {selectedRelease && (
-          <button
+          <Button
             onClick={() => setShowChangelog(!showChangelog)}
-            className="changelog-button btn-secondary"
+            variant="secondary"
             disabled={disabled}
           >
             {showChangelog ? 'Hide' : 'Show'} Changes
-          </button>
+          </Button>
         )}
       </div>
 
       {selectedRelease && showChangelog && (
-        <div className="changelog">
-          <div
-            dangerouslySetInnerHTML={{
-              __html: marked.parse(selectedRelease.changelog.join('\n\n')) as string
-            }}
-          />
-        </div>
+        <Card variant="glass">
+          <CardBody>
+            <div
+              style={{
+                maxHeight: '200px',
+                overflowY: 'auto',
+                fontSize: 'var(--ds-font-size-sm)',
+                color: 'var(--ds-color-text-secondary)'
+              }}
+              dangerouslySetInnerHTML={{
+                __html: marked.parse(selectedRelease.changelog.join('\n\n')) as string
+              }}
+            />
+          </CardBody>
+        </Card>
       )}
 
-      <button
+      <Button
         onClick={() => downloadFirmware(selectedVersion)}
-        className="download-button btn-primary"
+        variant="primary"
         disabled={!selectedVersion || loading || disabled}
+        loading={loading}
       >
         {loading ? 'Downloading...' : 'Load Firmware'}
-      </button>
+      </Button>
 
       {fetchError && (
-        <div className="error-message">
-          <small>Warning: {fetchError}</small>
-        </div>
+        <StatusIndicator variant="warning">
+          Warning: {fetchError}
+        </StatusIndicator>
       )}
     </div>
   );

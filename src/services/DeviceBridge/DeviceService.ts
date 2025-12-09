@@ -23,6 +23,9 @@ export class DeviceService {
   private serialWriters: Map<string, WritableStreamDefaultWriter<Uint8Array>> = new Map();
   private serialReaders: Map<string, ReadableStreamDefaultReader<Uint8Array>> = new Map();
 
+  // BLE characteristic references for text command sending
+  private bleWriteCharacteristics: Map<string, any> = new Map();
+
   // Text response buffer for parsing line-based responses
   private textResponseBuffer: string = '';
 
@@ -99,8 +102,17 @@ export class DeviceService {
 
   // Connection Management
   async connectBluetooth(options?: Partial<BluetoothOptions>): Promise<string> {
+    // Debug: log bluetooth availability
+    console.log('Bluetooth check:', {
+      inNavigator: 'bluetooth' in navigator,
+      navigatorBluetooth: (navigator as any).bluetooth,
+      isSecureContext: window.isSecureContext,
+      protocol: window.location.protocol,
+      hostname: window.location.hostname
+    });
+    
     if (!('bluetooth' in navigator)) {
-      throw new Error('Web Bluetooth API not supported in this browser');
+      throw new Error(`Web Bluetooth not available. Secure context: ${window.isSecureContext}, Protocol: ${window.location.protocol}`);
     }
 
     const config = { ...this.defaultBluetoothOptions, ...options };
@@ -129,7 +141,7 @@ export class DeviceService {
       this.connections.set(connection.id, connection);
 
       // Setup characteristics for communication
-      await this.setupBluetoothCommunication(service, config);
+      await this.setupBluetoothCommunication(service, config, connection.id);
 
       this.emit({
         type: 'DEVICE_CONNECTED',
@@ -203,26 +215,32 @@ export class DeviceService {
 
   private async setupBluetoothCommunication(
     service: any,
-    config: BluetoothOptions
+    config: BluetoothOptions,
+    connectionId: string
   ): Promise<void> {
-    // Setup data stream characteristic for real-time data
-    const dataCharacteristic = await service.getCharacteristic(
-      config.characteristicUUIDs.dataStream
+    // Setup write characteristic (Nordic UART RX - we write to it)
+    // This is the "parameters" UUID which is actually the RX characteristic
+    const writeCharacteristic = await service.getCharacteristic(
+      config.characteristicUUIDs.parameters
     );
+    this.bleWriteCharacteristics.set(connectionId, writeCharacteristic);
 
-    await dataCharacteristic.startNotifications();
-    dataCharacteristic.addEventListener('characteristicvaluechanged', (event: any) => {
-      const value = event.target.value;
-      if (value) {
-        this.handleIncomingData(new Uint8Array(value.buffer));
-      }
-    });
-
-    // Setup parameter characteristic (for future parameter updates)
-    await service.getCharacteristic(config.characteristicUUIDs.parameters);
-
-    // Request device info
-    await this.requestDeviceInfo();
+    // Setup data stream characteristic for notifications (Nordic UART TX - device writes to it)
+    try {
+      const dataCharacteristic = await service.getCharacteristic(
+        config.characteristicUUIDs.dataStream
+      );
+      await dataCharacteristic.startNotifications();
+      dataCharacteristic.addEventListener('characteristicvaluechanged', (event: any) => {
+        const value = event.target.value;
+        if (value) {
+          this.handleIncomingData(new Uint8Array(value.buffer));
+        }
+      });
+    } catch {
+      // TX characteristic notifications are optional for one-way communication
+      console.log('BLE TX notifications not available (one-way mode)');
+    }
   }
 
   private async setupSerialCommunication(
@@ -586,6 +604,9 @@ export class DeviceService {
       // Clean up read loop tracking
       this.readLoopActive.delete(connectionId);
 
+      // Clean up BLE characteristic
+      this.bleWriteCharacteristics.delete(connectionId);
+
       // Clear text buffer
       this.textResponseBuffer = '';
 
@@ -603,24 +624,37 @@ export class DeviceService {
   }
 
   // ============================================
-  // Text Command Interface for Serial Devices
+  // Text Command Interface for Serial/BLE Devices
   // ============================================
 
   /**
-   * Send a text command to all connected serial devices
+   * Send a text command to all connected devices (serial and BLE)
    * @param command The command string (without newline)
    */
   async sendTextCommand(command: string): Promise<void> {
     const encoder = new TextEncoder();
     const data = encoder.encode(command + '\n');
 
+    // Send to serial connections
     for (const [connectionId, writer] of this.serialWriters.entries()) {
       const connection = this.connections.get(connectionId);
       if (connection?.isConnected) {
         try {
           await writer.write(data);
         } catch (error) {
-          console.error(`Failed to send command to ${connectionId}:`, error);
+          console.error(`Failed to send command to serial ${connectionId}:`, error);
+        }
+      }
+    }
+
+    // Send to BLE connections
+    for (const [connectionId, characteristic] of this.bleWriteCharacteristics.entries()) {
+      const connection = this.connections.get(connectionId);
+      if (connection?.isConnected) {
+        try {
+          await characteristic.writeValue(data);
+        } catch (error) {
+          console.error(`Failed to send command to BLE ${connectionId}:`, error);
         }
       }
     }

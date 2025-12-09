@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { FaDownload, FaCode } from 'react-icons/fa';
 import type { Datum } from '../../services/DataModel/types';
 import { DatumFileService } from '../../services/DatumPersistence/DatumFileService';
+import { Modal, Button, Card, CardBody, StatusIndicator } from '../../design-system';
 
 interface SpectralExportModalProps {
   spectralData: Datum | null;
@@ -21,16 +22,16 @@ export const SpectralExportModal: React.FC<SpectralExportModalProps> = ({
 
   // Download file helper
   const downloadFile = useCallback((content: string | Uint8Array | Blob, filename: string, mimeType: string) => {
-    const blob = content instanceof Blob ? content : new Blob([content], { type: mimeType });
+    const blob = content instanceof Blob ? content : new Blob([content as BlobPart], { type: mimeType });
     const url = URL.createObjectURL(blob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     URL.revokeObjectURL(url);
   }, []);
 
@@ -44,7 +45,7 @@ export const SpectralExportModal: React.FC<SpectralExportModalProps> = ({
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filename = `spectral-script-${timestamp}.lua`;
-    
+
     downloadFile(scriptContent, filename, 'text/plain');
     setExportStatus('Script downloaded successfully!');
     setTimeout(() => setExportStatus(''), 3000);
@@ -77,92 +78,101 @@ export const SpectralExportModal: React.FC<SpectralExportModalProps> = ({
     }
   }, [spectralData]);
 
-  if (!isOpen) return null;
-
   const hasScript = scriptContent.trim().length > 0;
   const hasData = spectralData && spectralData.frames.length > 0;
 
   return (
-    <div className="modal-backdrop">
-      <div className="export-modal">
-        <div className="modal-header">
-          <h3>Export Spectral Data</h3>
-          <button onClick={onClose} className="btn btn-ghost btn-sm">✕</button>
-        </div>
-
-        <div className="modal-content">
-          <div className="export-options">
-            <div className="export-option">
-              <div className="option-header">
-                <FaCode className="option-icon" />
-                <h4>Lua Script</h4>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Export Spectral Data"
+      size="lg"
+      footer={
+        <Button onClick={onClose} variant="secondary">
+          Close
+        </Button>
+      }
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-lg)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--ds-spacing-md)' }}>
+          <Card>
+            <CardBody>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-sm)', marginBottom: 'var(--ds-spacing-sm)' }}>
+                <FaCode style={{ color: 'var(--ds-color-amber)', fontSize: '1.2rem' }} />
+                <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 500 }}>Lua Script</h4>
               </div>
-              <p>Download the current Lua script source code.</p>
-              <button
+              <p style={{ margin: '0 0 var(--ds-spacing-md) 0', fontSize: 'var(--ds-font-size-sm)', color: 'var(--ds-color-text-secondary)' }}>
+                Download the current Lua script source code.
+              </p>
+              <Button
                 onClick={handleDownloadScript}
                 disabled={!hasScript}
-                className="btn btn-primary"
+                variant="primary"
+                style={{ width: '100%' }}
               >
-                <FaDownload /> Download Script
-              </button>
-            </div>
+                <FaDownload style={{ marginRight: '8px' }} /> Download Script
+              </Button>
+            </CardBody>
+          </Card>
 
-            <div className="export-option">
-              <div className="option-header">
-                <FaDownload className="option-icon" />
-                <h4>Binary Data</h4>
+          <Card>
+            <CardBody>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-sm)', marginBottom: 'var(--ds-spacing-sm)' }}>
+                <FaDownload style={{ color: 'var(--ds-color-amber)', fontSize: '1.2rem' }} />
+                <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 500 }}>Binary Data</h4>
               </div>
-              <p>Export generated spectral data as binary datum file.</p>
-              <button
+              <p style={{ margin: '0 0 var(--ds-spacing-md) 0', fontSize: 'var(--ds-font-size-sm)', color: 'var(--ds-color-text-secondary)' }}>
+                Export generated spectral data as binary datum file.
+              </p>
+              <Button
                 onClick={handleDownloadBinary}
                 disabled={!hasData || isExporting}
-                className="btn btn-primary"
+                variant="primary"
+                style={{ width: '100%' }}
               >
-                {isExporting ? 'Exporting...' : <><FaDownload /> Download Binary</>}
-              </button>
-            </div>
-          </div>
+                {isExporting ? 'Exporting...' : <><FaDownload style={{ marginRight: '8px' }} /> Download Binary</>}
+              </Button>
+            </CardBody>
+          </Card>
+        </div>
 
-          <div className="export-details">
-            <div className="detail-item">
-              <span className="detail-label">Script Size:</span>
-              <span className="detail-value">
-                {hasScript ? `${scriptContent.length} characters` : 'No script'}
-              </span>
+        <div style={{
+          backgroundColor: 'var(--ds-color-background-tertiary)',
+          padding: 'var(--ds-spacing-md)',
+          borderRadius: 'var(--ds-border-radius-md)',
+          border: '1px solid var(--ds-color-border-muted)'
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-xs)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--ds-font-size-sm)' }}>
+              <span style={{ color: 'var(--ds-color-text-secondary)' }}>Script Size:</span>
+              <span style={{ fontWeight: 500 }}>{hasScript ? `${scriptContent.length} characters` : 'No script'}</span>
             </div>
-            <div className="detail-item">
-              <span className="detail-label">Frame Count:</span>
-              <span className="detail-value">
-                {hasData ? spectralData.frames.length : 'No data'}
-              </span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--ds-font-size-sm)' }}>
+              <span style={{ color: 'var(--ds-color-text-secondary)' }}>Frame Count:</span>
+              <span style={{ fontWeight: 500 }}>{hasData ? spectralData?.frames.length : 'No data'}</span>
             </div>
-            <div className="detail-item">
-              <span className="detail-label">Frequency Bands:</span>
-              <span className="detail-value">20 bands</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--ds-font-size-sm)' }}>
+              <span style={{ color: 'var(--ds-color-text-secondary)' }}>Frequency Bands:</span>
+              <span style={{ fontWeight: 500 }}>20 bands</span>
             </div>
             {hasData && (
-              <div className="detail-item">
-                <span className="detail-label">Data Size:</span>
-                <span className="detail-value">
-                  {spectralData.frames.length * 20} values
-                </span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--ds-font-size-sm)' }}>
+                <span style={{ color: 'var(--ds-color-text-secondary)' }}>Data Size:</span>
+                <span style={{ fontWeight: 500 }}>{spectralData!.frames.length * 20} values</span>
               </div>
             )}
           </div>
-
-          {exportStatus && (
-            <div className={`export-status ${exportStatus.includes('failed') ? 'error' : exportStatus.includes('successfully') ? 'success' : 'info'}`}>
-              {exportStatus}
-            </div>
-          )}
         </div>
 
-        <div className="modal-footer">
-          <button onClick={onClose} className="btn btn-secondary">
-            Close
-          </button>
-        </div>
+        {exportStatus && (
+          <StatusIndicator variant={
+            exportStatus.includes('failed') ? 'error' :
+              exportStatus.includes('successfully') ? 'success' : 'info'
+          }>
+            {exportStatus}
+          </StatusIndicator>
+        )}
       </div>
-    </div>
+    </Modal>
   );
 };

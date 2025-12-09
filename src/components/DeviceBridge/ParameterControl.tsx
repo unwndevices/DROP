@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { DeviceParameter } from '../../services/DeviceBridge/types';
+import { Input } from '../../design-system';
 import './ParameterControl.css';
 
 interface ParameterControlProps {
@@ -7,13 +8,15 @@ interface ParameterControlProps {
   onChange: (value: number | boolean | string) => void;
   disabled?: boolean;
   precision?: number;
+  hideLabel?: boolean;
 }
 
 export const ParameterControl: React.FC<ParameterControlProps> = ({
   parameter,
   onChange,
   disabled = false,
-  precision = 2
+  precision = 2,
+  hideLabel = false
 }) => {
   const [localValue, setLocalValue] = useState(parameter.value);
   const [inputValue, setInputValue] = useState('');
@@ -156,14 +159,14 @@ export const ParameterControl: React.FC<ParameterControlProps> = ({
             </div>
 
             <div className="value-input-container">
-              <input
-                type="text"
+              <Input
+                size="sm"
                 value={inputValue}
                 onChange={handleInputChange}
                 onBlur={handleInputBlur}
                 onKeyDown={handleInputKeyDown}
                 disabled={disabled}
-                className="value-input"
+                style={{ textAlign: 'center', padding: '4px 8px' }}
               />
             </div>
           </div>
@@ -205,7 +208,7 @@ export const ParameterControl: React.FC<ParameterControlProps> = ({
       }
       default:
         return (
-          <input
+          <Input
             type="text"
             value={String(localValue)}
             onChange={(e) => handleCommitChange(e.target.value)}
@@ -230,17 +233,19 @@ export const ParameterControl: React.FC<ParameterControlProps> = ({
 
   return (
     <div className={`parameter-control ${disabled ? 'parameter-control--disabled' : ''}`}>
-      <div className="parameter-header">
-        <label className="parameter-label">
-          {parameter.name}
-          {parameter.unit && ` (${parameter.unit})`}
-        </label>
-        {showValueDisplay && (
-          <span className="parameter-value">
-            {formatValue()}
-          </span>
-        )}
-      </div>
+      {!hideLabel && (
+        <div className="parameter-header">
+          <label className="parameter-label">
+            {parameter.name}
+            {parameter.unit && ` (${parameter.unit})`}
+          </label>
+          {showValueDisplay && (
+            <span className="parameter-value">
+              {formatValue()}
+            </span>
+          )}
+        </div>
+      )}
 
       <div className="parameter-input-container">
         {renderControl()}
@@ -259,3 +264,5 @@ export const ParameterControl: React.FC<ParameterControlProps> = ({
     </div>
   );
 };
+
+

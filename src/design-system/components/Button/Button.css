@@ -1,0 +1,184 @@
+/* Button Component Styles */
+
+.ds-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ds-spacing-sm);
+    white-space: nowrap;
+
+    font-family: var(--ds-font-mono);
+    font-weight: var(--ds-font-weight-medium);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+
+    border: 1px solid transparent;
+    border-radius: var(--ds-border-radius-md);
+    cursor: pointer;
+
+    transition: all var(--ds-transition-fast);
+    user-select: none;
+    overflow: hidden;
+}
+
+/* Sizes */
+.ds-btn-xs {
+    height: 24px;
+    padding: 0 var(--ds-spacing-sm);
+    font-size: var(--ds-font-size-xs);
+}
+
+.ds-btn-sm {
+    height: 32px;
+    padding: 0 var(--ds-spacing-md);
+    font-size: var(--ds-font-size-sm);
+}
+
+.ds-btn-md {
+    height: 40px;
+    padding: 0 var(--ds-spacing-lg);
+    font-size: var(--ds-font-size-base);
+}
+
+.ds-btn-lg {
+    height: 48px;
+    padding: 0 var(--ds-spacing-xl);
+    font-size: var(--ds-font-size-lg);
+}
+
+.ds-btn-xl {
+    height: 56px;
+    padding: 0 var(--ds-spacing-xxl);
+    font-size: var(--ds-font-size-xl);
+}
+
+.ds-btn-icon {
+    padding: 0;
+    aspect-ratio: 1;
+}
+
+.ds-btn-block {
+    display: flex;
+    width: 100%;
+}
+
+/* Variants */
+
+/* Primary: Solid Accent */
+.ds-btn-primary {
+    background: var(--ds-color-accent);
+    color: var(--ds-color-background);
+    border-color: var(--ds-color-accent);
+    box-shadow: var(--ds-shadow-glow);
+}
+
+.ds-btn-primary:hover:not(:disabled) {
+    background: var(--ds-color-accent-light);
+    border-color: var(--ds-color-accent-light);
+    box-shadow: var(--ds-shadow-glow-strong);
+    transform: translateY(-1px);
+}
+
+.ds-btn-primary:active:not(:disabled) {
+    background: var(--ds-color-accent-dark);
+    transform: translateY(0);
+}
+
+/* Secondary: Outline/Glass */
+.ds-btn-secondary {
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--ds-color-text-secondary);
+    border-color: var(--ds-color-border-subtle);
+    backdrop-filter: blur(4px);
+}
+
+.ds-btn-secondary:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--ds-color-text-primary);
+    border-color: var(--ds-color-text-primary);
+}
+
+.ds-btn-secondary:active:not(:disabled) {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Ghost: Transparent */
+.ds-btn-ghost {
+    background: transparent;
+    color: var(--ds-color-text-secondary);
+    border-color: transparent;
+}
+
+.ds-btn-ghost:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--ds-color-text-primary);
+}
+
+/* Danger */
+.ds-btn-danger {
+    background: rgba(var(--color-error-rgb), 0.1);
+    color: var(--ds-color-error);
+    border-color: var(--ds-color-error);
+}
+
+.ds-btn-danger:hover:not(:disabled) {
+    background: var(--ds-color-error);
+    color: var(--ds-color-background);
+    box-shadow: var(--ds-shadow-error);
+}
+
+/* Success */
+.ds-btn-success {
+    background: rgba(var(--color-success-rgb), 0.1);
+    color: var(--ds-color-success);
+    border-color: var(--ds-color-success);
+}
+
+.ds-btn-success:hover:not(:disabled) {
+    background: var(--ds-color-success);
+    color: var(--ds-color-background);
+    box-shadow: 0 0 12px rgba(var(--color-success-rgb), 0.4);
+}
+
+/* Disabled State */
+.ds-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(1);
+}
+
+/* Loading State */
+.ds-btn-loading {
+    color: transparent !important;
+    pointer-events: none;
+}
+
+.ds-btn-spinner {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 1em;
+    height: 1em;
+    margin-left: -0.5em;
+    margin-top: -0.5em;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: ds-spin 0.8s linear infinite;
+}
+
+.ds-btn-primary .ds-btn-spinner {
+    border-color: var(--ds-color-background);
+    border-right-color: transparent;
+}
+
+@keyframes ds-spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}

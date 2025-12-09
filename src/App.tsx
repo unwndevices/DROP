@@ -10,15 +10,16 @@ import { ESP32Flasher } from './tools/esp32-flasher/ESP32Flasher';
 import { DaisyFlasher } from './tools/daisy-flasher/DaisyFlasher';
 import { UIGraphicsConverter } from './tools/ui-graphics/UIGraphicsConverter';
 import { DeviceBridge } from './tools/device-bridge/DeviceBridge';
+
 import { PixelArtGenerator } from './tools/pixel-art-generator/PixelArtGenerator';
+import { ToastProvider } from './design-system';
 
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { pwaService } from './services/PWAService';
 import { debugLuaGlobals } from './debug-lua-globals';
 import './styles/globals.css';
 import './components/Navigation/VerticalNavbar.css';
-import './tools/esp32-flasher/ESP32Flasher.css';
-import './tools/daisy-flasher/DaisyFlasher.css';
+
 import './tools/device-bridge/DeviceBridge.css';
 
 // Tools configuration
@@ -151,7 +152,9 @@ const AppContent: React.FC = () => {
 function App() {
   return (
     <SettingsProvider>
-      <AppContent />
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
     </SettingsProvider>
   );
 }

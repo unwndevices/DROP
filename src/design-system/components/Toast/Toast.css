@@ -1,0 +1,113 @@
+.ds-toast-container {
+    position: fixed;
+    bottom: var(--ds-spacing-lg);
+    right: var(--ds-spacing-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-spacing-sm);
+    z-index: 9999;
+    pointer-events: none;
+    /* Allow clicking through the container */
+}
+
+.ds-toast {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 300px;
+    max-width: 400px;
+    padding: var(--ds-spacing-md);
+    border-radius: var(--ds-radius-md);
+    background-color: var(--ds-surface-2);
+    border: 1px solid var(--ds-border-color);
+    box-shadow: var(--ds-shadow-lg);
+    color: var(--ds-text-primary);
+    font-family: var(--ds-font-family);
+    font-size: var(--ds-font-size-sm);
+    pointer-events: auto;
+    /* Re-enable pointer events for toasts */
+    animation: ds-toast-slide-in 0.3s ease-out forwards;
+    overflow: hidden;
+    position: relative;
+}
+
+.ds-toast.ds-toast-exiting {
+    animation: ds-toast-slide-out 0.3s ease-in forwards;
+}
+
+/* Variants */
+.ds-toast-success {
+    border-left: 4px solid var(--ds-color-success);
+}
+
+.ds-toast-error {
+    border-left: 4px solid var(--ds-color-error);
+}
+
+.ds-toast-warning {
+    border-left: 4px solid var(--ds-color-warning);
+}
+
+.ds-toast-info {
+    border-left: 4px solid var(--ds-color-primary);
+}
+
+/* Content */
+.ds-toast-content {
+    flex: 1;
+    margin-right: var(--ds-spacing-sm);
+}
+
+.ds-toast-title {
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.ds-toast-message {
+    color: var(--ds-text-secondary);
+    line-height: 1.4;
+}
+
+/* Close Button */
+.ds-toast-close {
+    background: none;
+    border: none;
+    color: var(--ds-text-tertiary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: var(--ds-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.ds-toast-close:hover {
+    background-color: var(--ds-surface-3);
+    color: var(--ds-text-primary);
+}
+
+/* Animations */
+@keyframes ds-toast-slide-in {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes ds-toast-slide-out {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}

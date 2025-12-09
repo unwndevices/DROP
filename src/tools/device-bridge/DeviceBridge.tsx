@@ -59,9 +59,6 @@ export const DeviceBridge: React.FC = () => {
   const [bandwidth, setBandwidth] = useState(1.0);
   const [interpolation, setInterpolation] = useState('linear');
 
-
-
-
   // Update connection status
   useEffect(() => {
     const updateStatus = () => {
@@ -273,177 +270,205 @@ export const DeviceBridge: React.FC = () => {
 
   const isConnected = connectionCount > 0;
 
-
-
   // Main panel (Device Connection + Parameter Controls in column flow)
   const mainPanel = (
     <div className="device-bridge-columns">
-      <Card style={{ display: 'flex', flexDirection: 'column' }}>
+      <Card className="device-connection-card">
         <CardHeader>Device Connection</CardHeader>
         <CardBody>
           <DeviceConnectionPanel deviceService={deviceService} />
         </CardBody>
       </Card>
 
-      <div className="device-bridge-parameters">
-        <ParameterControl
-          parameter={{
-            id: 'blur-attack',
-            name: 'Blur Attack',
-            type: 'float',
-            value: blurAttack,
-            min: 0,
-            max: 1,
-            step: 0.001,
-            description: "Controls the attack time of the blur effect envelope"
-          }}
-          onChange={(val) => handleBlurAttackChange(val as number)}
-          disabled={!isConnected}
-          precision={3}
-        />
-      </div>
-
-      <div className="device-bridge-parameters">
-        <ParameterControl
-          parameter={{
-            id: 'blur-decay',
-            name: 'Blur Decay',
-            type: 'float',
-            value: blurDecay,
-            min: 0,
-            max: 1,
-            step: 0.001,
-            description: "Sets the decay rate for the blur effect over time"
-          }}
-          onChange={(val) => handleBlurDecayChange(val as number)}
-          disabled={!isConnected}
-          precision={3}
-        />
-      </div>
-
-      <div className="device-bridge-parameters">
-        <ParameterControl
-          parameter={{
-            id: 'resonance',
-            name: 'Resonance',
-            type: 'float',
-            value: resonance,
-            min: 0.1,
-            max: 4.0,
-            step: 0.001,
-            description: "Adjusts the resonant frequency emphasis of the filter"
-          }}
-          onChange={(val) => handleResonanceChange(val as number)}
-          disabled={!isConnected}
-          precision={3}
-        />
-      </div>
-
-      <div className="device-bridge-parameters">
-        <ParameterControl
-          parameter={{
-            id: 'osc-gain',
-            name: 'Oscillator Gain',
-            type: 'float',
-            value: oscGain,
-            min: 0,
-            max: 1,
-            step: 0.001,
-            description: "Master output level for the oscillator module"
-          }}
-          onChange={(val) => handleOscGainChange(val as number)}
-          disabled={!isConnected}
-          precision={3}
-        />
-      </div>
-
-      <div className="device-bridge-parameters">
-        <ParameterControl
-          parameter={{
-            id: 'tape-drive',
-            name: 'Tape Drive',
-            type: 'float',
-            value: tapeDrive,
-            min: 0,
-            max: 1,
-            step: 0.001,
-            description: "Controls the tape saturation drive amount"
-          }}
-          onChange={(val) => handleTapeDriveChange(val as number)}
-          disabled={!isConnected}
-          precision={3}
-        />
-      </div>
-
-      <div className="device-bridge-parameters">
-        <ParameterControl
-          parameter={{
-            id: 'tape-hyst',
-            name: 'Tape Hysteresis',
-            type: 'float',
-            value: tapeHyst,
-            min: 0,
-            max: 1,
-            step: 0.001,
-            description: "Adjusts the tape hysteresis effect for analog warmth"
-          }}
-          onChange={(val) => handleTapeHystChange(val as number)}
-          disabled={!isConnected}
-          precision={3}
-        />
-      </div>
-
-      <div className="device-bridge-parameters">
-        <ParameterControl
-          parameter={{
-            id: 'bandwidth',
-            name: 'Bandwidth',
-            type: 'float',
-            value: bandwidth,
-            min: 0.1,
-            max: 2.0,
-            step: 0.001,
-            description: "Sets the filter bandwidth for frequency response"
-          }}
-          onChange={(val) => handleBandwidthChange(val as number)}
-          disabled={!isConnected}
-          precision={3}
-        />
-      </div>
-
-      <div className={`device-bridge-parameters ${!isConnected ? 'interpolation-disabled' : ''}`}>
-        <label className="interpolation-label">Interpolation</label>
-        <div className="interpolation-button-group">
-          <Button
-            variant={interpolation === 'linear' ? 'primary' : 'secondary'}
-            size="sm"
-            onClick={() => handleInterpolationChange('linear')}
+      <Card className="device-bridge-parameters">
+        <CardHeader>Blur Attack</CardHeader>
+        <CardBody>
+          <ParameterControl
+            parameter={{
+              id: 'blur-attack',
+              name: 'Blur Attack',
+              type: 'float',
+              value: blurAttack,
+              min: 0,
+              max: 1,
+              step: 0.001,
+              description: "Controls the attack time of the blur effect envelope"
+            }}
+            onChange={(val) => handleBlurAttackChange(val as number)}
             disabled={!isConnected}
-            className={interpolation === 'linear' ? 'interpolation-button-active' : ''}
-          >
-            Linear
-          </Button>
-          <Button
-            variant={interpolation === 'cosine' ? 'primary' : 'secondary'}
-            size="sm"
-            onClick={() => handleInterpolationChange('cosine')}
+            precision={3}
+            hideLabel={true}
+          />
+        </CardBody>
+      </Card>
+
+      <Card className="device-bridge-parameters">
+        <CardHeader>Blur Decay</CardHeader>
+        <CardBody>
+          <ParameterControl
+            parameter={{
+              id: 'blur-decay',
+              name: 'Blur Decay',
+              type: 'float',
+              value: blurDecay,
+              min: 0,
+              max: 1,
+              step: 0.001,
+              description: "Sets the decay rate for the blur effect over time"
+            }}
+            onChange={(val) => handleBlurDecayChange(val as number)}
             disabled={!isConnected}
-            className={interpolation === 'cosine' ? 'interpolation-button-active' : ''}
-          >
-            Cosine
-          </Button>
-          <Button
-            variant={interpolation === 'cubic' ? 'primary' : 'secondary'}
-            size="sm"
-            onClick={() => handleInterpolationChange('cubic')}
+            precision={3}
+            hideLabel={true}
+          />
+        </CardBody>
+      </Card>
+
+      <Card className="device-bridge-parameters">
+        <CardHeader>Resonance</CardHeader>
+        <CardBody>
+          <ParameterControl
+            parameter={{
+              id: 'resonance',
+              name: 'Resonance',
+              type: 'float',
+              value: resonance,
+              min: 0.1,
+              max: 4.0,
+              step: 0.001,
+              description: "Adjusts the resonant frequency emphasis of the filter"
+            }}
+            onChange={(val) => handleResonanceChange(val as number)}
             disabled={!isConnected}
-            className={interpolation === 'cubic' ? 'interpolation-button-active' : ''}
-          >
-            Cubic
-          </Button>
-        </div>
-        <p className="interpolation-helper">Controls the interpolation type for smooth transitions</p>
-      </div>
+            precision={3}
+            hideLabel={true}
+          />
+        </CardBody>
+      </Card>
+
+      <Card className="device-bridge-parameters">
+        <CardHeader>Oscillator Gain</CardHeader>
+        <CardBody>
+          <ParameterControl
+            parameter={{
+              id: 'osc-gain',
+              name: 'Oscillator Gain',
+              type: 'float',
+              value: oscGain,
+              min: 0,
+              max: 1,
+              step: 0.001,
+              description: "Master output level for the oscillator module"
+            }}
+            onChange={(val) => handleOscGainChange(val as number)}
+            disabled={!isConnected}
+            precision={3}
+            hideLabel={true}
+          />
+        </CardBody>
+      </Card>
+
+      <Card className="device-bridge-parameters">
+        <CardHeader>Tape Drive</CardHeader>
+        <CardBody>
+          <ParameterControl
+            parameter={{
+              id: 'tape-drive',
+              name: 'Tape Drive',
+              type: 'float',
+              value: tapeDrive,
+              min: 0,
+              max: 1,
+              step: 0.001,
+              description: "Controls the tape saturation drive amount"
+            }}
+            onChange={(val) => handleTapeDriveChange(val as number)}
+            disabled={!isConnected}
+            precision={3}
+            hideLabel={true}
+          />
+        </CardBody>
+      </Card>
+
+      <Card className="device-bridge-parameters">
+        <CardHeader>Tape Hysteresis</CardHeader>
+        <CardBody>
+          <ParameterControl
+            parameter={{
+              id: 'tape-hyst',
+              name: 'Tape Hysteresis',
+              type: 'float',
+              value: tapeHyst,
+              min: 0,
+              max: 1,
+              step: 0.001,
+              description: "Adjusts the tape hysteresis effect for analog warmth"
+            }}
+            onChange={(val) => handleTapeHystChange(val as number)}
+            disabled={!isConnected}
+            precision={3}
+            hideLabel={true}
+          />
+        </CardBody>
+      </Card>
+
+      <Card className="device-bridge-parameters">
+        <CardHeader>Bandwidth</CardHeader>
+        <CardBody>
+          <ParameterControl
+            parameter={{
+              id: 'bandwidth',
+              name: 'Bandwidth',
+              type: 'float',
+              value: bandwidth,
+              min: 0.1,
+              max: 2.0,
+              step: 0.001,
+              description: "Sets the filter bandwidth for frequency response"
+            }}
+            onChange={(val) => handleBandwidthChange(val as number)}
+            disabled={!isConnected}
+            precision={3}
+            hideLabel={true}
+          />
+        </CardBody>
+      </Card>
+
+      <Card className={`device-bridge-parameters ${!isConnected ? 'interpolation-disabled' : ''}`}>
+        <CardHeader>Interpolation</CardHeader>
+        <CardBody>
+          <div className="interpolation-button-group">
+            <Button
+              variant={interpolation === 'linear' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => handleInterpolationChange('linear')}
+              disabled={!isConnected}
+              className={interpolation === 'linear' ? 'interpolation-button-active' : ''}
+            >
+              Linear
+            </Button>
+            <Button
+              variant={interpolation === 'cosine' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => handleInterpolationChange('cosine')}
+              disabled={!isConnected}
+              className={interpolation === 'cosine' ? 'interpolation-button-active' : ''}
+            >
+              Cosine
+            </Button>
+            <Button
+              variant={interpolation === 'cubic' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => handleInterpolationChange('cubic')}
+              disabled={!isConnected}
+              className={interpolation === 'cubic' ? 'interpolation-button-active' : ''}
+            >
+              Cubic
+            </Button>
+          </div>
+          <p className="interpolation-helper">Controls the interpolation type for smooth transitions</p>
+        </CardBody>
+      </Card>
     </div>
   );
 

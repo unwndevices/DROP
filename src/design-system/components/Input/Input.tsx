@@ -1,4 +1,5 @@
 import React from 'react';
+import './Input.css';
 
 export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   size?: 'xs' | 'sm' | 'md' | 'lg';
@@ -17,41 +18,43 @@ export const Input: React.FC<InputProps> = ({
   error,
   helper,
   className = '',
+  disabled,
   ...props
 }) => {
   const inputClasses = [
-    'input',
-    size !== 'md' && `input-${size}`,
-    variant !== 'default' && `input-${variant}`,
+    'ds-input',
+    `ds-input-${size}`,
+    variant !== 'default' && `ds-input-${variant}`,
+    error && 'ds-input-error',
     className
   ].filter(Boolean).join(' ');
 
-  const containerStyle = labelPosition === 'left'
-    ? { display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-sm)' }
-    : { display: 'flex', flexDirection: 'column' as const, gap: 'var(--ds-spacing-xs)' };
-
-  const labelStyle = {
-    fontSize: 'var(--ds-font-size-sm)',
-    fontWeight: 'var(--ds-font-weight-normal)',
-    color: 'var(--ds-color-text-primary)',
-    ...(labelPosition === 'left' ? { whiteSpace: 'nowrap' as const } : {})
-  };
+  const containerClasses = [
+    'ds-input-container',
+    labelPosition === 'left' && 'ds-input-container-horizontal'
+  ].filter(Boolean).join(' ');
 
   return (
-    <div style={containerStyle}>
+    <div className={containerClasses}>
       {label && (
-        <label style={labelStyle}>
+        <label className="ds-input-label">
           {label}
         </label>
       )}
-      <input className={inputClasses} {...props} />
+      <div className="ds-input-wrapper">
+        <input
+          className={inputClasses}
+          disabled={disabled}
+          {...props}
+        />
+      </div>
       {(error || helper) && labelPosition === 'top' && (
         <div>
           {error && (
-            <span style={{ fontSize: 'var(--ds-font-size-xs)', color: 'var(--ds-color-error)' }}>{error}</span>
+            <div className="ds-input-error-text">{error}</div>
           )}
           {helper && !error && (
-            <span style={{ fontSize: 'var(--ds-font-size-xs)', color: 'var(--ds-color-text-muted)' }}>{helper}</span>
+            <div className="ds-input-helper">{helper}</div>
           )}
         </div>
       )}
@@ -74,28 +77,34 @@ export const TextArea: React.FC<TextAreaProps> = ({
   error,
   helper,
   className = '',
+  disabled,
   ...props
 }) => {
   const textareaClasses = [
-    'input',
-    size !== 'md' && `input-${size}`,
-    variant !== 'default' && `input-${variant}`,
+    'ds-input',
+    `ds-input-${size}`,
+    variant !== 'default' && `ds-input-${variant}`,
+    error && 'ds-input-error',
     className
   ].filter(Boolean).join(' ');
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="ds-input-container">
       {label && (
-        <label className="text-sm font-medium text-primary">
+        <label className="ds-input-label">
           {label}
         </label>
       )}
-      <textarea className={textareaClasses} {...props} />
+      <textarea
+        className={textareaClasses}
+        disabled={disabled}
+        {...props}
+      />
       {error && (
-        <span className="text-xs text-error">{error}</span>
+        <div className="ds-input-error-text">{error}</div>
       )}
       {helper && !error && (
-        <span className="text-xs text-muted">{helper}</span>
+        <div className="ds-input-helper">{helper}</div>
       )}
     </div>
   );

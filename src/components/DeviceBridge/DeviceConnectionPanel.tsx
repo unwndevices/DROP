@@ -2,23 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { DeviceService } from '../../services/DeviceBridge/DeviceService';
 import type { DeviceConnection } from '../../services/DeviceBridge/types';
 import { ConnectionStatus } from './ConnectionStatus';
+import { Button, useToast } from '../../design-system';
 import './DeviceConnectionPanel.css';
 
 interface DeviceConnectionPanelProps {
   deviceService: DeviceService;
 }
 
-export const DeviceConnectionPanel: React.FC<DeviceConnectionPanelProps> = ({ 
-  deviceService 
+export const DeviceConnectionPanel: React.FC<DeviceConnectionPanelProps> = ({
+  deviceService
 }) => {
   const [connections, setConnections] = useState<DeviceConnection[]>([]);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const { error: showError } = useToast();
 
   useEffect(() => {
     const handleDeviceConnected = () => {
       setConnections(deviceService.getConnections());
-      setConnectionError(null);
       setIsConnecting(false);
     };
 
@@ -27,7 +27,7 @@ export const DeviceConnectionPanel: React.FC<DeviceConnectionPanelProps> = ({
     };
 
     const handleConnectionError = (event: any) => {
-      setConnectionError(event.payload.error);
+      showError(event.payload.error, 'Connection Error');
       setIsConnecting(false);
     };
 
@@ -42,16 +42,36 @@ export const DeviceConnectionPanel: React.FC<DeviceConnectionPanelProps> = ({
       deviceService.removeEventListener('DEVICE_DISCONNECTED', handleDeviceDisconnected);
       deviceService.removeEventListener('CONNECTION_ERROR', handleConnectionError);
     };
-  }, [deviceService]);
+  }, [deviceService, showError]);
 
   const handleSerialConnect = async () => {
     setIsConnecting(true);
-    setConnectionError(null);
-    
+
     try {
       await deviceService.connectSerial();
-    } catch {
-      // Error handled by event listener
+    } catch (error) {
+      // Reset connecting state if error wasn't handled by event
+      setIsConnecting(false);
+      if (error instanceof Error) {
+        showError(error.message, 'Connection Failed');
+      }
+    }
+  };
+
+  const handleBluetoothConnect = async () => {
+    setIsConnecting(true);
+
+    try {
+      await deviceService.connectBluetooth();
+    } catch (error) {
+      // Reset connecting state if error wasn't handled by event
+      setIsConnecting(false);
+      if (error instanceof Error) {
+        // User cancelled is not an error worth showing
+        if (!error.message.includes('cancelled') && !error.message.includes('canceled')) {
+          showError(error.message, 'Connection Failed');
+        }
+      }
     }
   };
 
@@ -60,49 +80,41 @@ export const DeviceConnectionPanel: React.FC<DeviceConnectionPanelProps> = ({
   };
 
   return (
-    <div className="device-connection-panel">
-      <div className="panel-header">
-        <h3 className="panel-title">EISEI DEVICE BRIDGE</h3>
-      </div>
-
-      <div className="connection-section">
-        <h4 className="section-title">CONNECTION</h4>
-        
-        {connections.length === 0 ? (
-          <div className="connection-buttons">
-            <button
-              className="btn btn-primary connection-btn"
-              onClick={handleSerialConnect}
-              disabled={isConnecting}
-              title="Connect via USB Serial"
-            >
-              {isConnecting ? 'CONNECTING...' : 'USB SERIAL'}
-            </button>
-          </div>
-        ) : (
-          <div className="active-connections">
-            {connections.map(connection => (
-              <ConnectionStatus
-                key={connection.id}
-                connection={connection}
-                onDisconnect={() => handleDisconnect(connection.id)}
-              />
-            ))}
-          </div>
-        )}
-
-        {connectionError && (
-          <div className="connection-error">
-            <p className="error-message">{connectionError}</p>
-            <button 
-              className="btn btn-ghost btn-small"
-              onClick={() => setConnectionError(null)}
-            >
-              DISMISS
-            </button>
-          </div>
-        )}
-      </div>
+    <div className="device-connection-content">
+      {connections.length === 0 ? (
+        <div className="connection-buttons">
+          <Button
+            variant="primary"
+            onClick={handleSerialConnect}
+            disabled={isConnecting}
+            loading={isConnecting}
+            title="Connect via USB Serial"
+            className="connection-btn"
+          >
+            USB SERIAL
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleBluetoothConnect}
+            disabled={isConnecting}
+            loading={isConnecting}
+            title="Connect via Bluetooth (ESP32)"
+            className="connection-btn"
+          >
+            BLUETOOTH
+          </Button>
+        </div>
+      ) : (
+        <div className="active-connections">
+          {connections.map(connection => (
+            <ConnectionStatus
+              key={connection.id}
+              connection={connection}
+              onDisconnect={() => handleDisconnect(connection.id)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

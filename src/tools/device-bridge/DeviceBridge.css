@@ -17,64 +17,61 @@
   padding: var(--ds-spacing-md);
 }
 
-.device-bridge-columns > * {
+.device-bridge-columns>* {
   break-inside: avoid;
   margin-bottom: var(--ds-spacing-md);
 }
 
-.parameter-control-item {
-  break-inside: avoid;
+.device-connection-card {
+  display: flex;
+  flex-direction: column;
 }
 
 /* Parameter controls section styling */
 .device-bridge-parameters {
-  background: var(--ds-color-background-secondary);
-  border: 1px solid var(--ds-color-border-muted);
-  border-radius: var(--ds-border-radius-md);
-  padding: var(--ds-spacing-md);
   break-inside: avoid;
 }
 
 /* Remove extra margin from last child in parameter container */
-.device-bridge-parameters > *:last-child {
+.device-bridge-parameters .ds-card-body>*:last-child {
   margin-bottom: 0;
 }
 
 .interpolation-label {
   display: block;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--color-text-primary);
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-medium);
+  color: var(--ds-color-text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.3px;
-  margin-bottom: 0.5rem;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--ds-spacing-sm);
 }
 
 .interpolation-button-group {
   display: flex;
   gap: 0;
-  margin-bottom: 0.5rem;
-  transition: opacity 0.2s ease;
+  margin-bottom: var(--ds-spacing-sm);
 }
 
-.interpolation-button-group > button {
+.interpolation-button-group>button {
   flex: 1;
   border-radius: 0;
   border-right-width: 0;
 }
 
-.interpolation-button-group > button:first-child {
-  border-top-left-radius: var(--ds-border-radius-sm);
-  border-bottom-left-radius: var(--ds-border-radius-sm);
+.interpolation-button-group>button:first-child {
+  border-top-left-radius: var(--ds-border-radius-md);
+  border-bottom-left-radius: var(--ds-border-radius-md);
 }
 
-.interpolation-button-group > button:last-child {
-  border-top-right-radius: var(--ds-border-radius-sm);
-  border-bottom-right-radius: var(--ds-border-radius-sm);
+.interpolation-button-group>button:last-child {
+  border-top-right-radius: var(--ds-border-radius-md);
+  border-bottom-right-radius: var(--ds-border-radius-md);
   border-right-width: 1px;
 }
 
-.interpolation-button-group > button:focus {
+.interpolation-button-group>button:focus {
   z-index: 1;
   position: relative;
 }
@@ -84,13 +81,14 @@
 .interpolation-disabled .interpolation-helper {
   opacity: 0.5;
   pointer-events: none;
+  filter: grayscale(1);
 }
 
 .interpolation-helper {
-  font-size: 0.75rem;
-  color: var(--ds-color-text-secondary);
+  font-size: var(--ds-font-size-xs);
+  color: var(--ds-color-text-muted);
   margin: 0;
-  margin-top: 0.25rem;
+  margin-top: var(--ds-spacing-xs);
 }
 
 @media (max-width: 900px) {
@@ -98,276 +96,5 @@
     columns: 1;
     height: auto;
     max-height: 100%;
-  }
-}
-
-/* Parameter Control Component */
-
-
-.device-panel {
-  background: var(--color-background);
-  overflow-y: auto;
-}
-
-.visualization-panel {
-  background: var(--color-background);
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-
-/* Main Chart */
-.main-chart {
-  flex: 1;
-  margin: 0;
-}
-
-
-/* No Data State */
-.no-data-state {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-}
-
-.no-data-content {
-  text-align: center;
-  max-width: 400px;
-}
-
-.no-data-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
-  opacity: 0.5;
-}
-
-.no-data-content h3 {
-  color: var(--color-text-primary);
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin: 0 0 1rem 0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.no-data-content p {
-  color: var(--color-text-muted);
-  font-size: 0.9rem;
-  line-height: 1.5;
-  margin: 0 0 1.5rem 0;
-}
-
-.supported-devices {
-  background: var(--color-background-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  padding: 1rem;
-  text-align: left;
-}
-
-.supported-devices h4 {
-  color: var(--color-amber);
-  font-size: 0.8rem;
-  font-weight: 600;
-  margin: 0 0 0.75rem 0;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.supported-devices ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.supported-devices li {
-  color: var(--color-text-muted);
-  font-size: 0.75rem;
-  padding: 0.25rem 0;
-  position: relative;
-  padding-left: 1rem;
-}
-
-.supported-devices li:before {
-  content: "•";
-  color: var(--color-amber);
-  position: absolute;
-  left: 0;
-  font-weight: bold;
-}
-
-/* Device Capabilities */
-.device-capabilities {
-  background: var(--color-background-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  padding: 1rem;
-  margin-top: 1rem;
-}
-
-.device-capabilities h4 {
-  color: var(--color-amber);
-  font-size: 0.8rem;
-  font-weight: 600;
-  margin: 0 0 0.75rem 0;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.capabilities-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.capability-tag {
-  background: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: 3px;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.7rem;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.2px;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .tool-status-bar {
-    flex-direction: column;
-    gap: 0.5rem;
-    align-items: flex-start;
-  }
-  
-  .status-section {
-    width: 100%;
-    justify-content: space-between;
-  }
-  
-  .connection-help {
-    padding: 0.75rem;
-  }
-  
-  .help-section {
-    margin-bottom: 0.75rem;
-  }
-  
-  .help-section li {
-    font-size: 0.7rem;
-  }
-  
-  .no-data-content {
-    padding: 1rem;
-  }
-  
-  .no-data-icon {
-    font-size: 3rem;
-  }
-  
-  .capabilities-grid {
-    justify-content: center;
-  }
-}
-
-/* Animation for connection states */
-@keyframes connectionPulse {
-  0% { opacity: 0.6; }
-  50% { opacity: 1; }
-  100% { opacity: 0.6; }
-}
-
-.status-value.connected {
-  animation: connectionPulse 2s infinite;
-}
-
-/* Scroll styling for help sections */
-.device-panel::-webkit-scrollbar {
-  width: 6px;
-}
-
-.device-panel::-webkit-scrollbar-track {
-  background: var(--color-background);
-}
-
-.device-panel::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 3px;
-}
-
-.device-panel::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted);
-}
-
-/* Bottom Status Bar */
-.tool-status {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 2rem;
-  background-color: var(--color-background-secondary);
-  border-top: 1px solid var(--color-border);
-  font-size: 0.8rem;
-  min-height: 40px;
-}
-
-.status-left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.status-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.status-item {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  color: var(--color-text-muted);
-}
-
-.status-item.success {
-  color: var(--color-amber);
-}
-
-.status-item.executing {
-  color: var(--color-warning);
-}
-
-.status-item.executing::before {
-  content: '';
-  width: 8px;
-  height: 8px;
-  background-color: currentColor;
-  border-radius: 50%;
-  animation: pulse 1s ease-in-out infinite;
-}
-
-@keyframes statusPulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-/* Responsive Design for Status Bar */
-@media (max-width: 768px) {
-  .tool-status {
-    flex-direction: column;
-    gap: 0.5rem;
-    padding: 1rem;
-  }
-  
-  .status-left,
-  .status-right {
-    justify-content: center;
   }
 }

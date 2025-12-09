@@ -1,0 +1,61 @@
+/* Card Component Styles */
+
+.ds-card {
+    background: var(--ds-color-background-secondary);
+    border: 1px solid var(--ds-color-border-subtle);
+    border-radius: var(--ds-border-radius-lg);
+    overflow: hidden;
+    transition: all var(--ds-transition-medium);
+    display: flex;
+    flex-direction: column;
+}
+
+.ds-card-glass {
+    background: var(--ds-surface-glass);
+    backdrop-filter: var(--ds-backdrop-blur);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.ds-card-outline {
+    background: transparent;
+    border: 1px solid var(--ds-color-border-subtle);
+}
+
+.ds-card-header {
+    padding: var(--ds-spacing-md) var(--ds-spacing-lg);
+    border-bottom: 1px solid var(--ds-color-border-subtle);
+    background: rgba(0, 0, 0, 0.2);
+
+    font-family: var(--ds-font-mono);
+    font-weight: var(--ds-font-weight-medium);
+    font-size: var(--ds-font-size-base);
+    color: var(--ds-color-text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.ds-card-body {
+    padding: var(--ds-spacing-lg);
+    flex: 1;
+    color: var(--ds-color-text-secondary);
+}
+
+.ds-card-footer {
+    padding: var(--ds-spacing-md) var(--ds-spacing-lg);
+    border-top: 1px solid var(--ds-color-border-subtle);
+    background: rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    gap: var(--ds-spacing-md);
+}
+
+/* Hover effects for interactive cards (optional) */
+.ds-card-interactive:hover {
+    border-color: var(--ds-color-border-muted);
+    box-shadow: var(--ds-shadow-md);
+    transform: translateY(-2px);
+}

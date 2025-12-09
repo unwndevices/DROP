@@ -3,7 +3,7 @@ import { FaDownload, FaFolderOpen } from 'react-icons/fa';
 import { SimpleSpectrumChart } from '../../components/Visualizer/SimpleSpectrumChart';
 import { luaService } from '../../services/LuaEngine/LuaService';
 import { SpectralExportModal } from '../../components/Spectral';
-import '../../components/Spectral/SpectralExportModal.css';
+
 import type { Datum } from '../../services/DataModel/types';
 
 // Import design system components

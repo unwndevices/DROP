@@ -3,37 +3,46 @@
 :root {
   /* Theme variables - will be set by JavaScript before React loads */
   /* Fallback colors for initial load */
-  --color-background: var(--initial-bg, #181818);
-  --color-background-secondary: var(--initial-bg-secondary, #2b2b2b);
-  --color-background-tertiary: var(--initial-bg-tertiary, #262626);
-  --color-text-primary: var(--initial-accent, #C7EE1B);
-  --color-text-secondary: #CCCCCC;
-  --color-text-muted: #999999;
-  --color-text-tertiary: #666666;
-  --color-border: var(--initial-accent, #C7EE1B);
-  --color-border-muted: var(--initial-accent-dark, #9EBE0E);
-  --color-success: #00FF00;
-  --color-error: #FF4444;
-  --color-warning: #FFAA00;
-  --color-info: #3B82F6;
-  --color-editor-background: var(--initial-bg, #181818);
-  --color-editor-selection: #333300;
-  --color-editor-cursor: var(--initial-accent, #C7EE1B);
-  --color-editor-gutter: var(--initial-bg-tertiary, #181818);
-  --color-editor-line-number: #666666;
-  --color-amber: var(--initial-accent, #C7EE1B);
-  --color-amber-dark: var(--initial-accent-dark, #9EBE0E);
-  --color-amber-light: var(--initial-accent-light, #D1F141);
+  --color-background: var(--initial-bg, #0a0a0a);
+  --color-background-secondary: var(--initial-bg-secondary, #141414);
+  --color-background-tertiary: var(--initial-bg-tertiary, #1a1a1a);
 
-  --color-background-rgb: var(--initial-bg-rgb, 24, 24, 24);
-  --color-glow-rgb: var(--initial-accent-rgb, 199, 238, 27);
-  --color-error-rgb: 255, 68, 68;
-  --color-success-rgb: 0, 255, 0;
-  --color-warning-rgb: 255, 170, 0;
-  --color-info-rgb: 59, 130, 246;
-  --color-border-muted-rgb: var(--initial-accent-dark-rgb, 158, 190, 14);
+  /* Accent Colors - Electric Amber/Green */
+  --color-text-primary: var(--initial-accent, #D4FF00);
+  --color-text-secondary: #E0E0E0;
+  --color-text-muted: #888888;
+  --color-text-tertiary: #555555;
+
+  --color-border: var(--initial-accent, #D4FF00);
+  --color-border-muted: var(--initial-accent-dark, #4A5900);
+  --color-border-subtle: #333333;
+
+  --color-success: #00FF9D;
+  --color-error: #FF2A2A;
+  --color-warning: #FFB800;
+  --color-info: #00D1FF;
+
+  --color-editor-background: var(--initial-bg, #0a0a0a);
+  --color-editor-selection: #2a2a00;
+  --color-editor-cursor: var(--initial-accent, #D4FF00);
+  --color-editor-gutter: var(--initial-bg-tertiary, #141414);
+  --color-editor-line-number: #444444;
+
+  --color-amber: var(--initial-accent, #D4FF00);
+  --color-amber-dark: var(--initial-accent-dark, #8BA600);
+  --color-amber-light: var(--initial-accent-light, #E5FF4D);
+  --color-amber-glow: rgba(212, 255, 0, 0.15);
+
+  --color-background-rgb: var(--initial-bg-rgb, 10, 10, 10);
+  --color-glow-rgb: var(--initial-accent-rgb, 212, 255, 0);
+  --color-error-rgb: 255, 42, 42;
+  --color-success-rgb: 0, 255, 157;
+  --color-warning-rgb: 255, 184, 0;
+  --color-info-rgb: 0, 209, 255;
+  --color-border-muted-rgb: var(--initial-accent-dark-rgb, 74, 89, 0);
 
   --font-mono: 'Geist Mono', 'Fira Mono', 'Monaco', 'Consolas', 'Courier New', monospace;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -43,19 +52,25 @@
   --spacing-xxl: 48px;
 
   --border-radius-sm: 2px;
-  --border-radius-md: 4px;
-  --border-radius-lg: 8px;
+  --border-radius-md: 6px;
+  --border-radius-lg: 12px;
+  --border-radius-full: 9999px;
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-  --shadow-glow: 0 0 8px rgba(var(--color-glow-rgb), 0.3);
-  --shadow-glow-strong: 0 0 16px rgba(var(--color-glow-rgb), 0.5);
-  --shadow-error: 0 0 8px rgba(var(--color-error-rgb), 0.3);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 12px rgba(var(--color-glow-rgb), 0.2);
+  --shadow-glow-strong: 0 0 24px rgba(var(--color-glow-rgb), 0.4);
+  --shadow-error: 0 0 12px rgba(var(--color-error-rgb), 0.3);
 
-  --transition-fast: 0.15s ease;
-  --transition-medium: 0.25s ease;
-  --transition-slow: 0.35s ease;
+  --backdrop-blur: blur(12px);
+  --surface-glass: rgba(20, 20, 20, 0.7);
+  --surface-glass-hover: rgba(30, 30, 30, 0.8);
+
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-medium: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* Reset and base styles */
@@ -620,9 +635,7 @@ select {
   font-weight: 600;
 }
 
-.card-body {
-  /* Content area */
-}
+
 
 .card-footer {
   margin: calc(-1 * var(--spacing-md));
