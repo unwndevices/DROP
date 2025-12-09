@@ -531,16 +531,6 @@ export class DeviceService {
     // This would need to be completed with actual BLE/Serial sending logic
   }
 
-  private async requestDeviceInfo(): Promise<void> {
-    const message = new Uint8Array([0x20]); // Info request message type
-
-    for (const connection of this.connections.values()) {
-      if (connection.isConnected) {
-        await this.sendMessage(connection.id, message);
-      }
-    }
-  }
-
   private updateParameters(parameters: DeviceParameter[]): void {
     parameters.forEach(param => {
       this.parameters.set(param.id, param);
