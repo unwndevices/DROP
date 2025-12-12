@@ -23,7 +23,8 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
           ...defaultSettingsValue,
           ...parsed,
           layout: { ...defaultSettingsValue.layout, ...parsed.layout },
-          theme: { ...defaultSettingsValue.theme, ...parsed.theme }
+          theme: { ...defaultSettingsValue.theme, ...parsed.theme },
+          retro: { ...defaultSettingsValue.retro, ...parsed.retro }
         };
         setSettings(mergedSettings);
 
@@ -45,7 +46,8 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
       ...settings,
       ...newSettings,
       layout: { ...settings.layout, ...newSettings.layout },
-      theme: { ...settings.theme, ...newSettings.theme }
+      theme: { ...settings.theme, ...newSettings.theme },
+      retro: { ...settings.retro, ...newSettings.retro }
     };
 
     setSettings(updatedSettings);

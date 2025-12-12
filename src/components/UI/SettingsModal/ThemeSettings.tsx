@@ -51,7 +51,7 @@ export const ThemeSettings: React.FC = () => {
           </select>
         </div>
       </div>
-      
+
       <div className="theme-preview">
         <div className="settings-control-label">
           <div className="settings-control-title">Preview</div>
@@ -60,6 +60,53 @@ export const ThemeSettings: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <div className="settings-control">
+        <div className="settings-control-label">
+          <div className="settings-control-title">Retro Effects</div>
+          <div className="settings-control-description">
+            CRT & Scanline intensity (Off - Low - Medium - High)
+          </div>
+        </div>
+        <div className="settings-control-input">
+          <div className="radio-group" style={{ display: 'flex' }}>
+            {([
+              { label: 'OFF', value: 0 },
+              { label: 'LO', value: 1 },
+              { label: 'MD', value: 2 },
+              { label: 'HI', value: 3 }
+            ] as const).map((option, index, arr) => (
+              <label
+                key={option.label}
+                className={`btn btn-sm ${settings.retro.intensity === option.value ? 'btn-primary' : 'btn-ghost'}`}
+                style={{
+                  minWidth: '3rem',
+                  cursor: 'pointer',
+                  borderRadius: index === 0 ? 'var(--radius-sm) 0 0 var(--radius-sm)' :
+                    index === arr.length - 1 ? '0 var(--radius-sm) var(--radius-sm) 0' :
+                      '0',
+                  border: settings.retro.intensity === option.value ? undefined : '1px solid var(--border-color)',
+                  borderLeft: index > 0 && settings.retro.intensity !== option.value ? 'none' : undefined,
+                  // Ensure selected item overlaps borders
+                  zIndex: settings.retro.intensity === option.value ? 1 : 0,
+                  marginLeft: index > 0 ? '-1px' : 0
+                }}
+              >
+                <input
+                  type="radio"
+                  name="retro-intensity"
+                  className="hidden"
+                  value={option.value}
+                  checked={settings.retro.intensity === option.value}
+                  onChange={() => updateSettings({ retro: { intensity: option.value } })}
+                  style={{ display: 'none' }}
+                />
+                {option.label}
+              </label>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
-}; 
+};

@@ -9,9 +9,14 @@ export interface ThemeSettings {
     name: ThemeName;
 }
 
+export interface RetroSettings {
+    intensity: 0 | 1 | 2 | 3;
+}
+
 export interface Settings {
     layout: LayoutSettings;
     theme: ThemeSettings;
+    retro: RetroSettings;
 }
 
 export interface SettingsContextType {
@@ -27,5 +32,8 @@ export const defaultSettings: Settings = {
     },
     theme: {
         name: 'rose-pine',
+    },
+    retro: {
+        intensity: 1,
     }
 }; 
