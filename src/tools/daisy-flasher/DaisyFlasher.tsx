@@ -14,6 +14,8 @@ import {
   StatusIndicator
 } from '../../design-system';
 
+import '../ToolLayout.css';
+
 interface SerialMessage {
   timestamp: Date;
   direction: 'in' | 'out';
@@ -348,9 +350,10 @@ export const DaisyFlasher: React.FC = () => {
     setSerialMessages([]);
   }, []);
 
-  // Create left panel (Daisy Seed Flasher)
-  const leftPanel = (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-md)' }}>
+  // Main content using masonry layout
+  const mainContent = (
+    <div className="tool-columns">
+      {/* Device Connection Card */}
       <Card>
         <CardHeader>Device Connection</CardHeader>
         <CardBody>
@@ -369,16 +372,16 @@ export const DaisyFlasher: React.FC = () => {
               fontSize: 'var(--ds-font-size-sm)'
             }}>
               <p style={{ margin: '0 0 var(--ds-spacing-xs) 0', fontWeight: 'var(--ds-font-weight-medium)' }}>
-                To enter Bootloader mode on Daisy Seed:
+                To enter Bootloader mode:
               </p>
               <ol style={{
                 listStylePosition: 'inside',
                 paddingLeft: 'var(--ds-spacing-md)',
                 margin: 'var(--ds-spacing-xs) 0'
               }}>
-                <li>Connect Daisy Seed to your computer</li>
-                <li>Press and release RESET</li>
-                <li>Press BOOT once (LED will blink indefinitely)</li>
+                <li>RESET + BOOT</li>
+                <li>Release RESET</li>
+                <li>Release BOOT</li>
               </ol>
             </div>
             {deviceInfo && (
@@ -390,6 +393,7 @@ export const DaisyFlasher: React.FC = () => {
         </CardBody>
       </Card>
 
+      {/* Firmware Selection Card */}
       <Card>
         <CardHeader>Firmware Selection</CardHeader>
         <CardBody>
@@ -404,15 +408,16 @@ export const DaisyFlasher: React.FC = () => {
               <h4 style={{ marginBottom: 'var(--ds-spacing-sm)' }}>Or upload custom firmware:</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-sm)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-sm)' }}>
-                  <span>Daisy Firmware (.bin) @ 0x90040000</span>
+                  <span>Daisy Firmware (.bin)</span>
                 </div>
-                <input
-                  type="file"
-                  accept=".bin"
-                  onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
-                  disabled={isFlashing}
-                  style={{ padding: 'var(--ds-spacing-sm)' }}
-                />
+                <div className="file-input-wrapper">
+                  <input
+                    type="file"
+                    accept=".bin"
+                    onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
+                    disabled={isFlashing}
+                  />
+                </div>
                 {firmwareFile && (
                   <StatusIndicator variant="info">
                     {firmwareFile.name} ({(firmwareFile.size / 1024).toFixed(1)} KB)
@@ -424,6 +429,7 @@ export const DaisyFlasher: React.FC = () => {
         </CardBody>
       </Card>
 
+      {/* Flash Process Card */}
       <Card>
         <CardHeader>Flash Process</CardHeader>
         <CardBody>
@@ -435,7 +441,7 @@ export const DaisyFlasher: React.FC = () => {
                 onChange={(e) => setFullErase(e.target.checked)}
                 disabled={isFlashing}
               />
-              Perform full erase before flashing (slower)
+              Full erase (slower)
             </label>
 
             <Button
@@ -483,93 +489,84 @@ export const DaisyFlasher: React.FC = () => {
           </div>
         </CardBody>
       </Card>
-    </div>
-  );
 
-  // Create right panel (Serial Monitor) - Same as ESP32Flasher
-  const rightPanel = (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Card style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* Serial Monitor Card */}
+      <Card>
         <CardHeader>Serial Monitor</CardHeader>
-        <CardBody style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-md)' }}>
-          <div style={{ display: 'flex', gap: 'var(--ds-spacing-md)', alignItems: 'flex-end' }}>
-            <Select
-              label="Baud Rate"
-              value={baudRate.toString()}
-              onChange={(e) => setBaudRate(Number(e.target.value))}
-              disabled={serialConnected}
-              options={[
-                { value: '9600', label: '9600' },
-                { value: '19200', label: '19200' },
-                { value: '38400', label: '38400' },
-                { value: '57600', label: '57600' },
-                { value: '115200', label: '115200' },
-                { value: '230400', label: '230400' },
-                { value: '460800', label: '460800' },
-                { value: '921600', label: '921600' }
-              ]}
-            />
-            <Button
-              onClick={serialConnected ? disconnectSerial : connectSerial}
-              variant={serialConnected ? "secondary" : "primary"}
-            >
-              {serialConnected ? 'Disconnect' : 'Connect'}
-            </Button>
-            <Button onClick={clearMessages} variant="secondary">
-              Clear
-            </Button>
-          </div>
-
-          <div style={{
-            flex: 1,
-            border: '1px solid var(--ds-color-border-muted)',
-            borderRadius: 'var(--ds-border-radius-md)',
-            backgroundColor: 'var(--ds-color-background-secondary)',
-            padding: 'var(--ds-spacing-sm)',
-            overflow: 'auto',
-            fontFamily: 'var(--ds-font-mono)',
-            fontSize: 'var(--ds-font-size-sm)'
-          }}>
-            {serialMessages.map((message, index) => (
-              <div
-                key={index}
-                style={{
-                  display: 'flex',
-                  gap: 'var(--ds-spacing-sm)',
-                  marginBottom: 'var(--ds-spacing-xs)',
-                  color: message.type === 'error' ? 'var(--ds-color-error)' :
-                    message.type === 'info' ? 'var(--ds-color-info)' :
-                      message.direction === 'out' ? 'var(--ds-color-text-secondary)' : 'var(--ds-color-text-primary)'
-                }}
-              >
-                <span style={{ color: 'var(--ds-color-text-muted)', fontSize: 'var(--ds-font-size-xs)' }}>
-                  {message.timestamp.toLocaleTimeString()}
-                </span>
-                <span style={{ color: 'var(--ds-color-primary)' }}>
-                  {message.direction === 'in' ? '←' : '→'}
-                </span>
-                <span>{message.data}</span>
+        <CardBody>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-md)' }}>
+            <div style={{ display: 'flex', gap: 'var(--ds-spacing-md)', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: '120px' }}>
+                <Select
+                  label="Baud Rate"
+                  value={baudRate.toString()}
+                  onChange={(e) => setBaudRate(Number(e.target.value))}
+                  disabled={serialConnected}
+                  options={[
+                    { value: '9600', label: '9600' },
+                    { value: '115200', label: '115200' },
+                    { value: '230400', label: '230400' },
+                    { value: '460800', label: '460800' },
+                    { value: '921600', label: '921600' }
+                  ]}
+                />
               </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
+              <Button
+                onClick={serialConnected ? disconnectSerial : connectSerial}
+                variant={serialConnected ? "secondary" : "primary"}
+              >
+                {serialConnected ? 'Disconnect' : 'Connect'}
+              </Button>
+              <Button onClick={clearMessages} variant="secondary">
+                Clear
+              </Button>
+            </div>
 
-          <div style={{ display: 'flex', gap: 'var(--ds-spacing-sm)' }}>
-            <Input
-              value={serialInput}
-              onChange={(e) => setSerialInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && sendSerial()}
-              placeholder="Enter command..."
-              disabled={!serialConnected}
-              style={{ flex: 1 }}
-            />
-            <Button
-              onClick={sendSerial}
-              disabled={!serialConnected || !serialInput.trim()}
-              variant="primary"
-            >
-              Send
-            </Button>
+            <div className="tool-terminal">
+              {serialMessages.length === 0 ? (
+                <div className="tool-terminal-placeholder">No data received</div>
+              ) : (
+                serialMessages.map((message, index) => (
+                  <div
+                    key={index}
+                    className="tool-terminal-line"
+                    style={{
+                      marginBottom: '2px',
+                      color: message.type === 'error' ? 'var(--ds-color-error)' :
+                        message.type === 'info' ? 'var(--ds-color-info)' :
+                          message.direction === 'out' ? 'var(--ds-color-text-secondary)' : 'var(--ds-color-text-primary)'
+                    }}
+                  >
+                    <span style={{ color: 'var(--ds-color-text-muted)', marginRight: '8px' }}>
+                      {message.timestamp.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                    </span>
+                    <span style={{ color: 'var(--ds-color-primary)', marginRight: '8px' }}>
+                      {message.direction === 'in' ? '←' : '→'}
+                    </span>
+                    <span>{message.data}</span>
+                  </div>
+                ))
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div style={{ display: 'flex', gap: 'var(--ds-spacing-sm)' }}>
+              <Input
+                value={serialInput}
+                onChange={(e) => setSerialInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && sendSerial()}
+                placeholder="Enter command..."
+                disabled={!serialConnected}
+                style={{ flex: 1 }}
+              />
+              <Button
+                onClick={sendSerial}
+                disabled={!serialConnected || !serialInput.trim()}
+                variant="primary"
+              >
+                Send
+              </Button>
+            </div>
           </div>
         </CardBody>
       </Card>
@@ -606,8 +603,7 @@ export const DaisyFlasher: React.FC = () => {
   return (
     <ToolLayout
       panels={{
-        left: leftPanel,
-        right: rightPanel
+        single: mainContent
       }}
       statusBar={statusBar}
     />

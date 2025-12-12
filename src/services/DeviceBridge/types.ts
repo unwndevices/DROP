@@ -79,6 +79,7 @@ export type DeviceEvent =
   | { type: 'PARAMETER_CHANGED'; payload: { parameterId: string; value: any } }
   | { type: 'DATA_RECEIVED'; payload: { data: RealTimeData } }
   | { type: 'CONNECTION_ERROR'; payload: { error: string; connectionId?: string } }
-  | { type: 'DEVICE_INFO_RECEIVED'; payload: { info: DeviceInfo } };
+  | { type: 'DEVICE_INFO_RECEIVED'; payload: { info: DeviceInfo } }
+  | { type: 'TEXT_RECEIVED'; payload: { line: string } };
 
 export type DeviceEventHandler<T extends DeviceEvent> = (event: T) => void;

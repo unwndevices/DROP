@@ -3,16 +3,18 @@ import { FirmwareSelector } from '../../components/FirmwareSelector';
 import { ESPLoader, Transport } from 'esptool-js';
 
 // Import design system components
-import { 
-  ToolLayout, 
-  Button, 
-  Card, 
-  CardHeader, 
+import {
+  ToolLayout,
+  Button,
+  Card,
+  CardHeader,
   CardBody,
   Input,
   Select,
   StatusIndicator
 } from '../../design-system';
+
+import '../ToolLayout.css';
 
 interface SerialMessage {
   timestamp: Date;
@@ -80,10 +82,10 @@ export const ESP32Flasher: React.FC = () => {
     try {
       // Request port but don't open it yet - let Transport handle the opening
       const port = await (navigator as any).serial.requestPort();
-      
+
       // Create transport (it will handle the connection internally)
       const transport = new Transport(port);
-      
+
       // Store references immediately
       portRef.current = port;
       transportRef.current = transport;
@@ -101,17 +103,17 @@ export const ESP32Flasher: React.FC = () => {
         const chip = await esploader.main();
         setDeviceInfo(`${chip} detected`);
         setFlashStatus('Device detected successfully. Ready to flash.');
-        
+
         // Store the ESPLoader instance for reuse
         espLoaderRef.current = esploader;
-        
+
         // Reset the chip to get back to normal state
         await esploader.after('hard_reset');
       } catch (error) {
         console.warn('Chip detection failed:', error);
         setDeviceInfo('ESP32 device connected (detection failed)');
         setFlashStatus('Connected successfully. Ready to flash.');
-        
+
         // Create a basic ESPLoader instance for flashing even if detection failed
         const esploader = new ESPLoader({
           transport: transport,
@@ -138,7 +140,7 @@ export const ESP32Flasher: React.FC = () => {
 
     try {
       let port: SerialPort;
-      
+
       // If we already have a connected port from flashing, reuse it
       if (portRef.current && isConnected) {
         port = portRef.current;
@@ -175,14 +177,14 @@ export const ESP32Flasher: React.FC = () => {
 
             const decoder = new TextDecoder();
             const text = decoder.decode(value);
-            
+
             // Add to buffer
             serialBufferRef.current += text;
-            
+
             // Process complete lines
             const lines = serialBufferRef.current.split(/\r?\n/);
             serialBufferRef.current = lines.pop() || ''; // Keep incomplete line in buffer
-            
+
             // Display each complete line
             for (const line of lines) {
               if (line.trim()) {
@@ -281,8 +283,8 @@ export const ESP32Flasher: React.FC = () => {
     try {
       // Get the firmware data
       let firmwareData: ArrayBuffer;
-      const firmwareName = firmwareSource === 'file' 
-        ? firmwareFile!.name 
+      const firmwareName = firmwareSource === 'file'
+        ? firmwareFile!.name
         : `firmware ${firmwareVersion}`;
 
       if (firmwareSource === 'file' && firmwareFile) {
@@ -319,10 +321,10 @@ export const ESP32Flasher: React.FC = () => {
       setFlashStatus('Connecting to chip for flashing...');
       await esploader.main();
       setFlashProgress(15);
-      
+
       // Update references
       transportRef.current = transport;
-      
+
       // Change baud rate for faster flashing
       setFlashStatus('Changing baudrate for faster flashing...');
       await esploader.changeBaud();
@@ -330,7 +332,7 @@ export const ESP32Flasher: React.FC = () => {
 
       // Flash the firmware using writeFlash
       setFlashStatus(`Flashing ${firmwareName} (${(firmwareData.byteLength / 1024).toFixed(1)} KB)...`);
-      
+
       // Convert ArrayBuffer to string for esptool-js
       const uint8Array = new Uint8Array(firmwareData);
       let dataString = '';
@@ -370,11 +372,11 @@ export const ESP32Flasher: React.FC = () => {
 
       setFlashProgress(90);
       setFlashStatus('Resetting chip...');
-      
+
       // Reset the chip
       await esploader.after('hard_reset');
       setFlashProgress(100);
-      
+
       setFlashStatus('Flash completed successfully! Device is resetting...');
 
     } catch (error) {
@@ -391,9 +393,10 @@ export const ESP32Flasher: React.FC = () => {
     setSerialMessages([]);
   }, []);
 
-  // Create left panel (ESP32 Flasher)
-  const leftPanel = (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-md)' }}>
+  // Main content using masonry layout
+  const mainContent = (
+    <div className="tool-columns">
+      {/* Device Connection Card */}
       <Card>
         <CardHeader>Device Connection</CardHeader>
         <CardBody>
@@ -414,6 +417,7 @@ export const ESP32Flasher: React.FC = () => {
         </CardBody>
       </Card>
 
+      {/* Firmware Selection Card */}
       <Card>
         <CardHeader>Firmware Selection</CardHeader>
         <CardBody>
@@ -423,20 +427,21 @@ export const ESP32Flasher: React.FC = () => {
               onFirmwareLoad={handleFirmwareFromSelector}
               disabled={isFlashing}
             />
-            
+
             <div>
               <h4 style={{ marginBottom: 'var(--ds-spacing-sm)' }}>Or upload custom firmware:</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-sm)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-sm)' }}>
                   <span>ESP32 Firmware @ 0x0</span>
                 </div>
-                <input
-                  type="file"
-                  accept=".bin"
-                  onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
-                  disabled={isFlashing}
-                  style={{ padding: 'var(--ds-spacing-sm)' }}
-                />
+                <div className="file-input-wrapper">
+                  <input
+                    type="file"
+                    accept=".bin"
+                    onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
+                    disabled={isFlashing}
+                  />
+                </div>
                 {firmwareFile && (
                   <StatusIndicator variant="info">
                     {firmwareFile.name} ({(firmwareFile.size / 1024).toFixed(1)} KB)
@@ -448,6 +453,7 @@ export const ESP32Flasher: React.FC = () => {
         </CardBody>
       </Card>
 
+      {/* Flash Process Card */}
       <Card>
         <CardHeader>Flash Process</CardHeader>
         <CardBody>
@@ -462,17 +468,17 @@ export const ESP32Flasher: React.FC = () => {
 
             {isFlashing && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-xs)' }}>
-                <div style={{ 
-                  width: '100%', 
-                  height: '8px', 
-                  backgroundColor: 'var(--ds-color-background-tertiary)', 
+                <div style={{
+                  width: '100%',
+                  height: '8px',
+                  backgroundColor: 'var(--ds-color-background-tertiary)',
                   borderRadius: 'var(--ds-border-radius-sm)',
                   overflow: 'hidden'
                 }}>
                   <div
-                    style={{ 
-                      width: `${flashProgress}%`, 
-                      height: '100%', 
+                    style={{
+                      width: `${flashProgress}%`,
+                      height: '100%',
                       backgroundColor: 'var(--ds-color-primary)',
                       transition: 'width 0.2s ease'
                     }}
@@ -485,10 +491,10 @@ export const ESP32Flasher: React.FC = () => {
             )}
 
             {flashStatus && (
-              <StatusIndicator 
+              <StatusIndicator
                 variant={
-                  flashStatus.includes('failed') || flashStatus.includes('error') ? 'error' : 
-                  flashStatus.includes('success') ? 'success' : 'info'
+                  flashStatus.includes('failed') || flashStatus.includes('error') ? 'error' :
+                    flashStatus.includes('success') ? 'success' : 'info'
                 }
               >
                 {flashStatus}
@@ -497,93 +503,84 @@ export const ESP32Flasher: React.FC = () => {
           </div>
         </CardBody>
       </Card>
-    </div>
-  );
 
-  // Create right panel (Serial Monitor)
-  const rightPanel = (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Card style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      {/* Serial Monitor Card */}
+      <Card>
         <CardHeader>Serial Monitor</CardHeader>
-        <CardBody style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-md)' }}>
-          <div style={{ display: 'flex', gap: 'var(--ds-spacing-md)', alignItems: 'flex-end' }}>
-            <Select
-              label="Baud Rate"
-              value={baudRate.toString()}
-              onChange={(e) => setBaudRate(Number(e.target.value))}
-              disabled={serialConnected}
-              options={[
-                { value: '9600', label: '9600' },
-                { value: '19200', label: '19200' },
-                { value: '38400', label: '38400' },
-                { value: '57600', label: '57600' },
-                { value: '115200', label: '115200' },
-                { value: '230400', label: '230400' },
-                { value: '460800', label: '460800' },
-                { value: '921600', label: '921600' }
-              ]}
-            />
-            <Button
-              onClick={serialConnected ? disconnectSerial : connectSerial}
-              variant={serialConnected ? "secondary" : "primary"}
-            >
-              {serialConnected ? 'Disconnect' : 'Connect'}
-            </Button>
-            <Button onClick={clearMessages} variant="secondary">
-              Clear
-            </Button>
-          </div>
-
-          <div style={{ 
-            flex: 1, 
-            border: '1px solid var(--ds-color-border-muted)', 
-            borderRadius: 'var(--ds-border-radius-md)',
-            backgroundColor: 'var(--ds-color-background-secondary)',
-            padding: 'var(--ds-spacing-sm)',
-            overflow: 'auto',
-            fontFamily: 'var(--ds-font-mono)',
-            fontSize: 'var(--ds-font-size-sm)'
-          }}>
-            {serialMessages.map((message, index) => (
-              <div
-                key={index}
-                style={{
-                  display: 'flex',
-                  gap: 'var(--ds-spacing-sm)',
-                  marginBottom: 'var(--ds-spacing-xs)',
-                  color: message.type === 'error' ? 'var(--ds-color-error)' : 
-                         message.type === 'info' ? 'var(--ds-color-info)' : 
-                         message.direction === 'out' ? 'var(--ds-color-text-secondary)' : 'var(--ds-color-text-primary)'
-                }}
-              >
-                <span style={{ color: 'var(--ds-color-text-muted)', fontSize: 'var(--ds-font-size-xs)' }}>
-                  {message.timestamp.toLocaleTimeString()}
-                </span>
-                <span style={{ color: 'var(--ds-color-primary)' }}>
-                  {message.direction === 'in' ? '←' : '→'}
-                </span>
-                <span>{message.data}</span>
+        <CardBody>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-md)' }}>
+            <div style={{ display: 'flex', gap: 'var(--ds-spacing-md)', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: '120px' }}>
+                <Select
+                  label="Baud Rate"
+                  value={baudRate.toString()}
+                  onChange={(e) => setBaudRate(Number(e.target.value))}
+                  disabled={serialConnected}
+                  options={[
+                    { value: '9600', label: ' 9600' },
+                    { value: '115200', label: '115200' },
+                    { value: '230400', label: '230400' },
+                    { value: '460800', label: '460800' },
+                    { value: '921600', label: '921600' }
+                  ]}
+                />
               </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
+              <Button
+                onClick={serialConnected ? disconnectSerial : connectSerial}
+                variant={serialConnected ? "secondary" : "primary"}
+              >
+                {serialConnected ? 'Disconnect' : 'Connect'}
+              </Button>
+              <Button onClick={clearMessages} variant="secondary">
+                Clear
+              </Button>
+            </div>
 
-          <div style={{ display: 'flex', gap: 'var(--ds-spacing-sm)' }}>
-            <Input
-              value={serialInput}
-              onChange={(e) => setSerialInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && sendSerial()}
-              placeholder="Enter command..."
-              disabled={!serialConnected}
-              style={{ flex: 1 }}
-            />
-            <Button
-              onClick={sendSerial}
-              disabled={!serialConnected || !serialInput.trim()}
-              variant="primary"
-            >
-              Send
-            </Button>
+            <div className="tool-terminal">
+              {serialMessages.length === 0 ? (
+                <div className="tool-terminal-placeholder">No data received</div>
+              ) : (
+                serialMessages.map((message, index) => (
+                  <div
+                    key={index}
+                    className="tool-terminal-line"
+                    style={{
+                      marginBottom: '2px', // Slight spacing between lines
+                      color: message.type === 'error' ? 'var(--ds-color-error)' :
+                        message.type === 'info' ? 'var(--ds-color-info)' :
+                          message.direction === 'out' ? 'var(--ds-color-text-secondary)' : 'var(--ds-color-text-primary)'
+                    }}
+                  >
+                    <span style={{ color: 'var(--ds-color-text-muted)', marginRight: '8px' }}>
+                      {message.timestamp.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                    </span>
+                    <span style={{ color: 'var(--ds-color-primary)', marginRight: '8px' }}>
+                      {message.direction === 'in' ? '←' : '→'}
+                    </span>
+                    <span>{message.data}</span>
+                  </div>
+                ))
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div style={{ display: 'flex', gap: 'var(--ds-spacing-sm)' }}>
+              <Input
+                value={serialInput}
+                onChange={(e) => setSerialInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && sendSerial()}
+                placeholder="Enter command..."
+                disabled={!serialConnected}
+                style={{ flex: 1 }}
+              />
+              <Button
+                onClick={sendSerial}
+                disabled={!serialConnected || !serialInput.trim()}
+                variant="primary"
+              >
+                Send
+              </Button>
+            </div>
           </div>
         </CardBody>
       </Card>
@@ -620,8 +617,7 @@ export const ESP32Flasher: React.FC = () => {
   return (
     <ToolLayout
       panels={{
-        left: leftPanel,
-        right: rightPanel
+        single: mainContent
       }}
       statusBar={statusBar}
     />

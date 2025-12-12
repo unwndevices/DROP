@@ -66,7 +66,7 @@ export class DeviceService {
     // Initialize empty handler arrays for each event type
     const eventTypes = [
       'DEVICE_CONNECTED', 'DEVICE_DISCONNECTED', 'PARAMETER_CHANGED',
-      'DATA_RECEIVED', 'CONNECTION_ERROR', 'DEVICE_INFO_RECEIVED'
+      'DATA_RECEIVED', 'CONNECTION_ERROR', 'DEVICE_INFO_RECEIVED', 'TEXT_RECEIVED'
     ];
 
     eventTypes.forEach(type => {
@@ -110,7 +110,7 @@ export class DeviceService {
       protocol: window.location.protocol,
       hostname: window.location.hostname
     });
-    
+
     if (!('bluetooth' in navigator)) {
       throw new Error(`Web Bluetooth not available. Secure context: ${window.isSecureContext}, Protocol: ${window.location.protocol}`);
     }
@@ -147,6 +147,9 @@ export class DeviceService {
         type: 'DEVICE_CONNECTED',
         payload: { connection }
       });
+
+      // Sync parameter values from device
+      await this.syncParametersFromDevice(connection.id);
 
       return connection.id;
     } catch (error) {
@@ -307,6 +310,11 @@ export class DeviceService {
       const trimmedLine = line.trim();
       if (trimmedLine.length === 0) continue;
 
+      this.emit({
+        type: 'TEXT_RECEIVED',
+        payload: { line: trimmedLine }
+      });
+
       // Parse parameter responses (format: "param-name value")
       this.parseParameterResponse(trimmedLine);
     }
@@ -314,23 +322,38 @@ export class DeviceService {
 
   private parseParameterResponse(line: string): void {
     // Expected format: "param-name value" (e.g., "blur-attack 0.3000")
-    const match = line.match(/^(blur-attack|blur-decay|osc-gain|resonance|tape-drive|tape-hyst|bandwidth|interpolation)\s+([\d.]+)/);
+    const match = line.match(/^(blur-attack|blur-decay|osc-gain|resonance|tape-drive|tape-hyst|bandwidth|interpolation|osc-shape|window-falloff)\s+([\d.\w]+)/);
     if (match) {
       const [, paramId, valueStr] = match;
 
       if (paramId === 'interpolation') {
-        // For interpolation, convert numeric value to string
+        // ... (existing interpolation logic) ...
         const interpolationTypes = ['linear', 'cosine', 'cubic'];
-        const interpIndex = Math.round(parseFloat(valueStr));
-        const value = interpolationTypes[interpIndex] || 'linear';
+        // Check if valueStr is already a string like "linear" or a number
+        let val = valueStr;
+        if (!isNaN(parseFloat(valueStr)) && isFinite(valueStr as any)) {
+          const interpIndex = Math.round(parseFloat(valueStr));
+          val = interpolationTypes[interpIndex] || 'linear';
+        }
 
         // Update local parameter cache
         const param = this.parameters.get(paramId);
         if (param) {
-          param.value = value;
+          param.value = val;
         }
 
         // Emit parameter change event
+        this.emit({
+          type: 'PARAMETER_CHANGED',
+          payload: { parameterId: paramId, value: val }
+        });
+      } else if (paramId === 'osc-shape') {
+        // Handle osc-shape
+        const value = valueStr; // "square" or "saw"
+        const param = this.parameters.get(paramId);
+        if (param) {
+          param.value = value;
+        }
         this.emit({
           type: 'PARAMETER_CHANGED',
           payload: { parameterId: paramId, value }
@@ -653,7 +676,7 @@ export class DeviceService {
   /**
    * Sync parameter values from the device (called on connect)
    */
-  private async syncParametersFromDevice(connectionId: string): Promise<void> {
+  private async syncParametersFromDevice(_connectionId: string): Promise<void> {
     // Initialize default parameters
     this.parameters.set('blur-attack', {
       id: 'blur-attack',
@@ -703,9 +726,9 @@ export class DeviceService {
       id: 'tape-drive',
       name: 'Tape Drive',
       type: 'float',
-      value: 0.5,
+      value: 1.3,
       min: 0,
-      max: 1,
+      max: 10.0,
       step: 0.01,
       description: 'Tape saturation drive amount'
     });
@@ -741,20 +764,50 @@ export class DeviceService {
       description: 'Interpolation type for smooth transitions'
     });
 
+    this.parameters.set('osc-shape', {
+      id: 'osc-shape',
+      name: 'Oscillator Shape',
+      type: 'enum',
+      value: 'square',
+      options: ['square', 'saw'],
+      description: 'Oscillator waveform shape'
+    });
+
+    this.parameters.set('window-falloff', {
+      id: 'window-falloff',
+      name: 'Window Falloff',
+      type: 'float',
+      value: 0.5,
+      min: 0,
+      max: 1,
+      step: 0.01,
+      description: 'Spectral window falloff'
+    });
+
     // Query current values from device
-    const writer = this.serialWriters.get(connectionId);
-    if (writer) {
-      const encoder = new TextEncoder();
-      // Send GET commands (no argument = get current value)
-      await writer.write(encoder.encode('blur-attack\n'));
-      await writer.write(encoder.encode('blur-decay\n'));
-      await writer.write(encoder.encode('osc-gain\n'));
-      await writer.write(encoder.encode('resonance\n'));
-      await writer.write(encoder.encode('tape-drive\n'));
-      await writer.write(encoder.encode('tape-hyst\n'));
-      await writer.write(encoder.encode('bandwidth\n'));
-      await writer.write(encoder.encode('interpolation\n'));
-    }
+    // Small delay helper to avoid overwhelming the device
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+    await this.sendTextCommand('blur-attack');
+    await delay(50);
+    await this.sendTextCommand('blur-decay');
+    await delay(50);
+    await this.sendTextCommand('osc-gain');
+    await delay(50);
+    await this.sendTextCommand('resonance');
+    await delay(50);
+    await this.sendTextCommand('tape-drive');
+    await delay(50);
+    await this.sendTextCommand('tape-hyst');
+    await delay(50);
+    await this.sendTextCommand('bandwidth');
+    await delay(50);
+    await this.sendTextCommand('interp');  // Firmware command is 'interp', not 'interpolation'
+    await delay(50);
+    await this.sendTextCommand('osc-shape');
+    await delay(50);
+    await this.sendTextCommand('window-falloff');
+    await delay(50);
   }
 
   // ============================================
@@ -786,6 +839,23 @@ export class DeviceService {
   }
 
   /**
+   * Set oscillator shape (square/saw)
+   */
+  async setOscillatorShape(shape: string): Promise<void> {
+    if (shape === 'square' || shape === 'saw') {
+      await this.sendTextCommand(`osc-shape ${shape}`);
+    }
+  }
+
+  /**
+   * Set window falloff (0-1)
+   */
+  async setWindowFalloff(value: number): Promise<void> {
+    const clampedValue = Math.max(0, Math.min(1, value));
+    await this.sendTextCommand(`window-falloff ${clampedValue.toFixed(4)}`);
+  }
+
+  /**
     * Set resonance (0.1-4.0)
     */
   async setResonance(value: number): Promise<void> {
@@ -797,7 +867,7 @@ export class DeviceService {
     * Set tape drive (0-1)
     */
   async setTapeDrive(value: number): Promise<void> {
-    const clampedValue = Math.max(0, Math.min(1, value));
+    const clampedValue = Math.max(0, Math.min(10, value));
     await this.sendTextCommand(`tape-drive ${clampedValue.toFixed(4)}`);
   }
 
@@ -822,9 +892,9 @@ export class DeviceService {
     */
   async setInterpolation(value: string): Promise<void> {
     const interpolationTypes = ['linear', 'cosine', 'cubic'];
-    const index = interpolationTypes.indexOf(value);
-    if (index !== -1) {
-      await this.sendTextCommand(`interpolation ${index}`);
+    if (interpolationTypes.includes(value)) {
+      // Firmware command is 'interp', not 'interpolation'
+      await this.sendTextCommand(`interp ${value}`);
     }
   }
 

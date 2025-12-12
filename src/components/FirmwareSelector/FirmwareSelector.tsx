@@ -8,6 +8,7 @@ interface SimpleRelease {
   changelog: string[];
   platforms: {
     daisy: string;
+    daisy_debug?: string;  // Optional debug firmware for Daisy
     esp32: string;
   };
 }
@@ -23,6 +24,26 @@ interface FirmwareSelectorProps {
   disabled?: boolean;
 }
 
+// Version comparison helper - returns true if version >= minVersion
+const isVersionAtLeast = (version: string, minVersion: string): boolean => {
+  // Strip 'v' prefix and any suffix letters (e.g., 'v0.2.1c' -> '0.2.1')
+  const cleanVersion = (v: string) => v.replace(/^v/, '').replace(/[a-z]+$/i, '');
+
+  const v1Parts = cleanVersion(version).split('.').map(Number);
+  const v2Parts = cleanVersion(minVersion).split('.').map(Number);
+
+  for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
+    const v1 = v1Parts[i] || 0;
+    const v2 = v2Parts[i] || 0;
+    if (v1 > v2) return true;
+    if (v1 < v2) return false;
+  }
+  return true; // versions are equal
+};
+
+// First version with dual Daisy firmware
+const DUAL_FIRMWARE_MIN_VERSION = '0.2.1';
+
 export const FirmwareSelector: React.FC<FirmwareSelectorProps> = ({
   platform,
   onFirmwareLoad,
@@ -30,6 +51,7 @@ export const FirmwareSelector: React.FC<FirmwareSelectorProps> = ({
 }) => {
   const [versions, setVersions] = useState<SimpleRelease[]>([]);
   const [selectedVersion, setSelectedVersion] = useState<string>('');
+  const [selectedVariant, setSelectedVariant] = useState<'release' | 'debug'>('release');
   const [loading, setLoading] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
   const [fetchError, setFetchError] = useState<string>('');
@@ -58,6 +80,20 @@ export const FirmwareSelector: React.FC<FirmwareSelectorProps> = ({
     fetchVersions();
   }, [fetchVersions]);
 
+  // Check if the selected version supports debug firmware
+  const selectedRelease = versions.find(v => v.version === selectedVersion);
+  const hasDualFirmware = platform === 'daisy' &&
+    selectedRelease &&
+    isVersionAtLeast(selectedVersion, DUAL_FIRMWARE_MIN_VERSION) &&
+    selectedRelease.platforms.daisy_debug;
+
+  // Reset variant to release when selecting a version without debug support
+  useEffect(() => {
+    if (!hasDualFirmware && selectedVariant === 'debug') {
+      setSelectedVariant('release');
+    }
+  }, [hasDualFirmware, selectedVariant]);
+
   const downloadFirmware = useCallback(async (version: string) => {
     const release = versions.find(v => v.version === version);
     if (!release) {
@@ -67,7 +103,20 @@ export const FirmwareSelector: React.FC<FirmwareSelectorProps> = ({
 
     setLoading(true);
     try {
-      const url = release.platforms[platform];
+      // Determine which URL to use based on platform and variant
+      let url: string;
+      let variantLabel = '';
+
+      if (platform === 'daisy' && selectedVariant === 'debug' && release.platforms.daisy_debug) {
+        url = release.platforms.daisy_debug;
+        variantLabel = ' (Debug)';
+      } else if (platform === 'daisy') {
+        url = release.platforms.daisy;
+        variantLabel = hasDualFirmware ? ' (Release)' : '';
+      } else {
+        url = release.platforms[platform];
+      }
+
       console.log(`Downloading firmware from: ${url}`);
 
       // Try direct fetch first
@@ -87,16 +136,14 @@ export const FirmwareSelector: React.FC<FirmwareSelectorProps> = ({
       const binary = await response.blob();
       console.log(`Downloaded firmware: ${binary.size} bytes`);
 
-      onFirmwareLoad(binary, version);
+      onFirmwareLoad(binary, `${version}${variantLabel}`);
     } catch (error) {
       console.error('Failed to download firmware:', error);
       setFetchError(error instanceof Error ? error.message : 'Failed to download firmware');
     } finally {
       setLoading(false);
     }
-  }, [versions, platform, onFirmwareLoad]);
-
-  const selectedRelease = versions.find(v => v.version === selectedVersion);
+  }, [versions, platform, selectedVariant, hasDualFirmware, onFirmwareLoad]);
 
   if (fetchError && versions.length === 0) {
     return (
@@ -134,6 +181,21 @@ export const FirmwareSelector: React.FC<FirmwareSelectorProps> = ({
             ]}
           />
         </div>
+
+        {hasDualFirmware && (
+          <div style={{ minWidth: '120px' }}>
+            <Select
+              label="Build Type"
+              value={selectedVariant}
+              onChange={(e) => setSelectedVariant(e.target.value as 'release' | 'debug')}
+              disabled={disabled || loading}
+              options={[
+                { value: 'release', label: 'Release' },
+                { value: 'debug', label: 'Debug' }
+              ]}
+            />
+          </div>
+        )}
 
         {selectedRelease && (
           <Button

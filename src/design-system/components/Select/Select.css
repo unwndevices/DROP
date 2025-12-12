@@ -1,0 +1,147 @@
+/* Select Component Styles - Terminal TUI Theme */
+
+.ds-select-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-spacing-xs);
+  width: 100%;
+}
+
+.ds-select-label {
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-font-size-sm);
+  font-weight: var(--ds-font-weight-medium);
+  color: var(--ds-color-text-secondary);
+  letter-spacing: 0.02em;
+  transition: color var(--ds-transition-fast);
+}
+
+.ds-select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.ds-select-wrapper::before {
+  content: '>';
+  position: absolute;
+  left: var(--ds-spacing-sm);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ds-color-text-secondary);
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-font-size-base);
+  pointer-events: none;
+  transition: all var(--ds-transition-fast);
+  z-index: 1;
+}
+
+.ds-select-wrapper.ds-select-open::before,
+.ds-select-wrapper:has(.ds-select:focus)::before {
+  content: 'v';
+  color: var(--ds-color-accent);
+}
+
+.ds-select {
+  width: 100%;
+  background: var(--ds-color-background-tertiary);
+  border: none;
+  border-radius: 0;
+  color: var(--ds-color-text-primary);
+  font-family: var(--ds-font-mono);
+  transition: all var(--ds-transition-fast);
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+  padding-left: calc(var(--ds-spacing-md) + 12px);
+  padding-right: var(--ds-spacing-md);
+}
+
+/* Sizes */
+.ds-select-xs {
+  height: 24px;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: var(--ds-font-size-xs);
+}
+
+.ds-select-sm {
+  height: 32px;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: var(--ds-font-size-sm);
+}
+
+.ds-select-md {
+  height: 40px;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: var(--ds-font-size-base);
+}
+
+.ds-select-lg {
+  height: 48px;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: var(--ds-font-size-lg);
+}
+
+/* States */
+.ds-select:hover:not(:disabled) {
+  background: var(--ds-color-background-secondary);
+}
+
+.ds-select:focus:not(:disabled) {
+  background: var(--ds-color-background-secondary);
+  color: var(--ds-color-text-primary);
+}
+
+.ds-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--ds-color-background);
+  color: var(--ds-color-text-tertiary);
+}
+
+/* Variants */
+.ds-select-error {
+  background: rgba(var(--color-error-rgb), 0.1);
+}
+
+.ds-select-error:focus {
+  background: rgba(var(--color-error-rgb), 0.15);
+}
+
+.ds-select-success {
+  background: rgba(var(--color-success-rgb), 0.1);
+}
+
+.ds-select-success:focus {
+  background: rgba(var(--color-success-rgb), 0.15);
+}
+
+/* Helper Text */
+.ds-select-helper {
+  font-size: var(--ds-font-size-xs);
+  color: var(--ds-color-text-muted);
+  margin-top: 2px;
+}
+
+.ds-select-error-text {
+  font-size: var(--ds-font-size-xs);
+  color: var(--ds-color-error);
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Remove default select arrow */
+.ds-select::-ms-expand {
+  display: none;
+}
+
+.ds-select option {
+  background: var(--ds-color-background-secondary);
+  color: var(--ds-color-text-primary);
+  padding: var(--ds-spacing-sm);
+}

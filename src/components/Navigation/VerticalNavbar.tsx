@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, BarChart3, FolderOpen, Zap, Cpu, Radio, Palette } from 'lucide-react';
+import { Image, BarChart3, FolderOpen, Cpu, Flower, Joystick, Palette } from 'lucide-react';
 
 export interface Tool {
   id: string;
@@ -55,6 +55,34 @@ export const VerticalNavbar: React.FC<VerticalNavbarProps> = ({
 // Default tool definitions
 export const DEFAULT_TOOLS: Tool[] = [
   {
+    id: 'daisy-flasher',
+    name: 'Daisy Flasher',
+    description: 'Flash Daisy Seed firmware via DFU and monitor serial',
+    icon: <Flower className="w-6 h-6" />,
+    component: () => null // Will be set by parent
+  },
+  {
+    id: 'esp32-flasher',
+    name: 'ESP32 Flasher',
+    description: 'Flash ESP32-S3 firmware and monitor serial',
+    icon: <Cpu className="w-6 h-6" />,
+    component: () => null // Will be set by parent
+  },
+  {
+    id: 'device-bridge',
+    name: 'Device Bridge',
+    description: 'Connect to Eisei devices via Bluetooth or USB for real-time control',
+    icon: <Joystick className="w-6 h-6" />,
+    component: () => null // Will be set by parent
+  },
+  {
+    id: 'ui-graphics',
+    name: 'Graphic to UI',
+    description: 'Convert image sequences to UI graphics format',
+    icon: <Image className="w-6 h-6" />,
+    component: () => null // Will be set by parent
+  },
+  {
     id: 'spectral-analysis',
     name: 'Datum Editor',
     description: 'Lua-based spectral data generation and visualization',
@@ -66,34 +94,6 @@ export const DEFAULT_TOOLS: Tool[] = [
     name: 'Datum Viewer',
     description: 'Import and preview spectral datum files',
     icon: <FolderOpen className="w-6 h-6" />,
-    component: () => null // Will be set by parent
-  },
-  {
-    id: 'esp32-flasher',
-    name: 'ESP32 Flasher',
-    description: 'Flash ESP32-S3 firmware and monitor serial',
-    icon: <Zap className="w-6 h-6" />,
-    component: () => null // Will be set by parent
-  },
-  {
-    id: 'daisy-flasher',
-    name: 'Daisy Flasher',
-    description: 'Flash Daisy Seed firmware via DFU and monitor serial',
-    icon: <Cpu className="w-6 h-6" />,
-    component: () => null // Will be set by parent
-  },
-  {
-    id: 'ui-graphics',
-    name: 'Graphic to UI',
-    description: 'Convert image sequences to UI graphics format',
-    icon: <Image className="w-6 h-6" />,
-    component: () => null // Will be set by parent
-  },
-  {
-    id: 'device-bridge',
-    name: 'Device Bridge',
-    description: 'Connect to Eisei devices via Bluetooth or USB for real-time control',
-    icon: <Radio className="w-6 h-6" />,
     component: () => null // Will be set by parent
   },
   {

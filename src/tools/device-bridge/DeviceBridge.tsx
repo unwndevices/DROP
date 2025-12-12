@@ -57,7 +57,22 @@ export const DeviceBridge: React.FC = () => {
   const [tapeDrive, setTapeDrive] = useState(0.5);
   const [tapeHyst, setTapeHyst] = useState(0.5);
   const [bandwidth, setBandwidth] = useState(1.0);
+  const [oscShape, setOscShape] = useState('square');
+  const [windowFalloff, setWindowFalloff] = useState(0.5);
   const [interpolation, setInterpolation] = useState('linear');
+  const [terminalLog, setTerminalLog] = useState<string[]>([]);
+  const terminalRef = useRef<HTMLDivElement | null>(null);
+
+  const appendLog = useCallback((line: string) => {
+    setTerminalLog((prev) => {
+      const next = [...prev, line];
+      const maxLines = 200;
+      if (next.length > maxLines) {
+        return next.slice(next.length - maxLines);
+      }
+      return next;
+    });
+  }, []);
 
   // Update connection status
   useEffect(() => {
@@ -125,10 +140,20 @@ export const DeviceBridge: React.FC = () => {
         case 'interpolation':
           // Convert numeric value to string representation
           {
-            const interpolationTypes = ['linear', 'cosine', 'cubic'];
-            const interpIndex = Math.round(value);
-            setInterpolation(interpolationTypes[interpIndex] || 'linear');
+            if (typeof value === 'string') {
+              setInterpolation(value);
+            } else {
+              const interpolationTypes = ['linear', 'cosine', 'cubic'];
+              const interpIndex = Math.round(value);
+              setInterpolation(interpolationTypes[interpIndex] || 'linear');
+            }
           }
+          break;
+        case 'osc-shape':
+          setOscShape(typeof value === 'string' ? value : (value === 0 ? 'square' : 'saw'));
+          break;
+        case 'window-falloff':
+          setWindowFalloff(value);
           break;
       }
     };
@@ -169,6 +194,24 @@ export const DeviceBridge: React.FC = () => {
   useEffect(() => {
     checkBrowserSupport();
   }, [checkBrowserSupport]);
+
+  useEffect(() => {
+    const handleTextReceived = (event: any) => {
+      appendLog(event.payload.line);
+    };
+
+    deviceService.addEventListener('TEXT_RECEIVED', handleTextReceived);
+
+    return () => {
+      deviceService.removeEventListener('TEXT_RECEIVED', handleTextReceived);
+    };
+  }, [deviceService, appendLog]);
+
+  useEffect(() => {
+    if (terminalRef.current) {
+      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
+    }
+  }, [terminalLog]);
 
   // Debounced parameter update functions
   const debouncedSetBlurAttack = useDebouncedCallback(
@@ -227,6 +270,20 @@ export const DeviceBridge: React.FC = () => {
     50
   );
 
+  const debouncedSetOscShape = useDebouncedCallback(
+    useCallback((value: string) => {
+      deviceService.setOscillatorShape(value);
+    }, [deviceService]),
+    50
+  );
+
+  const debouncedSetWindowFalloff = useDebouncedCallback(
+    useCallback((value: number) => {
+      deviceService.setWindowFalloff(value);
+    }, [deviceService]),
+    50
+  );
+
   // Parameter change handlers
   const handleBlurAttackChange = useCallback((value: number) => {
     setBlurAttack(value);
@@ -268,15 +325,96 @@ export const DeviceBridge: React.FC = () => {
     debouncedSetInterpolation(value);
   }, [debouncedSetInterpolation]);
 
+  const handleOscShapeChange = useCallback((value: string) => {
+    setOscShape(value);
+    debouncedSetOscShape(value);
+  }, [debouncedSetOscShape]);
+
+  const handleWindowFalloffChange = useCallback((value: number) => {
+    setWindowFalloff(value);
+    debouncedSetWindowFalloff(value);
+  }, [debouncedSetWindowFalloff]);
+
+  const handleGetCalibration = useCallback(() => {
+    appendLog('> get calibration');
+    deviceService.sendTextCommand('get calibration');
+  }, [deviceService, appendLog]);
+
+  const handleGetAnalog = useCallback(() => {
+    appendLog('> get analog');
+    deviceService.sendTextCommand('get analog');
+  }, [deviceService, appendLog]);
+
+  const handleGetLens = useCallback(() => {
+    appendLog('> get lens');
+    deviceService.sendTextCommand('get lens');
+  }, [deviceService, appendLog]);
+
+  const handleGetFreq = useCallback(() => {
+    appendLog('> get freq');
+    deviceService.sendTextCommand('get freq');
+  }, [deviceService, appendLog]);
+
   const isConnected = connectionCount > 0;
 
   // Main panel (Device Connection + Parameter Controls in column flow)
   const mainPanel = (
     <div className="device-bridge-columns">
+
       <Card className="device-connection-card">
         <CardHeader>Device Connection</CardHeader>
         <CardBody>
           <DeviceConnectionPanel deviceService={deviceService} />
+        </CardBody>
+      </Card>
+      <Card className="device-bridge-serial-card">
+        <CardHeader>GET</CardHeader>
+        <CardBody>
+          <div className="device-bridge-serial-actions">
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={handleGetCalibration}
+              disabled={!isConnected}
+            >
+              Calibration
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleGetAnalog}
+              disabled={!isConnected}
+            >
+              Analog
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleGetLens}
+              disabled={!isConnected}
+            >
+              Lens
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleGetFreq}
+              disabled={!isConnected}
+            >
+              Freq
+            </Button>
+          </div>
+          <div className="device-bridge-terminal" ref={terminalRef}>
+            {terminalLog.length === 0 ? (
+              <div className="device-bridge-terminal-placeholder">No data yet</div>
+            ) : (
+              terminalLog.map((line, idx) => (
+                <div key={`${idx}-${line}`} className="device-bridge-terminal-line">
+                  {line}
+                </div>
+              ))
+            )}
+          </div>
         </CardBody>
       </Card>
 
@@ -368,6 +506,34 @@ export const DeviceBridge: React.FC = () => {
         </CardBody>
       </Card>
 
+
+
+      <Card className={`device-bridge-parameters ${!isConnected ? 'interpolation-disabled' : ''}`}>
+        <CardHeader>Oscillator Shape</CardHeader>
+        <CardBody>
+          <div className="interpolation-button-group">
+            <Button
+              variant={oscShape === 'square' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => handleOscShapeChange('square')}
+              disabled={!isConnected}
+              className={oscShape === 'square' ? 'interpolation-button-active' : ''}
+            >
+              Square
+            </Button>
+            <Button
+              variant={oscShape === 'saw' ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => handleOscShapeChange('saw')}
+              disabled={!isConnected}
+              className={oscShape === 'saw' ? 'interpolation-button-active' : ''}
+            >
+              Saw
+            </Button>
+          </div>
+        </CardBody>
+      </Card>
+
       <Card className="device-bridge-parameters">
         <CardHeader>Tape Drive</CardHeader>
         <CardBody>
@@ -377,12 +543,34 @@ export const DeviceBridge: React.FC = () => {
               name: 'Tape Drive',
               type: 'float',
               value: tapeDrive,
-              min: 0,
-              max: 1,
+              min: 0.1,
+              max: 10.0,
               step: 0.001,
               description: "Controls the tape saturation drive amount"
             }}
             onChange={(val) => handleTapeDriveChange(val as number)}
+            disabled={!isConnected}
+            precision={3}
+            hideLabel={true}
+          />
+        </CardBody>
+      </Card>
+
+      <Card className="device-bridge-parameters">
+        <CardHeader>Window Falloff</CardHeader>
+        <CardBody>
+          <ParameterControl
+            parameter={{
+              id: 'window-falloff',
+              name: 'Window Falloff',
+              type: 'float',
+              value: windowFalloff,
+              min: 0,
+              max: 1,
+              step: 0.001,
+              description: "Controls spectral window falloff/shape"
+            }}
+            onChange={(val) => handleWindowFalloffChange(val as number)}
             disabled={!isConnected}
             precision={3}
             hideLabel={true}
@@ -469,7 +657,7 @@ export const DeviceBridge: React.FC = () => {
           <p className="interpolation-helper">Controls the interpolation type for smooth transitions</p>
         </CardBody>
       </Card>
-    </div>
+    </div >
   );
 
   // Create status bar content

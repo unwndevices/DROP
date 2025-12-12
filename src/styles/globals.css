@@ -441,14 +441,76 @@ input[type="radio"] {
   cursor: pointer;
 }
 
-/* Select dropdown styling */
+/* Select dropdown styling - Terminal TUI theme */
 select {
   appearance: none;
-  background-image: url('data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2214%22%20height%3D%228%22%20viewBox%3D%220%200%2014%208%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M1%201l6%206%206-6%22%20stroke%3D%22%23C7EE1B%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20fill-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E');
-  background-repeat: no-repeat;
-  background-position: right var(--spacing-sm) center;
-  padding-right: var(--spacing-xl);
+  background-image: none;
   cursor: pointer;
+}
+
+/* File input styling - Terminal TUI theme */
+.file-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.file-input-wrapper::before {
+  content: '>';
+  position: absolute;
+  left: var(--spacing-sm);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--ds-font-size-base);
+  pointer-events: none;
+  transition: all var(--transition-fast);
+  z-index: 1;
+}
+
+.file-input-wrapper:has(input[type="file"]:focus)::before {
+  content: 'v';
+  color: var(--color-amber);
+}
+
+input[type="file"] {
+  width: 100%;
+  background: var(--color-background-tertiary);
+  border: none;
+  border-radius: 0;
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+  transition: all var(--transition-fast);
+  outline: none;
+  cursor: pointer;
+  padding: var(--spacing-sm) var(--spacing-md);
+  padding-left: calc(var(--spacing-md) + 12px);
+  font-size: var(--ds-font-size-base);
+}
+
+input[type="file"]:hover:not(:disabled) {
+  background: var(--color-background-secondary);
+}
+
+input[type="file"]:focus:not(:disabled) {
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+}
+
+input[type="file"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--color-background);
+  color: var(--color-text-tertiary);
+}
+
+/* Hide default file input button styling */
+input[type="file"]::-webkit-file-upload-button {
+  display: none;
+}
+
+input[type="file"]::file-selector-button {
+  display: none;
 }
 
 

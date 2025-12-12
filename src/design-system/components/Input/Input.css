@@ -131,3 +131,82 @@ textarea.ds-input {
     align-items: center;
     gap: 4px;
 }
+
+/* File Input Styles - Terminal TUI Theme */
+input[type="file"] {
+    width: 100%;
+    background: var(--ds-color-background-tertiary);
+    border: none;
+    border-radius: 0;
+    color: var(--ds-color-text-primary);
+    font-family: var(--ds-font-mono);
+    transition: all var(--ds-transition-fast);
+    outline: none;
+    cursor: pointer;
+    padding: var(--ds-spacing-sm) var(--ds-spacing-md);
+    padding-left: calc(var(--ds-spacing-md) + 12px);
+    font-size: var(--ds-font-size-base);
+    position: relative;
+}
+
+/* Terminal TUI indicator for file inputs */
+input[type="file"]::before {
+    content: '>';
+    position: absolute;
+    left: var(--ds-spacing-sm);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ds-color-text-secondary);
+    font-family: var(--ds-font-mono);
+    font-size: var(--ds-font-size-base);
+    pointer-events: none;
+}
+
+/* File input wrapper for consistent styling */
+.ds-file-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.ds-file-input-wrapper::before {
+    content: '>';
+    position: absolute;
+    left: var(--ds-spacing-sm);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--ds-color-text-secondary);
+    font-family: var(--ds-font-mono);
+    font-size: var(--ds-font-size-base);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.ds-file-input-wrapper:has(input[type="file"]:focus)::before {
+    content: 'v';
+    color: var(--ds-color-accent);
+}
+
+input[type="file"]:hover:not(:disabled) {
+    background: var(--ds-color-background-secondary);
+}
+
+input[type="file"]:focus:not(:disabled) {
+    background: var(--ds-color-background-secondary);
+    color: var(--ds-color-text-primary);
+}
+
+input[type="file"]:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--ds-color-background);
+    color: var(--ds-color-text-tertiary);
+}
+
+/* Hide default file input button styling */
+input[type="file"]::-webkit-file-upload-button {
+    display: none;
+}
+
+input[type="file"]::file-selector-button {
+    display: none;
+}

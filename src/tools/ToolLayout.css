@@ -1,0 +1,56 @@
+/* Shared Tool Layout Styles */
+
+/* Multi-column masonry-like layout */
+.tool-columns {
+    columns: 3;
+    column-gap: var(--ds-spacing-lg);
+    column-fill: auto;
+    height: 100%;
+    overflow-y: auto;
+    padding: var(--ds-spacing-md);
+}
+
+.tool-columns>* {
+    break-inside: avoid;
+    margin-bottom: var(--ds-spacing-md);
+}
+
+/* Terminal / Serial Monitor Styling */
+.tool-terminal {
+    background: var(--ds-color-surface-alt, #0f1115);
+    border: 1px solid var(--ds-color-border, #1d212a);
+    border-radius: var(--ds-border-radius-md);
+    padding: var(--ds-spacing-sm);
+    min-height: 160px;
+    max-height: 400px;
+    /* Generalized height */
+    overflow-y: auto;
+    font-family: var(--ds-font-mono);
+    font-size: var(--ds-font-size-xs);
+    line-height: 1.4;
+    color: var(--ds-color-text, #e5e7eb);
+}
+
+.tool-terminal-line {
+    white-space: pre-wrap;
+}
+
+.tool-terminal-placeholder {
+    color: var(--ds-color-text-muted);
+    font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1280px) {
+    .tool-columns {
+        columns: 2;
+    }
+}
+
+@media (max-width: 900px) {
+    .tool-columns {
+        columns: 1;
+        height: auto;
+        max-height: 100%;
+    }
+}

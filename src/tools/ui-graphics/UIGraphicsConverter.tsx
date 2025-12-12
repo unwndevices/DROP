@@ -3,14 +3,14 @@ import { Play, Pause, Code } from 'lucide-react';
 import * as Slider from '@radix-ui/react-slider';
 
 // Import design system components
-import { 
-  ToolLayout, 
-  Button, 
-  Card, 
-  CardHeader, 
-  CardBody, 
+import {
+  ToolLayout,
+  Button,
+  Card,
+  CardHeader,
+  CardBody,
   Input,
-  StatusIndicator 
+  StatusIndicator
 } from '../../design-system';
 
 
@@ -553,16 +553,17 @@ export const UIGraphicsConverter: React.FC = () => {
         <CardHeader>File Import</CardHeader>
         <CardBody>
           <div className="mb-3">
-            <input
-              type="file"
-              multiple
-              accept=".png,.bmp"
-              onChange={handleFileSelect}
-              className="input"
-            />
+            <div className="file-input-wrapper">
+              <input
+                type="file"
+                multiple
+                accept=".png,.bmp"
+                onChange={handleFileSelect}
+              />
+            </div>
             <small className="text-muted">Select PNG or BMP files for animation</small>
           </div>
-          
+
           <Input
             label="Output Filename"
             value={filename}

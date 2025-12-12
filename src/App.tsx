@@ -23,36 +23,40 @@ import './components/Navigation/VerticalNavbar.css';
 import './tools/device-bridge/DeviceBridge.css';
 
 // Tools configuration
-const TOOLS: Tool[] = [
+const ALL_TOOLS: Tool[] = [
   {
     ...DEFAULT_TOOLS[0],
-    component: SpectralAnalysis
-  },
-  {
-    ...DEFAULT_TOOLS[1],
-    component: DatumViewer
-  },
-  {
-    ...DEFAULT_TOOLS[2],
-    component: ESP32Flasher
-  },
-  {
-    ...DEFAULT_TOOLS[3],
     component: DaisyFlasher
   },
   {
-    ...DEFAULT_TOOLS[4],
+    ...DEFAULT_TOOLS[1],
+    component: ESP32Flasher
+  },
+  {
+    ...DEFAULT_TOOLS[2],
+    component: DeviceBridge
+  },
+  {
+    ...DEFAULT_TOOLS[3],
     component: UIGraphicsConverter
   },
   {
+    ...DEFAULT_TOOLS[4],
+    component: SpectralAnalysis
+  },
+  {
     ...DEFAULT_TOOLS[5],
-    component: DeviceBridge
+    component: DatumViewer
   },
   {
     ...DEFAULT_TOOLS[6],
     component: PixelArtGenerator
   }
 ];
+
+import { ENABLED_TOOL_IDS } from './tools-config';
+
+const TOOLS = ALL_TOOLS.filter(tool => ENABLED_TOOL_IDS.includes(tool.id));
 
 // AppContent component that uses settings context
 const AppContent: React.FC = () => {

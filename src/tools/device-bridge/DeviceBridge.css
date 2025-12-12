@@ -9,7 +9,7 @@
 
 /* Two-column flow layout */
 .device-bridge-columns {
-  columns: 2;
+  columns: 3;
   column-gap: var(--ds-spacing-lg);
   column-fill: auto;
   height: 100%;
@@ -89,6 +89,45 @@
   color: var(--ds-color-text-muted);
   margin: 0;
   margin-top: var(--ds-spacing-xs);
+}
+
+.device-bridge-serial-card {
+  break-inside: avoid;
+}
+
+.device-bridge-serial-actions {
+  display: flex;
+  gap: var(--ds-spacing-sm);
+  margin-bottom: var(--ds-spacing-sm);
+}
+
+.device-bridge-terminal {
+  background: var(--ds-color-surface-alt, #0f1115);
+  border: 1px solid var(--ds-color-border, #1d212a);
+  border-radius: var(--ds-border-radius-md);
+  padding: var(--ds-spacing-sm);
+  min-height: 160px;
+  max-height: 260px;
+  overflow-y: auto;
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-font-size-xs);
+  line-height: 1.4;
+  color: var(--ds-color-text, #e5e7eb);
+}
+
+.device-bridge-terminal-line {
+  white-space: pre-wrap;
+}
+
+.device-bridge-terminal-placeholder {
+  color: var(--ds-color-text-muted);
+  font-style: italic;
+}
+
+@media (max-width: 1280px) {
+  .device-bridge-columns {
+    columns: 2;
+  }
 }
 
 @media (max-width: 900px) {
