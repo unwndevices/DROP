@@ -11,6 +11,7 @@ export const RetroOverlay: React.FC = () => {
     return (
         <div className={`retro-overlay intensity-${intensity}`}>
             <div className="scanlines" />
+            <div className="flicker" />
             <div className="vignette" />
             <div className="crt-deformation" />
         </div>

@@ -7,6 +7,7 @@
     pointer-events: none;
     z-index: 9999;
     overflow: hidden;
+    background: transparent;
 }
 
 /* Base Effects */
@@ -14,12 +15,34 @@
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to bottom,
+    bottom: 0;
+    right: 0;
+    pointer-events: none;
+    z-index: 10;
+    /* Combined Screen Door Effect: Vertical RGB lines + Horizontal Scanlines */
+    background:
+        /* Vertical lines (RGB subpixels) - dense */
+        linear-gradient(90deg,
+            rgba(255, 0, 0, 0.06),
+            rgba(0, 255, 0, 0.02),
+            rgba(0, 0, 255, 0.06)),
+        /* Horizontal scanlines */
+        linear-gradient(to bottom,
             rgba(18, 16, 16, 0) 50%,
             rgba(0, 0, 0, 0.25) 50%);
-    background-size: 100% 4px;
+    background-size: 3px 100%, 100% 4px;
+}
+
+.flicker {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: rgba(18, 16, 16, 0.1);
+    opacity: 0;
+    z-index: 10;
+    pointer-events: none;
 }
 
 .vignette {
@@ -28,57 +51,66 @@
     left: 0;
     width: 100%;
     height: 100%;
+    z-index: 20;
     background: radial-gradient(circle at center,
             transparent 50%,
             rgba(0, 0, 0, 0.4) 100%);
 }
 
-/* CRT Deformation (simulated via border/mask for performance & pointer events) */
+/* CRT Deformation */
 .crt-deformation {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
+    z-index: 30;
     box-shadow: inset 0 0 6rem rgba(0, 0, 0, 0.75);
     pointer-events: none;
 }
+
 
 /* Intensities */
 .intensity-0 {
     display: none;
 }
 
-/* Level 1: Subtle */
+/* Level 1: Subtle - same style as Level 2 but weaker */
 .intensity-1 .scanlines {
-    opacity: 0.15;
+    opacity: 0.12;
+    /* Weaker visibility */
 }
 
 .intensity-1 .vignette {
     opacity: 0.2;
 }
 
-/* Level 2: Medium */
+/* Level 2: Medium - clear scanlines + rare jitter */
 .intensity-2 .scanlines {
-    opacity: 0.3;
+    opacity: 0.25;
+    animation: scanline-jitter-rare 4s infinite;
 }
 
 .intensity-2 .vignette {
-    opacity: 0.4;
+    opacity: 0.35;
 }
 
 .intensity-2 .crt-deformation {
     box-shadow: inset 0 0 8rem rgba(0, 0, 0, 0.6);
 }
 
-/* Level 3: High */
+/* Level 3: High - distinct subpixels + sparse flicker + constant jitter */
 .intensity-3 .scanlines {
-    opacity: 0.5;
-    animation: scanline-jitter 0.2s infinite, scanline-flicker 5s infinite;
+    opacity: 0.4;
+    animation: scanline-jitter 0.2s infinite;
+}
+
+.intensity-3 .flicker {
+    animation: flicker-sparse 4s infinite;
 }
 
 .intensity-3 .vignette {
-    opacity: 0.6;
+    opacity: 0.5;
 }
 
 .intensity-3 .crt-deformation {
@@ -100,24 +132,58 @@
     }
 }
 
-@keyframes scanline-flicker {
-    0% {
-        opacity: 0.5;
-    }
+@keyframes scanline-jitter-rare {
 
-    25% {
-        opacity: 0.52;
-    }
-
-    50% {
-        opacity: 0.48;
-    }
-
-    75% {
-        opacity: 0.51;
-    }
-
+    0%,
+    40%,
+    42%,
+    80%,
+    82%,
     100% {
-        opacity: 0.5;
+        transform: translateY(0px);
+    }
+
+    41% {
+        transform: translateY(1px);
+    }
+
+    81% {
+        transform: translateY(-1px);
+    }
+}
+
+/* Sparser, more random flicker */
+@keyframes flicker-sparse {
+
+    0%,
+    45%,
+    55%,
+    90%,
+    100% {
+        opacity: 0;
+    }
+
+    46% {
+        opacity: 0.15;
+    }
+
+    47% {
+        opacity: 0.05;
+    }
+
+    48% {
+        opacity: 0;
+    }
+
+    91% {
+        opacity: 0.2;
+    }
+
+    92% {
+        opacity: 0.08;
+    }
+
+    93% {
+        opacity: 0;
     }
 }

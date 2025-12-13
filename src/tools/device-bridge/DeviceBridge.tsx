@@ -9,10 +9,26 @@ import {
   Card,
   CardHeader,
   CardBody,
-  Button
+  Button,
+  useToast
 } from '../../design-system';
 
 import './DeviceBridge.css';
+
+// Snapshot type definition
+interface DeviceBridgeSnapshot {
+  blurAttack: number;
+  blurDecay: number;
+  oscGain: number;
+  resonance: number;
+  tapeDrive: number;
+  tapeHyst: number;
+  bandwidth: number;
+  oscShape: string;
+  windowFalloff: number;
+  interpolation: string;
+  // Future parameters can be added here as optional fields
+}
 
 // Debounce helper
 function useDebouncedCallback<T extends (...args: any[]) => any>(
@@ -48,6 +64,7 @@ export const DeviceBridge: React.FC = () => {
   const [connectionCount, setConnectionCount] = useState(0);
   const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null);
   const [statusMessage, setStatusMessage] = useState<string>('No devices connected');
+  const toast = useToast();
 
   // Parameter states
   const [blurAttack, setBlurAttack] = useState(0.3);
@@ -62,6 +79,14 @@ export const DeviceBridge: React.FC = () => {
   const [interpolation, setInterpolation] = useState('linear');
   const [terminalLog, setTerminalLog] = useState<string[]>([]);
   const terminalRef = useRef<HTMLDivElement | null>(null);
+  const isRecallingSnapshotRef = useRef<boolean>(false);
+
+  // Snapshot system state
+  const [snapshots, setSnapshots] = useState<(DeviceBridgeSnapshot | null)[]>(() => {
+    // Initialize with 4 empty slots
+    return [null, null, null, null];
+  });
+  const [selectedSlot, setSelectedSlot] = useState<number | null>(null);
 
   const appendLog = useCallback((line: string) => {
     setTerminalLog((prev) => {
@@ -213,6 +238,33 @@ export const DeviceBridge: React.FC = () => {
     }
   }, [terminalLog]);
 
+  // Load snapshots from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('drop-device-bridge-snapshots');
+      if (saved) {
+        const parsed = JSON.parse(saved) as (DeviceBridgeSnapshot | null)[];
+        // Ensure we have exactly 4 slots
+        const loaded = [...parsed];
+        while (loaded.length < 4) {
+          loaded.push(null);
+        }
+        setSnapshots(loaded.slice(0, 4));
+      }
+    } catch (error) {
+      console.warn('DROP Device Bridge: Failed to load snapshots from localStorage:', error);
+    }
+  }, []);
+
+  // Save snapshots to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('drop-device-bridge-snapshots', JSON.stringify(snapshots));
+    } catch (error) {
+      console.warn('DROP Device Bridge: Failed to save snapshots to localStorage:', error);
+    }
+  }, [snapshots]);
+
   // Debounced parameter update functions
   const debouncedSetBlurAttack = useDebouncedCallback(
     useCallback((value: number) => {
@@ -287,52 +339,72 @@ export const DeviceBridge: React.FC = () => {
   // Parameter change handlers
   const handleBlurAttackChange = useCallback((value: number) => {
     setBlurAttack(value);
-    debouncedSetBlurAttack(value);
+    if (!isRecallingSnapshotRef.current) {
+      debouncedSetBlurAttack(value);
+    }
   }, [debouncedSetBlurAttack]);
 
   const handleBlurDecayChange = useCallback((value: number) => {
     setBlurDecay(value);
-    debouncedSetBlurDecay(value);
+    if (!isRecallingSnapshotRef.current) {
+      debouncedSetBlurDecay(value);
+    }
   }, [debouncedSetBlurDecay]);
 
   const handleOscGainChange = useCallback((value: number) => {
     setOscGain(value);
-    debouncedSetOscGain(value);
+    if (!isRecallingSnapshotRef.current) {
+      debouncedSetOscGain(value);
+    }
   }, [debouncedSetOscGain]);
 
   const handleResonanceChange = useCallback((value: number) => {
     setResonance(value);
-    debouncedSetResonance(value);
+    if (!isRecallingSnapshotRef.current) {
+      debouncedSetResonance(value);
+    }
   }, [debouncedSetResonance]);
 
   const handleTapeDriveChange = useCallback((value: number) => {
     setTapeDrive(value);
-    debouncedSetTapeDrive(value);
+    if (!isRecallingSnapshotRef.current) {
+      debouncedSetTapeDrive(value);
+    }
   }, [debouncedSetTapeDrive]);
 
   const handleTapeHystChange = useCallback((value: number) => {
     setTapeHyst(value);
-    debouncedSetTapeHyst(value);
+    if (!isRecallingSnapshotRef.current) {
+      debouncedSetTapeHyst(value);
+    }
   }, [debouncedSetTapeHyst]);
 
   const handleBandwidthChange = useCallback((value: number) => {
     setBandwidth(value);
-    debouncedSetBandwidth(value);
+    if (!isRecallingSnapshotRef.current) {
+      debouncedSetBandwidth(value);
+    }
   }, [debouncedSetBandwidth]);
 
   const handleInterpolationChange = useCallback((value: string) => {
     setInterpolation(value);
-    debouncedSetInterpolation(value);
+    if (!isRecallingSnapshotRef.current) {
+      debouncedSetInterpolation(value);
+    }
   }, [debouncedSetInterpolation]);
 
   const handleOscShapeChange = useCallback((value: string) => {
     setOscShape(value);
-    debouncedSetOscShape(value);
+    if (!isRecallingSnapshotRef.current) {
+      debouncedSetOscShape(value);
+    }
   }, [debouncedSetOscShape]);
 
   const handleWindowFalloffChange = useCallback((value: number) => {
     setWindowFalloff(value);
-    debouncedSetWindowFalloff(value);
+    if (!isRecallingSnapshotRef.current) {
+      debouncedSetWindowFalloff(value);
+    }
   }, [debouncedSetWindowFalloff]);
 
   const handleGetCalibration = useCallback(() => {
@@ -355,6 +427,113 @@ export const DeviceBridge: React.FC = () => {
     deviceService.sendTextCommand('get freq');
   }, [deviceService, appendLog]);
 
+  // Snapshot system functions
+  const getCurrentSnapshot = useCallback((): DeviceBridgeSnapshot => {
+    return {
+      blurAttack,
+      blurDecay,
+      oscGain,
+      resonance,
+      tapeDrive,
+      tapeHyst,
+      bandwidth,
+      oscShape,
+      windowFalloff,
+      interpolation,
+    };
+  }, [blurAttack, blurDecay, oscGain, resonance, tapeDrive, tapeHyst, bandwidth, oscShape, windowFalloff, interpolation]);
+
+  const recallSnapshot = useCallback(async (snapshot: DeviceBridgeSnapshot) => {
+    // Set flag to prevent debounced handlers from firing
+    isRecallingSnapshotRef.current = true;
+
+    // Update state optimistically for immediate UI feedback
+    setBlurAttack(snapshot.blurAttack);
+    setBlurDecay(snapshot.blurDecay);
+    setOscGain(snapshot.oscGain);
+    setResonance(snapshot.resonance);
+    setTapeDrive(snapshot.tapeDrive);
+    setTapeHyst(snapshot.tapeHyst);
+    setBandwidth(snapshot.bandwidth);
+    setOscShape(snapshot.oscShape);
+    setWindowFalloff(snapshot.windowFalloff);
+    setInterpolation(snapshot.interpolation);
+
+    // Send all values to device with delays to ensure all commands are processed
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+    deviceService.setBlurAttack(snapshot.blurAttack);
+    await delay(50);
+    deviceService.setBlurDecay(snapshot.blurDecay);
+    await delay(50);
+    deviceService.setOscillatorGain(snapshot.oscGain);
+    await delay(50);
+    deviceService.setResonance(snapshot.resonance);
+    await delay(50);
+    deviceService.setTapeDrive(snapshot.tapeDrive);
+    await delay(50);
+    deviceService.setTapeHyst(snapshot.tapeHyst);
+    await delay(50);
+    deviceService.setBandwidth(snapshot.bandwidth);
+    await delay(50);
+    deviceService.setOscillatorShape(snapshot.oscShape);
+    await delay(50);
+    deviceService.setWindowFalloff(snapshot.windowFalloff);
+    await delay(50);
+    deviceService.setInterpolation(snapshot.interpolation);
+    await delay(50);
+
+    // Clear flag after all commands are sent
+    isRecallingSnapshotRef.current = false;
+  }, [deviceService]);
+
+  const saveSnapshot = useCallback((slotIndex: number) => {
+    const current = getCurrentSnapshot();
+    setSnapshots((prev) => {
+      const next = [...prev];
+      next[slotIndex] = current;
+      return next;
+    });
+    const slotLabel = ['A', 'B', 'C', 'D'][slotIndex];
+    toast.success(`Snapshot ${slotLabel} saved`, 'Snapshot Saved');
+  }, [getCurrentSnapshot, toast]);
+
+  const clearSnapshot = useCallback((slotIndex: number) => {
+    setSnapshots((prev) => {
+      const next = [...prev];
+      next[slotIndex] = null;
+      return next;
+    });
+    const slotLabel = ['A', 'B', 'C', 'D'][slotIndex];
+    toast.info(`Snapshot ${slotLabel} cleared`, 'Snapshot Cleared');
+  }, [toast]);
+
+  // Handle single click - select slot, and load snapshot if it exists
+  const handleSlotClick = useCallback(async (slotIndex: number) => {
+    const snapshot = snapshots[slotIndex];
+
+    // Always select the slot
+    setSelectedSlot(slotIndex);
+
+    // If the slot has a snapshot, load it immediately
+    if (snapshot) {
+      const slotLabel = ['A', 'B', 'C', 'D'][slotIndex];
+      toast.success(`Snapshot ${slotLabel} loaded`, 'Snapshot Loaded');
+      await recallSnapshot(snapshot);
+    }
+  }, [snapshots, recallSnapshot, toast]);
+
+  // Handle double click - load snapshot if it exists
+  const handleSlotDoubleClick = useCallback(async (slotIndex: number) => {
+    const snapshot = snapshots[slotIndex];
+    if (snapshot) {
+      setSelectedSlot(slotIndex);
+      const slotLabel = ['A', 'B', 'C', 'D'][slotIndex];
+      toast.success(`Snapshot ${slotLabel} loaded`, 'Snapshot Loaded');
+      await recallSnapshot(snapshot);
+    }
+  }, [snapshots, recallSnapshot, toast]);
+
   const isConnected = connectionCount > 0;
 
   // Main panel (Device Connection + Parameter Controls in column flow)
@@ -367,6 +546,54 @@ export const DeviceBridge: React.FC = () => {
           <DeviceConnectionPanel deviceService={deviceService} />
         </CardBody>
       </Card>
+
+      <Card className="device-bridge-snapshots">
+        <CardHeader>Snapshots</CardHeader>
+        <CardBody>
+          <div className="snapshot-slots">
+            {['A', 'B', 'C', 'D'].map((label, i) => (
+              <Button
+                key={label}
+                variant={snapshots[i] ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => handleSlotClick(i)}
+                onDoubleClick={() => handleSlotDoubleClick(i)}
+                disabled={!isConnected}
+                className={selectedSlot === i ? 'snapshot-slot-selected' : ''}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
+          <div className="snapshot-actions">
+            <Button
+              variant="success"
+              size="sm"
+              onClick={() => {
+                if (selectedSlot !== null) {
+                  saveSnapshot(selectedSlot);
+                }
+              }}
+              disabled={selectedSlot === null || !isConnected}
+            >
+              Save
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => {
+                if (selectedSlot !== null && snapshots[selectedSlot]) {
+                  clearSnapshot(selectedSlot);
+                }
+              }}
+              disabled={selectedSlot === null || !snapshots[selectedSlot] || !isConnected}
+            >
+              Clear
+            </Button>
+          </div>
+        </CardBody>
+      </Card>
+
       <Card className="device-bridge-serial-card">
         <CardHeader>GET</CardHeader>
         <CardBody>

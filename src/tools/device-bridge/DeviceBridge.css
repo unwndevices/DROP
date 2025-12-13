@@ -91,6 +91,34 @@
   margin-top: var(--ds-spacing-xs);
 }
 
+.device-bridge-snapshots {
+  break-inside: avoid;
+}
+
+.snapshot-slots {
+  display: flex;
+  gap: var(--ds-spacing-sm);
+  margin-bottom: var(--ds-spacing-sm);
+}
+
+.snapshot-slots > button {
+  flex: 1;
+}
+
+.snapshot-slot-selected {
+  outline: 2px solid var(--ds-color-primary);
+  outline-offset: 2px;
+}
+
+.snapshot-actions {
+  display: flex;
+  gap: var(--ds-spacing-sm);
+}
+
+.snapshot-actions > button {
+  flex: 1;
+}
+
 .device-bridge-serial-card {
   break-inside: avoid;
 }
