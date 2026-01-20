@@ -322,7 +322,7 @@ export class DeviceService {
 
   private parseParameterResponse(line: string): void {
     // Expected format: "param-name value" (e.g., "blur-attack 0.3000")
-    const match = line.match(/^(blur-attack|blur-decay|osc-gain|resonance|tape-drive|tape-hyst|bandwidth|interpolation|osc-shape|window-falloff)\s+([\d.\w]+)/);
+    const match = line.match(/^(blur-attack|blur-decay|osc-gain|resonance|tape-drive|tape-hyst|bandwidth|interpolation|osc-shape|window-falloff|solo)\s+([\d.\w]+)/);
     if (match) {
       const [, paramId, valueStr] = match;
 
@@ -350,6 +350,27 @@ export class DeviceService {
       } else if (paramId === 'osc-shape') {
         // Handle osc-shape
         const value = valueStr; // "square" or "saw"
+        const param = this.parameters.get(paramId);
+        if (param) {
+          param.value = value;
+        }
+        this.emit({
+          type: 'PARAMETER_CHANGED',
+          payload: { parameterId: paramId, value }
+        });
+      } else if (paramId === 'solo') {
+        // Handle solo - value can be "off" or a number (0-19)
+        let value: number | string = valueStr;
+        if (valueStr === 'off') {
+          value = -1;
+        } else {
+          const bandNum = parseInt(valueStr, 10);
+          if (!isNaN(bandNum) && bandNum >= 0 && bandNum < 20) {
+            value = bandNum;
+          } else {
+            return; // Invalid solo value
+          }
+        }
         const param = this.parameters.get(paramId);
         if (param) {
           param.value = value;
@@ -808,6 +829,8 @@ export class DeviceService {
     await delay(50);
     await this.sendTextCommand('window-falloff');
     await delay(50);
+    await this.sendTextCommand('solo');
+    await delay(50);
   }
 
   // ============================================
@@ -907,5 +930,17 @@ export class DeviceService {
       return param.value;
     }
     return null;
+  }
+
+  /**
+    * Set solo band (0-19) or disable solo (-1 or "off")
+    */
+  async setSoloBand(band: number): Promise<void> {
+    if (band < 0 || band >= 20) {
+      // Disable solo
+      await this.sendTextCommand('solo off');
+    } else {
+      await this.sendTextCommand(`solo ${band}`);
+    }
   }
 }

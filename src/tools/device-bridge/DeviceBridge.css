@@ -158,10 +158,34 @@
   }
 }
 
+.band-solo-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: var(--ds-spacing-xs);
+  margin-bottom: var(--ds-spacing-sm);
+}
+
+.band-solo-grid > button {
+  aspect-ratio: 1;
+  min-width: 0;
+  font-size: var(--ds-font-size-xs);
+  font-weight: var(--ds-font-weight-medium);
+  padding: var(--ds-spacing-xs);
+}
+
+.band-solo-active {
+  outline: 2px solid var(--ds-color-primary);
+  outline-offset: 2px;
+}
+
 @media (max-width: 900px) {
   .device-bridge-columns {
     columns: 1;
     height: auto;
     max-height: 100%;
+  }
+
+  .band-solo-grid {
+    grid-template-columns: repeat(5, 1fr);
   }
 }

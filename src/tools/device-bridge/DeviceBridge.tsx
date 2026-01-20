@@ -27,6 +27,7 @@ interface DeviceBridgeSnapshot {
   oscShape: string;
   windowFalloff: number;
   interpolation: string;
+  soloBand: number;
   // Future parameters can be added here as optional fields
 }
 
@@ -77,6 +78,7 @@ export const DeviceBridge: React.FC = () => {
   const [oscShape, setOscShape] = useState('square');
   const [windowFalloff, setWindowFalloff] = useState(0.5);
   const [interpolation, setInterpolation] = useState('linear');
+  const [soloBand, setSoloBand] = useState<number>(-1);
   const [terminalLog, setTerminalLog] = useState<string[]>([]);
   const terminalRef = useRef<HTMLDivElement | null>(null);
   const isRecallingSnapshotRef = useRef<boolean>(false);
@@ -180,6 +182,19 @@ export const DeviceBridge: React.FC = () => {
         case 'window-falloff':
           setWindowFalloff(value);
           break;
+        case 'solo':
+          // Handle solo - value can be -1 (off) or 0-19 (band number)
+          if (typeof value === 'number') {
+            setSoloBand(value);
+          } else if (value === 'off' || value === -1) {
+            setSoloBand(-1);
+          } else {
+            const bandNum = parseInt(value as string, 10);
+            if (!isNaN(bandNum) && bandNum >= 0 && bandNum < 20) {
+              setSoloBand(bandNum);
+            }
+          }
+          break;
       }
     };
 
@@ -244,8 +259,13 @@ export const DeviceBridge: React.FC = () => {
       const saved = localStorage.getItem('drop-device-bridge-snapshots');
       if (saved) {
         const parsed = JSON.parse(saved) as (DeviceBridgeSnapshot | null)[];
-        // Ensure we have exactly 4 slots
-        const loaded = [...parsed];
+        // Ensure we have exactly 4 slots and add default soloBand if missing
+        const loaded = parsed.map(snapshot => {
+          if (snapshot && typeof snapshot.soloBand === 'undefined') {
+            return { ...snapshot, soloBand: -1 };
+          }
+          return snapshot;
+        });
         while (loaded.length < 4) {
           loaded.push(null);
         }
@@ -336,6 +356,13 @@ export const DeviceBridge: React.FC = () => {
     50
   );
 
+  const debouncedSetSoloBand = useDebouncedCallback(
+    useCallback((value: number) => {
+      deviceService.setSoloBand(value);
+    }, [deviceService]),
+    50
+  );
+
   // Parameter change handlers
   const handleBlurAttackChange = useCallback((value: number) => {
     setBlurAttack(value);
@@ -407,6 +434,15 @@ export const DeviceBridge: React.FC = () => {
     }
   }, [debouncedSetWindowFalloff]);
 
+  const handleSoloBandChange = useCallback((band: number) => {
+    // Toggle behavior: if clicking the same band, disable solo
+    const newBand = soloBand === band ? -1 : band;
+    setSoloBand(newBand);
+    if (!isRecallingSnapshotRef.current) {
+      debouncedSetSoloBand(newBand);
+    }
+  }, [soloBand, debouncedSetSoloBand]);
+
   const handleGetCalibration = useCallback(() => {
     appendLog('> get calibration');
     deviceService.sendTextCommand('get calibration');
@@ -440,8 +476,9 @@ export const DeviceBridge: React.FC = () => {
       oscShape,
       windowFalloff,
       interpolation,
+      soloBand,
     };
-  }, [blurAttack, blurDecay, oscGain, resonance, tapeDrive, tapeHyst, bandwidth, oscShape, windowFalloff, interpolation]);
+  }, [blurAttack, blurDecay, oscGain, resonance, tapeDrive, tapeHyst, bandwidth, oscShape, windowFalloff, interpolation, soloBand]);
 
   const recallSnapshot = useCallback(async (snapshot: DeviceBridgeSnapshot) => {
     // Set flag to prevent debounced handlers from firing
@@ -458,6 +495,7 @@ export const DeviceBridge: React.FC = () => {
     setOscShape(snapshot.oscShape);
     setWindowFalloff(snapshot.windowFalloff);
     setInterpolation(snapshot.interpolation);
+    setSoloBand(snapshot.soloBand);
 
     // Send all values to device with delays to ensure all commands are processed
     const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -481,6 +519,8 @@ export const DeviceBridge: React.FC = () => {
     deviceService.setWindowFalloff(snapshot.windowFalloff);
     await delay(50);
     deviceService.setInterpolation(snapshot.interpolation);
+    await delay(50);
+    deviceService.setSoloBand(snapshot.soloBand);
     await delay(50);
 
     // Clear flag after all commands are sent
@@ -882,6 +922,28 @@ export const DeviceBridge: React.FC = () => {
             </Button>
           </div>
           <p className="interpolation-helper">Controls the interpolation type for smooth transitions</p>
+        </CardBody>
+      </Card>
+
+      <Card className={`device-bridge-parameters ${!isConnected ? 'interpolation-disabled' : ''}`}>
+        <CardHeader>Band Solo</CardHeader>
+        <CardBody>
+          <div className="band-solo-grid">
+            {Array.from({ length: 20 }, (_, i) => (
+              <Button
+                key={i}
+                variant={soloBand === i ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => handleSoloBandChange(i)}
+                disabled={!isConnected}
+                className={soloBand === i ? 'band-solo-active' : ''}
+                title={`Solo band ${i}`}
+              >
+                {i}
+              </Button>
+            ))}
+          </div>
+          <p className="interpolation-helper">Click a band to solo it. Click again to disable solo.</p>
         </CardBody>
       </Card>
     </div >
