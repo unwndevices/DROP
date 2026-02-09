@@ -5,5 +5,6 @@ export const ENABLED_TOOL_IDS = [
     'ui-graphics', // Corresponds to GraphicToUi
     // 'spectral-analysis',
     'datum-viewer',
+    'wav2datum',
     // 'pixel-art-generator',
 ];

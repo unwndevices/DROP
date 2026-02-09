@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, BarChart3, FolderOpen, Cpu, Flower, Joystick, Palette } from 'lucide-react';
+import { Image, BarChart3, FolderOpen, Cpu, Flower, Joystick, Palette, FileAudio } from 'lucide-react';
 
 export interface Tool {
   id: string;
@@ -101,6 +101,13 @@ export const DEFAULT_TOOLS: Tool[] = [
     name: 'Pixel Art Generator',
     description: 'Lua-powered pixel art generator for Eisei\'s 127x127 OLED display',
     icon: <Palette className="w-6 h-6" />,
+    component: () => null // Will be set by parent
+  },
+  {
+    id: 'wav2datum',
+    name: 'WAV to Datum',
+    description: 'Convert WAV audio files to spectral datum format',
+    icon: <FileAudio className="w-6 h-6" />,
     component: () => null // Will be set by parent
   }
 ];

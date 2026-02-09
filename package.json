@@ -42,6 +42,7 @@
     "uplot-react": "^1.2.2",
     "wasmoon": "^1.16.0",
     "enjin2-wasm": "file:./lib/enjin2-wasm",
+    "filterbank-wasm": "file:./lib/filterbank-wasm",
     "webdfu": "^1.0.5",
     "workbox-webpack-plugin": "^7.3.0"
   },

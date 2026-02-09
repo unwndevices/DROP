@@ -10,6 +10,7 @@ import { ESP32Flasher } from './tools/esp32-flasher/ESP32Flasher';
 import { DaisyFlasher } from './tools/daisy-flasher/DaisyFlasher';
 import { UIGraphicsConverter } from './tools/ui-graphics/UIGraphicsConverter';
 import { DeviceBridge } from './tools/device-bridge/DeviceBridge';
+import { Wav2Datum } from './tools/wav2datum/Wav2Datum';
 
 import { PixelArtGenerator } from './tools/pixel-art-generator/PixelArtGenerator';
 import { ToastProvider } from './design-system';
@@ -52,6 +53,10 @@ const ALL_TOOLS: Tool[] = [
   {
     ...DEFAULT_TOOLS[6],
     component: PixelArtGenerator
+  },
+  {
+    ...DEFAULT_TOOLS[7],
+    component: Wav2Datum
   }
 ];
 

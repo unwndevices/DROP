@@ -492,7 +492,7 @@ export const ESP32Flasher: React.FC = () => {
                   </StatusIndicator>
                 )}
                 {!littlefsFile && (
-                  <StatusIndicator variant="secondary" style={{ fontSize: 'var(--ds-font-size-sm)' }}>
+                  <StatusIndicator variant="info" style={{ fontSize: 'var(--ds-font-size-sm)' }}>
                     LittleFS image contains Daisy firmware. Leave empty to flash ESP32 only.
                   </StatusIndicator>
                 )}

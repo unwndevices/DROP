@@ -1,0 +1,18 @@
+{
+  "name": "filterbank-wasm",
+  "version": "1.0.0",
+  "description": "FilterBank DSP compiled to WebAssembly for wav2datum conversion",
+  "main": "filterbank.js",
+  "types": "filterbank.d.ts",
+  "files": [
+    "filterbank.js",
+    "filterbank.wasm",
+    "filterbank.d.ts"
+  ],
+  "scripts": {
+    "build": "emmake make",
+    "clean": "make clean"
+  },
+  "author": "unwn",
+  "license": "MIT"
+}
