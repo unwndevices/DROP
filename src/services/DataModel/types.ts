@@ -15,6 +15,21 @@ export interface Datum {
   description?: string;
   createdAt?: Date;
   modifiedAt?: Date;
+
+  // Orbit parameters
+  startFrame?: number;
+  endFrame?: number;
+  baseHz?: number;
+  phaseMultipliers?: number[]; // [4]
+  offsets?: number[]; // [4]
+  startPoint?: number;
+  endPoint?: number;
+
+  // Warp parameters
+  warpAmount?: number[]; // [4]
+  warpCvDest?: number;
+  warpType?: number;
+  selectedLUT?: number;
 }
 
 export interface LuaScript {

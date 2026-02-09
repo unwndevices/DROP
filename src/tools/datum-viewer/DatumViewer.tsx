@@ -4,12 +4,12 @@ import { DatumFileService } from '../../services/DatumPersistence/DatumFileServi
 import type { Datum } from '../../services/DataModel/types';
 
 // Import design system components
-import { 
-  ToolLayout, 
-  Button, 
-  Card, 
-  CardHeader, 
-  CardBody, 
+import {
+  ToolLayout,
+  Button,
+  Card,
+  CardHeader,
+  CardBody,
   StatusIndicator,
   Timeline
 } from '../../design-system';
@@ -244,6 +244,44 @@ export const DatumViewer: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {spectralData.baseHz !== undefined && (
+              <div className="mt-3">
+                <h4>Orbit Parameters</h4>
+                <div className="info-grid">
+                  <div className="info-item">
+                    <label>Base Hz:</label>
+                    <span>{spectralData.baseHz.toFixed(2)} Hz</span>
+                  </div>
+                  <div className="info-item">
+                    <label>Start / End:</label>
+                    <span>{spectralData.startPoint?.toFixed(2)} / {spectralData.endPoint?.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {spectralData.warpAmount && (
+              <div className="mt-3">
+                <h4>Warp Parameters</h4>
+                <div className="info-grid">
+                  {spectralData.warpAmount.map((amount, i) => (
+                    <div key={i} className="info-item">
+                      <label>Warp {i}:</label>
+                      <span>{amount.toFixed(2)}</span>
+                    </div>
+                  ))}
+                  <div className="info-item">
+                    <label>Type:</label>
+                    <span>{spectralData.warpType}</span>
+                  </div>
+                  <div className="info-item">
+                    <label>LUT:</label>
+                    <span>{spectralData.selectedLUT}</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardBody>
         </Card>
       )}
@@ -273,7 +311,7 @@ export const DatumViewer: React.FC = () => {
           </CardBody>
         </Card>
       </div>
-      
+
       {/* Timeline Controls */}
       <Timeline
         currentFrame={currentFrame}

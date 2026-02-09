@@ -43,6 +43,7 @@ export const ESP32Flasher: React.FC = () => {
   const [firmwareBlob, setFirmwareBlob] = useState<Blob | null>(null);
   const [firmwareVersion, setFirmwareVersion] = useState<string>('');
   const [firmwareSource, setFirmwareSource] = useState<'file' | 'selector'>('selector');
+  const [littlefsFile, setLittlefsFile] = useState<File | null>(null);
 
   // Refs
   const portRef = useRef<SerialPort | null>(null);
@@ -262,6 +263,11 @@ export const ESP32Flasher: React.FC = () => {
     setFirmwareSource('file');
   }, []);
 
+  // Handle LittleFS file selection
+  const handleLittlefsSelect = useCallback((file: File | null) => {
+    setLittlefsFile(file);
+  }, []);
+
 
   // Flash firmware
   const flashFirmware = useCallback(async () => {
@@ -335,21 +341,34 @@ export const ESP32Flasher: React.FC = () => {
 
       // Convert ArrayBuffer to string for esptool-js
       const uint8Array = new Uint8Array(firmwareData);
-      let dataString = '';
+      let firmwareString = '';
       for (let i = 0; i < uint8Array.length; i++) {
-        dataString += String.fromCharCode(uint8Array[i]);
+        firmwareString += String.fromCharCode(uint8Array[i]);
       }
 
-      // For simplicity and compatibility with other flashers, always flash at 0x0
-      // This matches the behavior of most ESP32 web flashers
-      const flashAddress = 0x0;
-
-      const fileArray = [{
-        data: dataString,
-        address: flashAddress
+      // Build file array with firmware and optionally LittleFS
+      const fileArray: Array<{ data: string, address: number }> = [{
+        data: firmwareString,
+        address: 0x10000  // ESP32 app partition
       }];
 
-      setFlashStatus(`Flashing ${firmwareName} at 0x${flashAddress.toString(16).toUpperCase()}...`);
+      // Add LittleFS if provided
+      if (littlefsFile) {
+        setFlashStatus('Loading LittleFS image...');
+        const littlefsData = await littlefsFile.arrayBuffer();
+        const littlefsArray = new Uint8Array(littlefsData);
+        let littlefsString = '';
+        for (let i = 0; i < littlefsArray.length; i++) {
+          littlefsString += String.fromCharCode(littlefsArray[i]);
+        }
+        fileArray.push({
+          data: littlefsString,
+          address: 0x670000  // LittleFS partition
+        });
+        setFlashStatus(`Flashing ${firmwareName} and LittleFS...`);
+      } else {
+        setFlashStatus(`Flashing ${firmwareName}...`);
+      }
 
       // For ESP32-S3, we know it has 8MB flash from the detection logs
       // Let's be explicit about this to match what esptool detected
@@ -364,9 +383,17 @@ export const ESP32Flasher: React.FC = () => {
         eraseAll: true,    // Erase all flash before writing - matches other flashers
         compress: true,
         // Progress callback
-        reportProgress: (_fileIndex, written, total) => {
-          const progress = 25 + (written / total) * 65; // 25% to 90%
+        reportProgress: (fileIndex, written, total) => {
+          // Calculate progress across all files
+          const filesProgress = fileIndex / fileArray.length;
+          const fileProgress = written / total;
+          const progress = 25 + (filesProgress + fileProgress / fileArray.length) * 65; // 25% to 90%
           setFlashProgress(progress);
+
+          if (fileArray.length > 1) {
+            const currentFile = fileIndex === 0 ? 'firmware' : 'LittleFS';
+            setFlashStatus(`Flashing ${currentFile}... (${Math.round(progress)}%)`);
+          }
         }
       });
 
@@ -386,7 +413,7 @@ export const ESP32Flasher: React.FC = () => {
       setIsFlashing(false);
       // Don't disconnect here - user might want to use serial monitor
     }
-  }, [isConnected, firmwareFile, firmwareBlob, firmwareSource, firmwareVersion]);
+  }, [isConnected, firmwareFile, firmwareBlob, firmwareSource, firmwareVersion, littlefsFile]);
 
   // Clear serial messages
   const clearMessages = useCallback(() => {
@@ -432,7 +459,7 @@ export const ESP32Flasher: React.FC = () => {
               <h4 style={{ marginBottom: 'var(--ds-spacing-sm)' }}>Or upload custom firmware:</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-sm)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-sm)' }}>
-                  <span>ESP32 Firmware @ 0x0</span>
+                  <span>ESP32 Firmware @ 0x10000</span>
                 </div>
                 <div className="file-input-wrapper">
                   <input
@@ -445,6 +472,28 @@ export const ESP32Flasher: React.FC = () => {
                 {firmwareFile && (
                   <StatusIndicator variant="info">
                     {firmwareFile.name} ({(firmwareFile.size / 1024).toFixed(1)} KB)
+                  </StatusIndicator>
+                )}
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-sm)', marginTop: 'var(--ds-spacing-md)' }}>
+                  <span>LittleFS Image @ 0x670000 (optional)</span>
+                </div>
+                <div className="file-input-wrapper">
+                  <input
+                    type="file"
+                    accept=".bin"
+                    onChange={(e) => handleLittlefsSelect(e.target.files?.[0] || null)}
+                    disabled={isFlashing}
+                  />
+                </div>
+                {littlefsFile && (
+                  <StatusIndicator variant="info">
+                    {littlefsFile.name} ({(littlefsFile.size / 1024).toFixed(1)} KB)
+                  </StatusIndicator>
+                )}
+                {!littlefsFile && (
+                  <StatusIndicator variant="secondary" style={{ fontSize: 'var(--ds-font-size-sm)' }}>
+                    LittleFS image contains Daisy firmware. Leave empty to flash ESP32 only.
                   </StatusIndicator>
                 )}
               </div>

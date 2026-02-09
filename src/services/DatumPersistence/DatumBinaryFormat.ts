@@ -5,10 +5,9 @@ import type { Datum, SpectralFrame } from '../DataModel/types';
 
 // Constants from spec
 const DATUM_MAGIC = [0x44, 0x41, 0x54, 0x4D]; // "DATM"
-const DATUM_VERSION = 1;
-// Header size: 4+4+4+20+4+4+4+8+32+32+8+8+4+1+1+65 = 203 bytes
-// (matches firmware DatumFileHeader with __attribute__((packed)))
-const DATUM_HEADER_SIZE = 203;
+const DATUM_VERSION = 2;
+// Header size: 512 bytes (sector aligned)
+const DATUM_HEADER_SIZE = 512;
 
 // Binary format structures
 export interface DatumHeader {
@@ -24,7 +23,8 @@ export interface DatumHeader {
   offsets: number[];
   startPoint: number;
   endPoint: number;
-  warpAmount: number;
+  warpAmount: number[];
+  warpCvDest: number;
   warpType: number;
   selectedLUT: number;
   reserved: Uint8Array;
@@ -36,42 +36,42 @@ export interface DatumBinaryFile {
 }
 
 export class DatumBinaryFormat {
-  
+
   /**
    * Converts a Datum object to binary format (.datum file)
    */
   static datumToBinary(datum: Datum): Uint8Array {
     const header = this.createHeader(datum);
     const spectralData = this.encodeSpectralData(datum.frames);
-    
+
     const totalSize = DATUM_HEADER_SIZE + spectralData.byteLength;
     const buffer = new ArrayBuffer(totalSize);
     const view = new DataView(buffer);
-    
+
     // Write header
     this.writeHeader(view, header);
-    
+
     // Write spectral data
     const uint8View = new Uint8Array(buffer);
     uint8View.set(new Uint8Array(spectralData), DATUM_HEADER_SIZE);
-    
+
     return new Uint8Array(buffer);
   }
-  
+
   /**
    * Converts binary data to Datum object
    */
   static binaryToDatum(data: Uint8Array): Datum {
     const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
-    
+
     // Read and validate header
     const header = this.readHeader(view);
     this.validateHeader(header, data.byteLength);
-    
+
     // Read spectral data
     const spectralDataBuffer = data.slice(DATUM_HEADER_SIZE);
     const frames = this.decodeSpectralData(spectralDataBuffer, header.frames);
-    
+
     return {
       frames,
       sampleRate: 44100, // Default sample rate for compatibility
@@ -80,10 +80,25 @@ export class DatumBinaryFormat {
       name: header.name,
       description: `Imported datum with ${header.frames} frames`,
       createdAt: new Date(),
-      modifiedAt: new Date()
+      modifiedAt: new Date(),
+
+      // Orbit params
+      startFrame: header.startFrame,
+      endFrame: header.endFrame,
+      baseHz: header.baseHz,
+      phaseMultipliers: header.phaseMultipliers,
+      offsets: header.offsets,
+      startPoint: header.startPoint,
+      endPoint: header.endPoint,
+
+      // Warp params
+      warpAmount: header.warpAmount,
+      warpCvDest: header.warpCvDest,
+      warpType: header.warpType,
+      selectedLUT: header.selectedLUT
     };
   }
-  
+
   /**
    * Creates header from Datum object
    */
@@ -94,120 +109,127 @@ export class DatumBinaryFormat {
       headerSize: DATUM_HEADER_SIZE,
       name: datum.name || 'DROP Export',
       frames: datum.frameCount,
-      startFrame: 0,
-      endFrame: datum.frameCount - 1,
-      baseHz: 440.0, // Default base frequency for orbit calculations
-      phaseMultipliers: [1.0, 1.0, 1.0, 1.0],
-      offsets: [0.0, 0.0, 0.0, 0.0],
-      startPoint: 0.0,
-      endPoint: 1.0,
-      warpAmount: 0.0,
-      warpType: 0,
-      selectedLUT: 0,
-      reserved: new Uint8Array(65)
+      startFrame: datum.startFrame || 0,
+      endFrame: datum.endFrame || (datum.frameCount > 0 ? datum.frameCount - 1 : 0),
+      baseHz: datum.baseHz || 55.0, // Default based on firmware or typical usage
+      phaseMultipliers: datum.phaseMultipliers || [1.0, 1.0, 1.0, 1.0],
+      offsets: datum.offsets || [0.0, 0.0, 0.0, 0.0],
+      startPoint: datum.startPoint || 0.0,
+      endPoint: datum.endPoint || 1.0,
+      warpAmount: datum.warpAmount || [0.0, 0.0, 0.0, 0.0],
+      warpCvDest: datum.warpCvDest || 0,
+      warpType: datum.warpType || 0,
+      selectedLUT: datum.selectedLUT || 0,
+      reserved: new Uint8Array(361)
     };
   }
-  
+
   /**
    * Writes header to DataView
    */
   private static writeHeader(view: DataView, header: DatumHeader): void {
     let offset = 0;
-    
+
     // Magic number (4 bytes)
     for (let i = 0; i < 4; i++) {
       view.setUint8(offset++, header.magic[i]);
     }
-    
+
     // Version (4 bytes)
     view.setUint32(offset, header.version, true);
     offset += 4;
-    
+
     // Header size (4 bytes)
     view.setUint32(offset, header.headerSize, true);
     offset += 4;
-    
+
     // Name (20 bytes, null-terminated)
     const nameBytes = new TextEncoder().encode(header.name.substring(0, 19));
     for (let i = 0; i < 20; i++) {
       view.setUint8(offset + i, i < nameBytes.length ? nameBytes[i] : 0);
     }
     offset += 20;
-    
+
     // Frames (4 bytes)
     view.setUint32(offset, header.frames, true);
     offset += 4;
-    
+
     // Start frame (4 bytes)
     view.setUint32(offset, header.startFrame, true);
     offset += 4;
-    
+
     // End frame (4 bytes)
     view.setUint32(offset, header.endFrame, true);
     offset += 4;
-    
+
     // Base Hz (8 bytes)
     view.setFloat64(offset, header.baseHz, true);
     offset += 8;
-    
+
     // Phase multipliers (32 bytes, 4 doubles)
     for (let i = 0; i < 4; i++) {
       view.setFloat64(offset, header.phaseMultipliers[i], true);
       offset += 8;
     }
-    
+
     // Offsets (32 bytes, 4 doubles)
     for (let i = 0; i < 4; i++) {
       view.setFloat64(offset, header.offsets[i], true);
       offset += 8;
     }
-    
+
     // Start point (8 bytes)
     view.setFloat64(offset, header.startPoint, true);
     offset += 8;
-    
+
     // End point (8 bytes)
     view.setFloat64(offset, header.endPoint, true);
     offset += 8;
-    
-    // Warp amount (4 bytes)
-    view.setFloat32(offset, header.warpAmount, true);
-    offset += 4;
-    
+
+    // Warp amount (16 bytes, 4 floats)
+    for (let i = 0; i < 4; i++) {
+      view.setFloat32(offset, header.warpAmount[i] || 0, true);
+      offset += 4;
+    }
+
+    // Warp CV Dest (1 byte)
+    view.setUint8(offset, header.warpCvDest);
+    offset += 1;
+
     // Warp type (1 byte)
     view.setUint8(offset, header.warpType);
     offset += 1;
-    
+
     // Selected LUT (1 byte)
     view.setUint8(offset, header.selectedLUT);
     offset += 1;
-    
-    // Reserved (65 bytes)
-    for (let i = 0; i < 65; i++) {
+
+    // Reserved (361 bytes)
+    for (let i = 0; i < 361; i++) {
       view.setUint8(offset + i, header.reserved[i]);
     }
   }
-  
+
   /**
    * Reads header from DataView
    */
   private static readHeader(view: DataView): DatumHeader {
     let offset = 0;
-    
+
     // Magic number
     const magic = [];
     for (let i = 0; i < 4; i++) {
       magic.push(view.getUint8(offset++));
     }
-    
+
     // Version
     const version = view.getUint32(offset, true);
     offset += 4;
-    
+
     // Header size
     const headerSize = view.getUint32(offset, true);
     offset += 4;
-    
+
     // Name
     const nameBytes = new Uint8Array(20);
     for (let i = 0; i < 20; i++) {
@@ -215,63 +237,70 @@ export class DatumBinaryFormat {
     }
     const name = new TextDecoder().decode(nameBytes).replace(/\0+$/, '');
     offset += 20;
-    
+
     // Frames
     const frames = view.getUint32(offset, true);
     offset += 4;
-    
+
     // Start frame
     const startFrame = view.getUint32(offset, true);
     offset += 4;
-    
+
     // End frame
     const endFrame = view.getUint32(offset, true);
     offset += 4;
-    
+
     // Base Hz
     const baseHz = view.getFloat64(offset, true);
     offset += 8;
-    
+
     // Phase multipliers
     const phaseMultipliers = [];
     for (let i = 0; i < 4; i++) {
       phaseMultipliers.push(view.getFloat64(offset, true));
       offset += 8;
     }
-    
+
     // Offsets
     const offsets = [];
     for (let i = 0; i < 4; i++) {
       offsets.push(view.getFloat64(offset, true));
       offset += 8;
     }
-    
+
     // Start point
     const startPoint = view.getFloat64(offset, true);
     offset += 8;
-    
+
     // End point
     const endPoint = view.getFloat64(offset, true);
     offset += 8;
-    
-    // Warp amount
-    const warpAmount = view.getFloat32(offset, true);
-    offset += 4;
-    
+
+    // Warp amount (4 floats)
+    const warpAmount = [];
+    for (let i = 0; i < 4; i++) {
+      warpAmount.push(view.getFloat32(offset, true));
+      offset += 4;
+    }
+
+    // Warp CV Dest
+    const warpCvDest = view.getUint8(offset);
+    offset += 1;
+
     // Warp type
     const warpType = view.getUint8(offset);
     offset += 1;
-    
+
     // Selected LUT
     const selectedLUT = view.getUint8(offset);
     offset += 1;
-    
+
     // Reserved
-    const reserved = new Uint8Array(65);
-    for (let i = 0; i < 65; i++) {
+    const reserved = new Uint8Array(361);
+    for (let i = 0; i < 361; i++) {
       reserved[i] = view.getUint8(offset + i);
     }
-    
+
     return {
       magic,
       version,
@@ -286,12 +315,13 @@ export class DatumBinaryFormat {
       startPoint,
       endPoint,
       warpAmount,
+      warpCvDest,
       warpType,
       selectedLUT,
       reserved
     };
   }
-  
+
   /**
    * Validates header integrity
    */
@@ -300,41 +330,41 @@ export class DatumBinaryFormat {
     if (!header.magic.every((byte, i) => byte === DATUM_MAGIC[i])) {
       throw new Error('Invalid datum file: magic number mismatch');
     }
-    
+
     // Check version
     if (header.version !== DATUM_VERSION) {
       throw new Error(`Unsupported datum file version: ${header.version}`);
     }
-    
+
     // Check header size
     if (header.headerSize !== DATUM_HEADER_SIZE) {
       throw new Error(`Invalid header size: ${header.headerSize}`);
     }
-    
+
     // Check frame count
     if (header.frames <= 0) {
       throw new Error('Invalid frame count: must be > 0');
     }
-    
+
     // Check frame range
     if (header.endFrame < header.startFrame) {
       throw new Error('Invalid frame range: endFrame < startFrame');
     }
-    
+
     // Check file size
     const expectedSize = DATUM_HEADER_SIZE + (header.frames * 20 * 4); // 20 bands * 4 bytes per float
     if (fileSize !== expectedSize) {
       throw new Error(`Invalid file size: expected ${expectedSize}, got ${fileSize}`);
     }
   }
-  
+
   /**
    * Encodes spectral frames to binary format
    */
   private static encodeSpectralData(frames: SpectralFrame[]): ArrayBuffer {
     const buffer = new ArrayBuffer(frames.length * 20 * 4); // 20 bands * 4 bytes per float
     const view = new DataView(buffer);
-    
+
     let offset = 0;
     for (const frame of frames) {
       // Ensure we have exactly 20 bands
@@ -342,44 +372,44 @@ export class DatumBinaryFormat {
       while (bands.length < 20) {
         bands.push(0.0);
       }
-      
+
       // Write each band as float32
       for (let i = 0; i < 20; i++) {
         view.setFloat32(offset, bands[i], true);
         offset += 4;
       }
     }
-    
+
     return buffer;
   }
-  
+
   /**
    * Decodes spectral data from binary format
    */
   private static decodeSpectralData(data: Uint8Array, frameCount: number): SpectralFrame[] {
     const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
     const frames: SpectralFrame[] = [];
-    
+
     let offset = 0;
     for (let f = 0; f < frameCount; f++) {
       const bands: number[] = [];
-      
+
       // Read 20 bands
       for (let i = 0; i < 20; i++) {
         bands.push(view.getFloat32(offset, true));
         offset += 4;
       }
-      
+
       frames.push({
         bands,
         timestamp: f,
         metadata: {}
       });
     }
-    
+
     return frames;
   }
-  
+
   /**
    * Validates datum file format
    */
@@ -388,17 +418,17 @@ export class DatumBinaryFormat {
       if (data.length < DATUM_HEADER_SIZE) {
         return false;
       }
-      
+
       const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
       const header = this.readHeader(view);
       this.validateHeader(header, data.length);
-      
+
       return true;
     } catch {
       return false;
     }
   }
-  
+
   /**
    * Gets file info without full parsing
    */
@@ -407,10 +437,10 @@ export class DatumBinaryFormat {
       if (data.length < DATUM_HEADER_SIZE) {
         return null;
       }
-      
+
       const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
       const header = this.readHeader(view);
-      
+
       return {
         name: header.name,
         frames: header.frames,

@@ -4,6 +4,6 @@ export const ENABLED_TOOL_IDS = [
     'esp32-flasher',
     'ui-graphics', // Corresponds to GraphicToUi
     // 'spectral-analysis',
-    // 'datum-viewer',
+    'datum-viewer',
     // 'pixel-art-generator',
 ];
