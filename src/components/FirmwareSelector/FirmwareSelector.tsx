@@ -10,6 +10,7 @@ interface SimpleRelease {
     daisy: string;
     daisy_debug?: string;  // Optional debug firmware for Daisy
     esp32: string;
+    littlefs?: string;     // Optional pre-built LittleFS image with Daisy firmware
   };
 }
 
@@ -21,6 +22,7 @@ interface ReleaseIndex {
 interface FirmwareSelectorProps {
   platform: 'daisy' | 'esp32';
   onFirmwareLoad: (binary: Blob, version: string) => void;
+  onDataPartitionLoad?: (binary: Blob, version: string) => void;
   disabled?: boolean;
 }
 
@@ -47,6 +49,7 @@ const DUAL_FIRMWARE_MIN_VERSION = '0.2.1';
 export const FirmwareSelector: React.FC<FirmwareSelectorProps> = ({
   platform,
   onFirmwareLoad,
+  onDataPartitionLoad,
   disabled = false
 }) => {
   const [versions, setVersions] = useState<SimpleRelease[]>([]);
@@ -137,13 +140,37 @@ export const FirmwareSelector: React.FC<FirmwareSelectorProps> = ({
       console.log(`Downloaded firmware: ${binary.size} bytes`);
 
       onFirmwareLoad(binary, `${version}${variantLabel}`);
+
+      // Also download LittleFS image if available and callback provided
+      if (platform === 'esp32' && onDataPartitionLoad && release.platforms.littlefs) {
+        try {
+          console.log(`Downloading LittleFS image from: ${release.platforms.littlefs}`);
+          const littlefsResponse = await fetch(release.platforms.littlefs, {
+            mode: 'cors',
+            cache: 'no-cache'
+          }).catch(async (e) => {
+            console.warn('Direct LittleFS fetch failed, trying with cache:', e);
+            return fetch(release.platforms.littlefs!);
+          });
+
+          if (littlefsResponse.ok) {
+            const littlefsBinary = await littlefsResponse.blob();
+            console.log(`Downloaded LittleFS image: ${littlefsBinary.size} bytes`);
+            onDataPartitionLoad(littlefsBinary, version);
+          } else {
+            console.warn(`LittleFS download failed: ${littlefsResponse.status}`);
+          }
+        } catch (littlefsError) {
+          console.warn('Failed to download LittleFS image:', littlefsError);
+        }
+      }
     } catch (error) {
       console.error('Failed to download firmware:', error);
       setFetchError(error instanceof Error ? error.message : 'Failed to download firmware');
     } finally {
       setLoading(false);
     }
-  }, [versions, platform, selectedVariant, hasDualFirmware, onFirmwareLoad]);
+  }, [versions, platform, selectedVariant, hasDualFirmware, onFirmwareLoad, onDataPartitionLoad]);
 
   if (fetchError && versions.length === 0) {
     return (

@@ -44,6 +44,8 @@ export const ESP32Flasher: React.FC = () => {
   const [firmwareVersion, setFirmwareVersion] = useState<string>('');
   const [firmwareSource, setFirmwareSource] = useState<'file' | 'selector'>('selector');
   const [littlefsFile, setLittlefsFile] = useState<File | null>(null);
+  const [littlefsBlob, setLittlefsBlob] = useState<Blob | null>(null);
+  const [includeDaisy, setIncludeDaisy] = useState(true);
 
   // Refs
   const portRef = useRef<SerialPort | null>(null);
@@ -255,17 +257,28 @@ export const ESP32Flasher: React.FC = () => {
     setFlashStatus(`Loaded firmware ${version} from repository. Ready to flash.`);
   }, []);
 
-  // Handle file selection
+  // Handle file selection (manual upload clears selector data)
   const handleFileSelect = useCallback((file: File | null) => {
     setFirmwareFile(file);
     setFirmwareBlob(null);
+    setLittlefsBlob(null);
     setFirmwareVersion('');
     setFirmwareSource('file');
+  }, []);
+
+  // Handle data partition (LittleFS with Daisy firmware) from selector
+  const handleDataPartitionFromSelector = useCallback((binary: Blob, version: string) => {
+    setLittlefsBlob(binary);
+    setLittlefsFile(null);
+    setFlashStatus(prev =>
+      prev ? `${prev} Daisy firmware ${version} loaded.` : `Daisy firmware ${version} loaded.`
+    );
   }, []);
 
   // Handle LittleFS file selection
   const handleLittlefsSelect = useCallback((file: File | null) => {
     setLittlefsFile(file);
+    setLittlefsBlob(null);
   }, []);
 
 
@@ -352,10 +365,13 @@ export const ESP32Flasher: React.FC = () => {
         address: 0x10000  // ESP32 app partition
       }];
 
-      // Add LittleFS if provided
-      if (littlefsFile) {
+      // Add LittleFS if provided (from file upload or selector)
+      const effectiveLittlefs = littlefsFile || (includeDaisy ? littlefsBlob : null);
+      if (effectiveLittlefs) {
         setFlashStatus('Loading LittleFS image...');
-        const littlefsData = await littlefsFile.arrayBuffer();
+        const littlefsData = await (effectiveLittlefs instanceof File
+          ? effectiveLittlefs.arrayBuffer()
+          : effectiveLittlefs.arrayBuffer());
         const littlefsArray = new Uint8Array(littlefsData);
         let littlefsString = '';
         for (let i = 0; i < littlefsArray.length; i++) {
@@ -365,7 +381,7 @@ export const ESP32Flasher: React.FC = () => {
           data: littlefsString,
           address: 0x670000  // LittleFS partition
         });
-        setFlashStatus(`Flashing ${firmwareName} and LittleFS...`);
+        setFlashStatus(`Flashing ${firmwareName} + Daisy firmware...`);
       } else {
         setFlashStatus(`Flashing ${firmwareName}...`);
       }
@@ -391,7 +407,7 @@ export const ESP32Flasher: React.FC = () => {
           setFlashProgress(progress);
 
           if (fileArray.length > 1) {
-            const currentFile = fileIndex === 0 ? 'firmware' : 'LittleFS';
+            const currentFile = fileIndex === 0 ? 'ESP32 firmware' : 'Daisy firmware (data partition)';
             setFlashStatus(`Flashing ${currentFile}... (${Math.round(progress)}%)`);
           }
         }
@@ -413,7 +429,7 @@ export const ESP32Flasher: React.FC = () => {
       setIsFlashing(false);
       // Don't disconnect here - user might want to use serial monitor
     }
-  }, [isConnected, firmwareFile, firmwareBlob, firmwareSource, firmwareVersion, littlefsFile]);
+  }, [isConnected, firmwareFile, firmwareBlob, firmwareSource, firmwareVersion, littlefsFile, littlefsBlob, includeDaisy]);
 
   // Clear serial messages
   const clearMessages = useCallback(() => {
@@ -452,8 +468,29 @@ export const ESP32Flasher: React.FC = () => {
             <FirmwareSelector
               platform="esp32"
               onFirmwareLoad={handleFirmwareFromSelector}
+              onDataPartitionLoad={handleDataPartitionFromSelector}
               disabled={isFlashing}
             />
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-sm)', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={includeDaisy}
+                onChange={(e) => setIncludeDaisy(e.target.checked)}
+                disabled={isFlashing}
+              />
+              <span>Include Daisy firmware (data partition)</span>
+            </label>
+            {includeDaisy && littlefsBlob && (
+              <StatusIndicator variant="success">
+                Daisy firmware ready ({(littlefsBlob.size / 1024).toFixed(1)} KB LittleFS image)
+              </StatusIndicator>
+            )}
+            {includeDaisy && !littlefsBlob && !littlefsFile && (
+              <StatusIndicator variant="info" style={{ fontSize: 'var(--ds-font-size-sm)' }}>
+                No LittleFS image available for this version. Upload manually below or uncheck.
+              </StatusIndicator>
+            )}
 
             <div>
               <h4 style={{ marginBottom: 'var(--ds-spacing-sm)' }}>Or upload custom firmware:</h4>
