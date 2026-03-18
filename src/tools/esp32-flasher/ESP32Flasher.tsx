@@ -362,7 +362,7 @@ export const ESP32Flasher: React.FC = () => {
       // Build file array with firmware and optionally LittleFS
       const fileArray: Array<{ data: string, address: number }> = [{
         data: firmwareString,
-        address: 0x10000  // ESP32 app partition
+        address: 0x0000  // Merged binary includes bootloader+partitions+app at correct offsets
       }];
 
       // Add LittleFS if provided (from file upload or selector)
@@ -496,7 +496,7 @@ export const ESP32Flasher: React.FC = () => {
               <h4 style={{ marginBottom: 'var(--ds-spacing-sm)' }}>Or upload custom firmware:</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-sm)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-sm)' }}>
-                  <span>ESP32 Firmware @ 0x10000</span>
+                  <span>ESP32 Firmware (merged binary) @ 0x0000</span>
                 </div>
                 <div className="file-input-wrapper">
                   <input
