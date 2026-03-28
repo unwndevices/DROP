@@ -28,9 +28,6 @@ export const DaisyFlasher: React.FC = () => {
   const [firmwareVersion, setFirmwareVersion] = useState<string>('');
   const [firmwareSource, setFirmwareSource] = useState<'file' | 'selector'>('selector');
 
-  // Full erase option
-  const [fullErase, setFullErase] = useState(false);
-
   // DFU device ref
   const dfuDeviceRef = useRef<DFUDevice | null>(null);
 
@@ -172,7 +169,7 @@ export const DaisyFlasher: React.FC = () => {
       };
 
       // Download firmware using the webdfu-compatible method
-      await device.do_download(device.transferSize, firmwareData, true, fullErase);
+      await device.do_download(device.transferSize, firmwareData, true);
 
       setFlashProgress(100);
       setFlashStatus('File downloaded successfully. Daisy will restart with new firmware.');
@@ -183,7 +180,7 @@ export const DaisyFlasher: React.FC = () => {
     } finally {
       setIsFlashing(false);
     }
-  }, [isConnected, firmwareFile, firmwareBlob, firmwareSource, firmwareVersion, fullErase]);
+  }, [isConnected, firmwareFile, firmwareBlob, firmwareSource, firmwareVersion]);
 
   // Disconnect DFU
   const disconnectDFU = useCallback(async () => {
@@ -284,16 +281,6 @@ export const DaisyFlasher: React.FC = () => {
         <CardHeader>Flash Process</CardHeader>
         <CardBody>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-md)' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-sm)' }}>
-              <input
-                type="checkbox"
-                checked={fullErase}
-                onChange={(e) => setFullErase(e.target.checked)}
-                disabled={isFlashing}
-              />
-              Full erase (slower)
-            </label>
-
             <Button
               onClick={flashFirmware}
               variant="primary"

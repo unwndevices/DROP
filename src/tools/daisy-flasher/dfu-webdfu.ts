@@ -377,7 +377,7 @@ export class DFUDevice {
     }
   }
 
-  async do_download(xfer_size: number, data: ArrayBuffer, _manifestationTolerant: boolean = true, eraseFirst: boolean = false): Promise<void> {
+  async do_download(xfer_size: number, data: ArrayBuffer, _manifestationTolerant: boolean = true): Promise<void> {
     this.logInfo?.("Starting firmware download");
 
     const expected_size = data.byteLength;
@@ -394,11 +394,10 @@ export class DFUDevice {
         await this.clearStatus();
       }
 
-      if (eraseFirst) {
-        this.logInfo?.("Erasing DFU device memory");
-        await this.erase(startAddress, expected_size);
-        this.logInfo?.("Erase complete");
-      }
+      // Always erase sectors before writing — QSPI flash requires it
+      this.logInfo?.("Erasing DFU device memory");
+      await this.erase(startAddress, expected_size);
+      this.logInfo?.("Erase complete");
 
       this.logInfo?.("Copying data from browser to DFU device");
 
