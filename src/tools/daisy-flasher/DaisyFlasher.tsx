@@ -9,19 +9,13 @@ import {
   Card,
   CardHeader,
   CardBody,
-  Input,
   Select,
   StatusIndicator
 } from '../../design-system';
 
 import '../ToolLayout.css';
 
-interface SerialMessage {
-  timestamp: Date;
-  direction: 'in' | 'out';
-  data: string;
-  type: 'data' | 'info' | 'error';
-}
+type FlashMode = 'firmware' | 'bootloader';
 
 export const DaisyFlasher: React.FC = () => {
   // Connection state
@@ -31,12 +25,8 @@ export const DaisyFlasher: React.FC = () => {
   const [flashStatus, setFlashStatus] = useState<string>('');
   const [deviceInfo, setDeviceInfo] = useState<string>('');
 
-  // Serial monitoring state
-  const [serialConnected, setSerialConnected] = useState(false);
-  const [serialMessages, setSerialMessages] = useState<SerialMessage[]>([]);
-  const [serialInput, setSerialInput] = useState('');
-  const [baudRate, setBaudRate] = useState(115200);
-  const serialBufferRef = useRef<string>('');
+  // Flash mode
+  const [flashMode, setFlashMode] = useState<FlashMode>('firmware');
 
   // Firmware handling
   const [firmwareFile, setFirmwareFile] = useState<File | null>(null);
@@ -44,35 +34,35 @@ export const DaisyFlasher: React.FC = () => {
   const [firmwareVersion, setFirmwareVersion] = useState<string>('');
   const [firmwareSource, setFirmwareSource] = useState<'file' | 'selector'>('selector');
 
+  // Bootloader binary
+  const [bootloaderBlob, setBootloaderBlob] = useState<Blob | null>(null);
+  const [bootloaderLoading, setBootloaderLoading] = useState(false);
+
   // Full erase option
   const [fullErase, setFullErase] = useState(false);
 
   // DFU device ref
   const dfuDeviceRef = useRef<DFUDevice | null>(null);
-  const serialPortRef = useRef<SerialPort | null>(null);
-  const readerRef = useRef<ReadableStreamDefaultReader | null>(null);
-  const writerRef = useRef<WritableStreamDefaultWriter | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom of messages
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, []);
-
+  // Fetch bootloader binary when switching to bootloader mode
   useEffect(() => {
-    scrollToBottom();
-  }, [serialMessages, scrollToBottom]);
-
-  // Add serial message
-  const addSerialMessage = useCallback((direction: 'in' | 'out', data: string, type: 'data' | 'info' | 'error' = 'data') => {
-    const message: SerialMessage = {
-      timestamp: new Date(),
-      direction,
-      data: data.trim(),
-      type
-    };
-    setSerialMessages(prev => [...prev, message]);
-  }, []);
+    if (flashMode === 'bootloader' && !bootloaderBlob) {
+      setBootloaderLoading(true);
+      fetch('/firmware/dsy_bootloader_v6_4.bin')
+        .then(res => {
+          if (!res.ok) throw new Error(`Failed to fetch bootloader: ${res.status}`);
+          return res.blob();
+        })
+        .then(blob => {
+          setBootloaderBlob(blob);
+          setFlashStatus(`Loaded bootloader (${(blob.size / 1024).toFixed(1)} KB). Ready to flash.`);
+        })
+        .catch(err => {
+          setFlashStatus(`Failed to load bootloader: ${err.message}`);
+        })
+        .finally(() => setBootloaderLoading(false));
+    }
+  }, [flashMode, bootloaderBlob]);
 
   // Connect to Daisy device via WebUSB
   const connectForFlashing = useCallback(async () => {
@@ -102,9 +92,30 @@ export const DaisyFlasher: React.FC = () => {
         console.log(`Interface ${index}: ${iface.name}, alt=${iface.alternate.alternateSetting}`);
       });
 
-      // Use the first DFU interface (typically Flash interface)
-      const dfuInterface = interfaces[0];
+      // Select interface based on flash mode
+      let dfuInterface;
+      if (flashMode === 'bootloader') {
+        // Pick internal flash interface
+        dfuInterface = interfaces.find(iface =>
+          iface.name?.includes('Internal Flash') ||
+          iface.name?.includes('0x08')
+        ) || interfaces[0];
+      } else {
+        // Pick external (QSPI) flash interface
+        dfuInterface = interfaces.find(iface =>
+          iface.name?.includes('External Flash') ||
+          iface.name?.includes('0x90')
+        ) || interfaces[0];
+      }
+
       const dfuDevice = new DFUDevice(device, dfuInterface);
+
+      // Set start address based on flash mode
+      if (flashMode === 'bootloader') {
+        dfuDevice.startAddress = 0x08000000;
+      } else {
+        dfuDevice.startAddress = 0x90040000;
+      }
 
       await dfuDevice.open();
 
@@ -115,7 +126,8 @@ export const DaisyFlasher: React.FC = () => {
       const state = await dfuDevice.getState();
       console.log('DFU State:', state);
 
-      setDeviceInfo(`Daisy Seed - ${dfuInterface.name || 'DFU Mode'}`);
+      const modeLabel = flashMode === 'bootloader' ? 'Internal Flash' : 'QSPI Flash';
+      setDeviceInfo(`Daisy Seed - ${dfuInterface.name || 'DFU Mode'} (${modeLabel})`);
       setFlashStatus('Connected to Daisy Seed. Ready to flash.');
 
     } catch (error) {
@@ -123,112 +135,7 @@ export const DaisyFlasher: React.FC = () => {
       setIsConnected(false);
       dfuDeviceRef.current = null;
     }
-  }, []);
-
-  // Connect for serial monitoring
-  const connectSerial = useCallback(async () => {
-    if (!('serial' in navigator)) {
-      addSerialMessage('out', 'Web Serial API not supported. Please use Chrome or Edge.', 'error');
-      return;
-    }
-
-    try {
-      const port = await navigator.serial.requestPort();
-      await port.open({
-        baudRate: baudRate,
-        dataBits: 8,
-        stopBits: 1,
-        parity: 'none',
-        flowControl: 'none'
-      });
-
-      serialPortRef.current = port;
-      setSerialConnected(true);
-      addSerialMessage('out', `Connected at ${baudRate} baud`, 'info');
-
-      // Start reading
-      const reader = port.readable.getReader();
-      readerRef.current = reader;
-
-      const writer = port.writable.getWriter();
-      writerRef.current = writer;
-
-      // Read loop
-      const readLoop = async () => {
-        try {
-          while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-
-            const decoder = new TextDecoder();
-            const text = decoder.decode(value);
-
-            // Add to buffer
-            serialBufferRef.current += text;
-
-            // Process complete lines
-            const lines = serialBufferRef.current.split(/\r?\n/);
-            serialBufferRef.current = lines.pop() || ''; // Keep incomplete line in buffer
-
-            // Display each complete line
-            for (const line of lines) {
-              if (line.trim()) {
-                addSerialMessage('in', line);
-              }
-            }
-          }
-        } catch (error) {
-          if (error instanceof Error && error.name !== 'NetworkError') {
-            addSerialMessage('in', `Read error: ${error.message}`, 'error');
-          }
-        }
-      };
-
-      readLoop();
-    } catch (error) {
-      addSerialMessage('out', `Connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
-    }
-  }, [baudRate, addSerialMessage, serialConnected]);
-
-  // Disconnect serial
-  const disconnectSerial = useCallback(async () => {
-    try {
-      if (readerRef.current) {
-        await readerRef.current.cancel();
-        readerRef.current = null;
-      }
-
-      if (writerRef.current) {
-        await writerRef.current.close();
-        writerRef.current = null;
-      }
-
-      if (serialPortRef.current) {
-        await serialPortRef.current.close();
-        serialPortRef.current = null;
-      }
-
-      setSerialConnected(false);
-      addSerialMessage('out', 'Disconnected', 'info');
-    } catch (error) {
-      addSerialMessage('out', `Disconnect error: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
-    }
-  }, [addSerialMessage]);
-
-  // Send serial data
-  const sendSerial = useCallback(async () => {
-    if (!writerRef.current || !serialInput.trim()) return;
-
-    try {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(serialInput + '\r\n');
-      await writerRef.current.write(data);
-      addSerialMessage('out', serialInput);
-      setSerialInput('');
-    } catch (error) {
-      addSerialMessage('out', `Send error: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
-    }
-  }, [serialInput, addSerialMessage]);
+  }, [flashMode]);
 
   // Handle firmware from selector
   const handleFirmwareFromSelector = useCallback((binary: Blob, version: string) => {
@@ -254,10 +161,32 @@ export const DaisyFlasher: React.FC = () => {
       return;
     }
 
-    const hasFirmware = firmwareSource === 'file' ? !!firmwareFile : !!firmwareBlob;
-    if (!hasFirmware) {
-      setFlashStatus('Please load firmware first.');
-      return;
+    // Determine what binary to flash
+    let firmwareData: ArrayBuffer;
+    let firmwareName: string;
+
+    if (flashMode === 'bootloader') {
+      if (!bootloaderBlob) {
+        setFlashStatus('Bootloader binary not loaded yet.');
+        return;
+      }
+      firmwareData = await bootloaderBlob.arrayBuffer();
+      firmwareName = 'bootloader v6.4';
+    } else {
+      const hasFirmware = firmwareSource === 'file' ? !!firmwareFile : !!firmwareBlob;
+      if (!hasFirmware) {
+        setFlashStatus('Please load firmware first.');
+        return;
+      }
+      if (firmwareSource === 'file' && firmwareFile) {
+        firmwareData = await firmwareFile.arrayBuffer();
+        firmwareName = firmwareFile.name;
+      } else if (firmwareBlob) {
+        firmwareData = await firmwareBlob.arrayBuffer();
+        firmwareName = `firmware ${firmwareVersion}`;
+      } else {
+        throw new Error('No firmware data available');
+      }
     }
 
     setIsFlashing(true);
@@ -266,20 +195,6 @@ export const DaisyFlasher: React.FC = () => {
 
     try {
       const device = dfuDeviceRef.current;
-
-      // Get firmware data
-      let firmwareData: ArrayBuffer;
-      const firmwareName = firmwareSource === 'file'
-        ? firmwareFile!.name
-        : `firmware ${firmwareVersion}`;
-
-      if (firmwareSource === 'file' && firmwareFile) {
-        firmwareData = await firmwareFile.arrayBuffer();
-      } else if (firmwareBlob) {
-        firmwareData = await firmwareBlob.arrayBuffer();
-      } else {
-        throw new Error('No firmware data available');
-      }
 
       console.log(`Flashing ${firmwareName}: ${firmwareData.byteLength} bytes`);
 
@@ -328,7 +243,7 @@ export const DaisyFlasher: React.FC = () => {
     } finally {
       setIsFlashing(false);
     }
-  }, [isConnected, firmwareFile, firmwareBlob, firmwareSource, firmwareVersion, fullErase]);
+  }, [isConnected, flashMode, bootloaderBlob, firmwareFile, firmwareBlob, firmwareSource, firmwareVersion, fullErase]);
 
   // Disconnect DFU
   const disconnectDFU = useCallback(async () => {
@@ -345,10 +260,12 @@ export const DaisyFlasher: React.FC = () => {
     }
   }, []);
 
-  // Clear serial messages
-  const clearMessages = useCallback(() => {
-    setSerialMessages([]);
-  }, []);
+  // Determine if flash button should be enabled
+  const canFlash = isConnected && !isFlashing && (
+    flashMode === 'bootloader'
+      ? !!bootloaderBlob
+      : !!(firmwareFile || firmwareBlob)
+  );
 
   // Main content using masonry layout
   const mainContent = (
@@ -358,6 +275,20 @@ export const DaisyFlasher: React.FC = () => {
         <CardHeader>Device Connection</CardHeader>
         <CardBody>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-md)' }}>
+            <Select
+              label="Flash Mode"
+              value={flashMode}
+              onChange={(e) => {
+                setFlashMode(e.target.value as FlashMode);
+                // Disconnect if connected, since interface selection changes
+                if (isConnected) disconnectDFU();
+              }}
+              disabled={isFlashing}
+              options={[
+                { value: 'firmware', label: 'Firmware (QSPI)' },
+                { value: 'bootloader', label: 'Bootloader (Internal Flash)' }
+              ]}
+            />
             <Button
               onClick={isConnected ? disconnectDFU : connectForFlashing}
               variant={isConnected ? "secondary" : "primary"}
@@ -372,16 +303,16 @@ export const DaisyFlasher: React.FC = () => {
               fontSize: 'var(--ds-font-size-sm)'
             }}>
               <p style={{ margin: '0 0 var(--ds-spacing-xs) 0', fontWeight: 'var(--ds-font-weight-medium)' }}>
-                To enter Bootloader mode:
+                To enter DFU mode:
               </p>
               <ol style={{
                 listStylePosition: 'inside',
                 paddingLeft: 'var(--ds-spacing-md)',
                 margin: 'var(--ds-spacing-xs) 0'
               }}>
-                <li>RESET + BOOT</li>
-                <li>Release RESET</li>
-                <li>Release BOOT</li>
+                <li>Press RESET</li>
+                <li>Press BOOT</li>
+                <li>The LED should pulse</li>
               </ol>
             </div>
             {deviceInfo && (
@@ -393,41 +324,63 @@ export const DaisyFlasher: React.FC = () => {
         </CardBody>
       </Card>
 
-      {/* Firmware Selection Card */}
-      <Card>
-        <CardHeader>Firmware Selection</CardHeader>
-        <CardBody>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-md)' }}>
-            <FirmwareSelector
-              platform="daisy"
-              onFirmwareLoad={handleFirmwareFromSelector}
-              disabled={isFlashing}
-            />
+      {/* Firmware Selection Card - only shown in firmware mode */}
+      {flashMode === 'firmware' && (
+        <Card>
+          <CardHeader>Firmware Selection</CardHeader>
+          <CardBody>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-md)' }}>
+              <FirmwareSelector
+                platform="daisy"
+                onFirmwareLoad={handleFirmwareFromSelector}
+                disabled={isFlashing}
+              />
 
-            <div>
-              <h4 style={{ marginBottom: 'var(--ds-spacing-sm)' }}>Or upload custom firmware:</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-sm)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-sm)' }}>
-                  <span>Daisy Firmware (.bin)</span>
+              <div>
+                <h4 style={{ marginBottom: 'var(--ds-spacing-sm)' }}>Or upload custom firmware:</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-sm)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-sm)' }}>
+                    <span>Daisy Firmware (.bin)</span>
+                  </div>
+                  <div className="file-input-wrapper">
+                    <input
+                      type="file"
+                      accept=".bin"
+                      onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
+                      disabled={isFlashing}
+                    />
+                  </div>
+                  {firmwareFile && (
+                    <StatusIndicator variant="info">
+                      {firmwareFile.name} ({(firmwareFile.size / 1024).toFixed(1)} KB)
+                    </StatusIndicator>
+                  )}
                 </div>
-                <div className="file-input-wrapper">
-                  <input
-                    type="file"
-                    accept=".bin"
-                    onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
-                    disabled={isFlashing}
-                  />
-                </div>
-                {firmwareFile && (
-                  <StatusIndicator variant="info">
-                    {firmwareFile.name} ({(firmwareFile.size / 1024).toFixed(1)} KB)
-                  </StatusIndicator>
-                )}
               </div>
             </div>
-          </div>
-        </CardBody>
-      </Card>
+          </CardBody>
+        </Card>
+      )}
+
+      {/* Bootloader info - only shown in bootloader mode */}
+      {flashMode === 'bootloader' && (
+        <Card>
+          <CardHeader>Bootloader</CardHeader>
+          <CardBody>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-sm)' }}>
+              <span>Daisy Bootloader v6.4</span>
+              {bootloaderLoading && (
+                <StatusIndicator variant="info">Loading bootloader binary...</StatusIndicator>
+              )}
+              {bootloaderBlob && (
+                <StatusIndicator variant="success">
+                  Bootloader ready ({(bootloaderBlob.size / 1024).toFixed(1)} KB)
+                </StatusIndicator>
+              )}
+            </div>
+          </CardBody>
+        </Card>
+      )}
 
       {/* Flash Process Card */}
       <Card>
@@ -447,9 +400,9 @@ export const DaisyFlasher: React.FC = () => {
             <Button
               onClick={flashFirmware}
               variant="primary"
-              disabled={!isConnected || (!firmwareFile && !firmwareBlob) || isFlashing}
+              disabled={!canFlash}
             >
-              {isFlashing ? 'Flashing...' : 'Flash Firmware'}
+              {isFlashing ? 'Flashing...' : flashMode === 'bootloader' ? 'Flash Bootloader' : 'Flash Firmware'}
             </Button>
 
             {isFlashing && (
@@ -489,87 +442,6 @@ export const DaisyFlasher: React.FC = () => {
           </div>
         </CardBody>
       </Card>
-
-      {/* Serial Monitor Card */}
-      <Card>
-        <CardHeader>Serial Monitor</CardHeader>
-        <CardBody>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-md)' }}>
-            <div style={{ display: 'flex', gap: 'var(--ds-spacing-md)', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-              <div style={{ flex: 1, minWidth: '120px' }}>
-                <Select
-                  label="Baud Rate"
-                  value={baudRate.toString()}
-                  onChange={(e) => setBaudRate(Number(e.target.value))}
-                  disabled={serialConnected}
-                  options={[
-                    { value: '9600', label: '9600' },
-                    { value: '115200', label: '115200' },
-                    { value: '230400', label: '230400' },
-                    { value: '460800', label: '460800' },
-                    { value: '921600', label: '921600' }
-                  ]}
-                />
-              </div>
-              <Button
-                onClick={serialConnected ? disconnectSerial : connectSerial}
-                variant={serialConnected ? "secondary" : "primary"}
-              >
-                {serialConnected ? 'Disconnect' : 'Connect'}
-              </Button>
-              <Button onClick={clearMessages} variant="secondary">
-                Clear
-              </Button>
-            </div>
-
-            <div className="tool-terminal">
-              {serialMessages.length === 0 ? (
-                <div className="tool-terminal-placeholder">No data received</div>
-              ) : (
-                serialMessages.map((message, index) => (
-                  <div
-                    key={index}
-                    className="tool-terminal-line"
-                    style={{
-                      marginBottom: '2px',
-                      color: message.type === 'error' ? 'var(--ds-color-error)' :
-                        message.type === 'info' ? 'var(--ds-color-info)' :
-                          message.direction === 'out' ? 'var(--ds-color-text-secondary)' : 'var(--ds-color-text-primary)'
-                    }}
-                  >
-                    <span style={{ color: 'var(--ds-color-text-muted)', marginRight: '8px' }}>
-                      {message.timestamp.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                    </span>
-                    <span style={{ color: 'var(--ds-color-primary)', marginRight: '8px' }}>
-                      {message.direction === 'in' ? '←' : '→'}
-                    </span>
-                    <span>{message.data}</span>
-                  </div>
-                ))
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            <div style={{ display: 'flex', gap: 'var(--ds-spacing-sm)' }}>
-              <Input
-                value={serialInput}
-                onChange={(e) => setSerialInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && sendSerial()}
-                placeholder="Enter command..."
-                disabled={!serialConnected}
-                style={{ flex: 1 }}
-              />
-              <Button
-                onClick={sendSerial}
-                disabled={!serialConnected || !serialInput.trim()}
-                variant="primary"
-              >
-                Send
-              </Button>
-            </div>
-          </div>
-        </CardBody>
-      </Card>
     </div>
   );
 
@@ -583,11 +455,6 @@ export const DaisyFlasher: React.FC = () => {
             Device: {deviceInfo || 'Connected'}
           </span>
         )}
-        {serialConnected && (
-          <span style={{ color: 'var(--ds-color-success)' }}>
-            Serial: {baudRate} baud
-          </span>
-        )}
         {isFlashing && (
           <span style={{ color: 'var(--ds-color-warning)' }}>
             Flashing: {flashProgress.toFixed(0)}%
@@ -595,7 +462,7 @@ export const DaisyFlasher: React.FC = () => {
         )}
       </div>
       <div>
-        <span>{isFlashing ? 'Flashing' : isConnected || serialConnected ? 'Connected' : 'Ready'}</span>
+        <span>{isFlashing ? 'Flashing' : isConnected ? 'Connected' : 'Ready'}</span>
       </div>
     </div>
   );
