@@ -110,9 +110,10 @@ export const DaisyFlasher: React.FC = () => {
 
       const dfuDevice = new DFUDevice(device, dfuInterface);
 
-      // Set start address and memory map based on flash mode
+      // Set start address, memory map, and transfer size based on flash mode
       if (flashMode === 'bootloader') {
         dfuDevice.startAddress = 0x08000000;
+        dfuDevice.transferSize = 2048;
         dfuDevice.setInternalFlashMemoryMap();
       } else {
         dfuDevice.startAddress = 0x90040000;

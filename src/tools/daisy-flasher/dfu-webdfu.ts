@@ -412,6 +412,7 @@ export class DFUDevice {
         this.logInfo?.("Erasing DFU device memory");
         await this.erase(startAddress, expected_size);
         this.logInfo?.("Erase complete");
+        await this.abortToIdle();
       }
 
       this.logInfo?.("Copying data from browser to DFU device");
