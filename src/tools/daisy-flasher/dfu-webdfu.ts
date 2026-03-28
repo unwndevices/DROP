@@ -83,7 +83,7 @@ export class DFUDevice {
       }
     }
 
-    // If no memory info, use default for Daisy Seed
+    // If no memory info, use default for Daisy Seed QSPI
     if (!this.memoryInfo) {
       this.memoryInfo = {
         name: "Flash",
@@ -97,6 +97,20 @@ export class DFUDevice {
         }]
       };
     }
+  }
+
+  setInternalFlashMemoryMap(): void {
+    this.memoryInfo = {
+      name: "Internal Flash",
+      segments: [{
+        start: 0x08000000,
+        end: 0x08020000,  // 128KB internal flash (STM32H750)
+        sectorSize: 0x20000,
+        readable: true,
+        erasable: true,
+        writable: true
+      }]
+    };
   }
 
   private parseMemoryDescriptor(desc: string): MemoryInfo {
