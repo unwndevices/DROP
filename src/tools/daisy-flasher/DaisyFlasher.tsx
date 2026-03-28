@@ -55,7 +55,7 @@ export const DaisyFlasher: React.FC = () => {
         })
         .then(blob => {
           setBootloaderBlob(blob);
-          setFlashStatus(`Loaded bootloader (${(blob.size / 1024).toFixed(1)} KB). Ready to flash.`);
+          setFlashStatus('Ready to flash.');
         })
         .catch(err => {
           setFlashStatus(`Failed to load bootloader: ${err.message}`);
