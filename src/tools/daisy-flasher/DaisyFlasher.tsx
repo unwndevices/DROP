@@ -303,16 +303,26 @@ export const DaisyFlasher: React.FC = () => {
               fontSize: 'var(--ds-font-size-sm)'
             }}>
               <p style={{ margin: '0 0 var(--ds-spacing-xs) 0', fontWeight: 'var(--ds-font-weight-medium)' }}>
-                To enter DFU mode:
+                {flashMode === 'bootloader' ? 'To enter System DFU mode:' : 'To enter Daisy Bootloader mode:'}
               </p>
               <ol style={{
                 listStylePosition: 'inside',
                 paddingLeft: 'var(--ds-spacing-md)',
                 margin: 'var(--ds-spacing-xs) 0'
               }}>
-                <li>Press RESET</li>
-                <li>Press BOOT</li>
-                <li>The LED should pulse</li>
+                {flashMode === 'bootloader' ? (
+                  <>
+                    <li>Hold BOOT and press RESET</li>
+                    <li>Release RESET, then release BOOT</li>
+                    <li>The LED should be off</li>
+                  </>
+                ) : (
+                  <>
+                    <li>Press RESET</li>
+                    <li>Press BOOT</li>
+                    <li>The LED should pulse</li>
+                  </>
+                )}
               </ol>
             </div>
             {deviceInfo && (
