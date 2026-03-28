@@ -48,7 +48,7 @@ export const DaisyFlasher: React.FC = () => {
   useEffect(() => {
     if (flashMode === 'bootloader' && !bootloaderBlob) {
       setBootloaderLoading(true);
-      fetch('/firmware/dsy_bootloader_v6_4.bin')
+      fetch(`${import.meta.env.BASE_URL}firmware/dsy_bootloader_v6_4.bin`)
         .then(res => {
           if (!res.ok) throw new Error(`Failed to fetch bootloader: ${res.status}`);
           return res.blob();
