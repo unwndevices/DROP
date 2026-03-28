@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { FirmwareSelector } from '../../components/FirmwareSelector';
 import { DFUDevice, findDfuInterfaces } from './dfu-webdfu';
 
@@ -9,13 +9,10 @@ import {
   Card,
   CardHeader,
   CardBody,
-  Select,
   StatusIndicator
 } from '../../design-system';
 
 import '../ToolLayout.css';
-
-type FlashMode = 'firmware' | 'bootloader';
 
 export const DaisyFlasher: React.FC = () => {
   // Connection state
@@ -25,44 +22,17 @@ export const DaisyFlasher: React.FC = () => {
   const [flashStatus, setFlashStatus] = useState<string>('');
   const [deviceInfo, setDeviceInfo] = useState<string>('');
 
-  // Flash mode
-  const [flashMode, setFlashMode] = useState<FlashMode>('firmware');
-
   // Firmware handling
   const [firmwareFile, setFirmwareFile] = useState<File | null>(null);
   const [firmwareBlob, setFirmwareBlob] = useState<Blob | null>(null);
   const [firmwareVersion, setFirmwareVersion] = useState<string>('');
   const [firmwareSource, setFirmwareSource] = useState<'file' | 'selector'>('selector');
 
-  // Bootloader binary
-  const [bootloaderBlob, setBootloaderBlob] = useState<Blob | null>(null);
-  const [bootloaderLoading, setBootloaderLoading] = useState(false);
-
   // Full erase option
   const [fullErase, setFullErase] = useState(false);
 
   // DFU device ref
   const dfuDeviceRef = useRef<DFUDevice | null>(null);
-
-  // Fetch bootloader binary when switching to bootloader mode
-  useEffect(() => {
-    if (flashMode === 'bootloader' && !bootloaderBlob) {
-      setBootloaderLoading(true);
-      fetch(`${import.meta.env.BASE_URL}firmware/dsy_bootloader_v6_4.bin`)
-        .then(res => {
-          if (!res.ok) throw new Error(`Failed to fetch bootloader: ${res.status}`);
-          return res.blob();
-        })
-        .then(blob => {
-          setBootloaderBlob(blob);
-          setFlashStatus('Ready to flash.');
-        })
-        .catch(err => {
-          setFlashStatus(`Failed to load bootloader: ${err.message}`);
-        })
-        .finally(() => setBootloaderLoading(false));
-    }
-  }, [flashMode, bootloaderBlob]);
 
   // Connect to Daisy device via WebUSB
   const connectForFlashing = useCallback(async () => {
@@ -92,32 +62,9 @@ export const DaisyFlasher: React.FC = () => {
         console.log(`Interface ${index}: ${iface.name}, alt=${iface.alternate.alternateSetting}`);
       });
 
-      // Select interface based on flash mode
-      let dfuInterface;
-      if (flashMode === 'bootloader') {
-        // Pick internal flash interface
-        dfuInterface = interfaces.find(iface =>
-          iface.name?.includes('Internal Flash') ||
-          iface.name?.includes('0x08')
-        ) || interfaces[0];
-      } else {
-        // Pick external (QSPI) flash interface
-        dfuInterface = interfaces.find(iface =>
-          iface.name?.includes('External Flash') ||
-          iface.name?.includes('0x90')
-        ) || interfaces[0];
-      }
-
+      // Use the first DFU interface (typically Flash interface)
+      const dfuInterface = interfaces[0];
       const dfuDevice = new DFUDevice(device, dfuInterface);
-
-      // Set start address, memory map, and transfer size based on flash mode
-      if (flashMode === 'bootloader') {
-        dfuDevice.startAddress = 0x08000000;
-        dfuDevice.transferSize = 2048;
-        dfuDevice.setInternalFlashMemoryMap();
-      } else {
-        dfuDevice.startAddress = 0x90040000;
-      }
 
       await dfuDevice.open();
 
@@ -128,8 +75,7 @@ export const DaisyFlasher: React.FC = () => {
       const state = await dfuDevice.getState();
       console.log('DFU State:', state);
 
-      const modeLabel = flashMode === 'bootloader' ? 'Internal Flash' : 'QSPI Flash';
-      setDeviceInfo(`Daisy Seed - ${dfuInterface.name || 'DFU Mode'} (${modeLabel})`);
+      setDeviceInfo(`Daisy Seed - ${dfuInterface.name || 'DFU Mode'}`);
       setFlashStatus('Connected to Daisy Seed. Ready to flash.');
 
     } catch (error) {
@@ -137,7 +83,7 @@ export const DaisyFlasher: React.FC = () => {
       setIsConnected(false);
       dfuDeviceRef.current = null;
     }
-  }, [flashMode]);
+  }, []);
 
   // Handle firmware from selector
   const handleFirmwareFromSelector = useCallback((binary: Blob, version: string) => {
@@ -163,32 +109,10 @@ export const DaisyFlasher: React.FC = () => {
       return;
     }
 
-    // Determine what binary to flash
-    let firmwareData: ArrayBuffer;
-    let firmwareName: string;
-
-    if (flashMode === 'bootloader') {
-      if (!bootloaderBlob) {
-        setFlashStatus('Bootloader binary not loaded yet.');
-        return;
-      }
-      firmwareData = await bootloaderBlob.arrayBuffer();
-      firmwareName = 'bootloader v6.4';
-    } else {
-      const hasFirmware = firmwareSource === 'file' ? !!firmwareFile : !!firmwareBlob;
-      if (!hasFirmware) {
-        setFlashStatus('Please load firmware first.');
-        return;
-      }
-      if (firmwareSource === 'file' && firmwareFile) {
-        firmwareData = await firmwareFile.arrayBuffer();
-        firmwareName = firmwareFile.name;
-      } else if (firmwareBlob) {
-        firmwareData = await firmwareBlob.arrayBuffer();
-        firmwareName = `firmware ${firmwareVersion}`;
-      } else {
-        throw new Error('No firmware data available');
-      }
+    const hasFirmware = firmwareSource === 'file' ? !!firmwareFile : !!firmwareBlob;
+    if (!hasFirmware) {
+      setFlashStatus('Please load firmware first.');
+      return;
     }
 
     setIsFlashing(true);
@@ -197,6 +121,20 @@ export const DaisyFlasher: React.FC = () => {
 
     try {
       const device = dfuDeviceRef.current;
+
+      // Get firmware data
+      let firmwareData: ArrayBuffer;
+      const firmwareName = firmwareSource === 'file'
+        ? firmwareFile!.name
+        : `firmware ${firmwareVersion}`;
+
+      if (firmwareSource === 'file' && firmwareFile) {
+        firmwareData = await firmwareFile.arrayBuffer();
+      } else if (firmwareBlob) {
+        firmwareData = await firmwareBlob.arrayBuffer();
+      } else {
+        throw new Error('No firmware data available');
+      }
 
       console.log(`Flashing ${firmwareName}: ${firmwareData.byteLength} bytes`);
 
@@ -233,9 +171,8 @@ export const DaisyFlasher: React.FC = () => {
         console.debug('DFU:', msg);
       };
 
-      // Download firmware — always erase first for bootloader (internal flash requires it)
-      const shouldErase = flashMode === 'bootloader' || fullErase;
-      await device.do_download(device.transferSize, firmwareData, true, shouldErase);
+      // Download firmware using the webdfu-compatible method
+      await device.do_download(device.transferSize, firmwareData, true, fullErase);
 
       setFlashProgress(100);
       setFlashStatus('File downloaded successfully. Daisy will restart with new firmware.');
@@ -246,7 +183,7 @@ export const DaisyFlasher: React.FC = () => {
     } finally {
       setIsFlashing(false);
     }
-  }, [isConnected, flashMode, bootloaderBlob, firmwareFile, firmwareBlob, firmwareSource, firmwareVersion, fullErase]);
+  }, [isConnected, firmwareFile, firmwareBlob, firmwareSource, firmwareVersion, fullErase]);
 
   // Disconnect DFU
   const disconnectDFU = useCallback(async () => {
@@ -263,13 +200,6 @@ export const DaisyFlasher: React.FC = () => {
     }
   }, []);
 
-  // Determine if flash button should be enabled
-  const canFlash = isConnected && !isFlashing && (
-    flashMode === 'bootloader'
-      ? !!bootloaderBlob
-      : !!(firmwareFile || firmwareBlob)
-  );
-
   // Main content using masonry layout
   const mainContent = (
     <div className="tool-columns">
@@ -278,20 +208,6 @@ export const DaisyFlasher: React.FC = () => {
         <CardHeader>Device Connection</CardHeader>
         <CardBody>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-md)' }}>
-            <Select
-              label="Flash Mode"
-              value={flashMode}
-              onChange={(e) => {
-                setFlashMode(e.target.value as FlashMode);
-                // Disconnect if connected, since interface selection changes
-                if (isConnected) disconnectDFU();
-              }}
-              disabled={isFlashing}
-              options={[
-                { value: 'firmware', label: 'Firmware (QSPI)' },
-                { value: 'bootloader', label: 'Bootloader (Internal Flash)' }
-              ]}
-            />
             <Button
               onClick={isConnected ? disconnectDFU : connectForFlashing}
               variant={isConnected ? "secondary" : "primary"}
@@ -306,26 +222,16 @@ export const DaisyFlasher: React.FC = () => {
               fontSize: 'var(--ds-font-size-sm)'
             }}>
               <p style={{ margin: '0 0 var(--ds-spacing-xs) 0', fontWeight: 'var(--ds-font-weight-medium)' }}>
-                {flashMode === 'bootloader' ? 'To enter System DFU mode:' : 'To enter Daisy Bootloader mode:'}
+                To enter DFU mode:
               </p>
               <ol style={{
                 listStylePosition: 'inside',
                 paddingLeft: 'var(--ds-spacing-md)',
                 margin: 'var(--ds-spacing-xs) 0'
               }}>
-                {flashMode === 'bootloader' ? (
-                  <>
-                    <li>Hold BOOT and press RESET</li>
-                    <li>Release RESET, then release BOOT</li>
-                    <li>The LED should be off</li>
-                  </>
-                ) : (
-                  <>
-                    <li>Press RESET</li>
-                    <li>Press BOOT</li>
-                    <li>The LED should pulse</li>
-                  </>
-                )}
+                <li>Press RESET</li>
+                <li>Press BOOT</li>
+                <li>The LED should pulse</li>
               </ol>
             </div>
             {deviceInfo && (
@@ -337,63 +243,41 @@ export const DaisyFlasher: React.FC = () => {
         </CardBody>
       </Card>
 
-      {/* Firmware Selection Card - only shown in firmware mode */}
-      {flashMode === 'firmware' && (
-        <Card>
-          <CardHeader>Firmware Selection</CardHeader>
-          <CardBody>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-md)' }}>
-              <FirmwareSelector
-                platform="daisy"
-                onFirmwareLoad={handleFirmwareFromSelector}
-                disabled={isFlashing}
-              />
+      {/* Firmware Selection Card */}
+      <Card>
+        <CardHeader>Firmware Selection</CardHeader>
+        <CardBody>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-md)' }}>
+            <FirmwareSelector
+              platform="daisy"
+              onFirmwareLoad={handleFirmwareFromSelector}
+              disabled={isFlashing}
+            />
 
-              <div>
-                <h4 style={{ marginBottom: 'var(--ds-spacing-sm)' }}>Or upload custom firmware:</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-sm)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-sm)' }}>
-                    <span>Daisy Firmware (.bin)</span>
-                  </div>
-                  <div className="file-input-wrapper">
-                    <input
-                      type="file"
-                      accept=".bin"
-                      onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
-                      disabled={isFlashing}
-                    />
-                  </div>
-                  {firmwareFile && (
-                    <StatusIndicator variant="info">
-                      {firmwareFile.name} ({(firmwareFile.size / 1024).toFixed(1)} KB)
-                    </StatusIndicator>
-                  )}
+            <div>
+              <h4 style={{ marginBottom: 'var(--ds-spacing-sm)' }}>Or upload custom firmware:</h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-sm)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--ds-spacing-sm)' }}>
+                  <span>Daisy Firmware (.bin)</span>
                 </div>
+                <div className="file-input-wrapper">
+                  <input
+                    type="file"
+                    accept=".bin"
+                    onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
+                    disabled={isFlashing}
+                  />
+                </div>
+                {firmwareFile && (
+                  <StatusIndicator variant="info">
+                    {firmwareFile.name} ({(firmwareFile.size / 1024).toFixed(1)} KB)
+                  </StatusIndicator>
+                )}
               </div>
             </div>
-          </CardBody>
-        </Card>
-      )}
-
-      {/* Bootloader info - only shown in bootloader mode */}
-      {flashMode === 'bootloader' && (
-        <Card>
-          <CardHeader>Bootloader</CardHeader>
-          <CardBody>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-sm)' }}>
-              <span>Daisy Bootloader v6.4</span>
-              {bootloaderLoading && (
-                <StatusIndicator variant="info">Loading bootloader binary...</StatusIndicator>
-              )}
-              {bootloaderBlob && (
-                <StatusIndicator variant="success">
-                  Bootloader ready ({(bootloaderBlob.size / 1024).toFixed(1)} KB)
-                </StatusIndicator>
-              )}
-            </div>
-          </CardBody>
-        </Card>
-      )}
+          </div>
+        </CardBody>
+      </Card>
 
       {/* Flash Process Card */}
       <Card>
@@ -413,9 +297,9 @@ export const DaisyFlasher: React.FC = () => {
             <Button
               onClick={flashFirmware}
               variant="primary"
-              disabled={!canFlash}
+              disabled={!isConnected || (!firmwareFile && !firmwareBlob) || isFlashing}
             >
-              {isFlashing ? 'Flashing...' : flashMode === 'bootloader' ? 'Flash Bootloader' : 'Flash Firmware'}
+              {isFlashing ? 'Flashing...' : 'Flash Firmware'}
             </Button>
 
             {isFlashing && (
