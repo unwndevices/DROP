@@ -9,6 +9,8 @@ export interface SpectralFrame {
 export interface Datum {
   frames: SpectralFrame[];
   sampleRate: number;
+  /** Frames per second of the spectral analysis (48000 / analysisBlockSize). Defaults to 2000 for legacy datums. */
+  frameRateHz?: number;
   frameCount: number;
   bandCount: number;
   name?: string;

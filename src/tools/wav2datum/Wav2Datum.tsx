@@ -21,7 +21,28 @@ interface ConversionSettings {
     presetName: string;
     inputGain: number;
     prerollMode: 'reverse' | 'loop' | 'none';
+    /** Analysis block size in samples. Frame rate = 48000 / blockSize. Lower = finer detail, shorter max source. */
+    analysisBlockSize: number;
 }
+
+const INPUT_SAMPLE_RATE = 48000;
+
+interface DetailOption {
+    label: string;
+    value: number; // block size
+    fps: number;
+    maxSeconds: number;
+}
+
+// Block sizes are multiples of BLOCK_SIZE_FLOOR (3 in HD WASM build).
+// max source = SLOT_FRAME_CAPACITY × blockSize / INPUT_SAMPLE_RATE.
+const DETAIL_OPTIONS: DetailOption[] = [
+    { label: '0.5× — 1 kHz, max 54 s',     value: 48, fps: 1000,  maxSeconds: 54 },
+    { label: '1× — 2 kHz, max 27 s (std)', value: 24, fps: 2000,  maxSeconds: 27 },
+    { label: '2× — 4 kHz, max 13.5 s',     value: 12, fps: 4000,  maxSeconds: 13.5 },
+    { label: '4× — 8 kHz, max 6.75 s',     value: 6,  fps: 8000,  maxSeconds: 6.75 },
+    { label: '8× — 16 kHz, max 3.4 s (HD)', value: 3, fps: 16000, maxSeconds: 3.375 },
+];
 
 interface ConversionStatus {
     isProcessing: boolean;
@@ -59,7 +80,8 @@ export const Wav2Datum: React.FC = () => {
     const [settings, setSettings] = useState<ConversionSettings>({
         presetName: '',
         inputGain: 1.0,
-        prerollMode: 'reverse'
+        prerollMode: 'reverse',
+        analysisBlockSize: 24
     });
 
     // Audio context ref
@@ -183,7 +205,7 @@ export const Wav2Datum: React.FC = () => {
         // Use a small timeout to let UI update before blocking main thread
         await new Promise(resolve => setTimeout(resolve, 50));
 
-        const result = filterBank.AnalyzeAudio(gainedSamples);
+        const result = filterBank.AnalyzeAudio(gainedSamples, settings.analysisBlockSize);
 
         if (!result) {
             throw new Error('Analysis failed (returned null)');
@@ -220,7 +242,8 @@ export const Wav2Datum: React.FC = () => {
             frameCount: frames.length,
             bandCount: bandCount,
             frames,
-            sampleRate: 48000 / 24, // kAnalysisBlockSize = 24
+            sampleRate: INPUT_SAMPLE_RATE,
+            frameRateHz: INPUT_SAMPLE_RATE / settings.analysisBlockSize,
             createdAt: new Date(),
             modifiedAt: new Date()
         };
@@ -232,7 +255,7 @@ export const Wav2Datum: React.FC = () => {
         });
 
         return datum;
-    }, [filterBank, isWasmReady, settings.presetName, settings.prerollMode, audioFile]);
+    }, [filterBank, isWasmReady, settings.presetName, settings.prerollMode, settings.analysisBlockSize, audioFile]);
 
     /**
      * Handle file selection/drop
@@ -454,6 +477,24 @@ export const Wav2Datum: React.FC = () => {
                                     ]}
                                     size="sm"
                                     helper="Strategy to initialize filter states before audio start"
+                                />
+
+                                <Select
+                                    label="Detail (frame rate)"
+                                    value={String(settings.analysisBlockSize)}
+                                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                                        setSettings(prev => ({ ...prev, analysisBlockSize: parseInt(e.target.value, 10) }))
+                                    }
+                                    options={DETAIL_OPTIONS.map(opt => ({ label: opt.label, value: String(opt.value) }))}
+                                    size="sm"
+                                    helper={(() => {
+                                        const opt = DETAIL_OPTIONS.find(o => o.value === settings.analysisBlockSize);
+                                        if (!opt) return '';
+                                        const overflow = audioDuration > opt.maxSeconds;
+                                        return overflow
+                                            ? `${opt.fps} fps · ${audioDuration.toFixed(2)}s exceeds ${opt.maxSeconds}s slot — input will be truncated.`
+                                            : `${opt.fps} fps · ${(opt.fps * 20 * 4 * Math.min(audioDuration, opt.maxSeconds) / 1024 / 1024).toFixed(2)} MB at current duration`;
+                                    })()}
                                 />
 
                                 <Button

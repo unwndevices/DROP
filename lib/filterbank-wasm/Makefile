@@ -13,7 +13,7 @@ OUT_WASM = $(TARGET).wasm
 UNWN_LIBS_PATH = ../../../unwn/Libs
 UNWN_DSP_PATH = $(UNWN_LIBS_PATH)/unwndsp
 
-CXXFLAGS = -std=c++17 -O3 -DHOST_BUILD -DEMSCRIPTEN_BUILD
+CXXFLAGS = -std=c++17 -O3 -DHOST_BUILD -DEMSCRIPTEN_BUILD -DEISEI_HIGH_RES_FILTERBANK
 INCLUDES = -I. -I$(UNWN_LIBS_PATH) -I$(UNWN_DSP_PATH) -I$(UNWN_LIBS_PATH)/stmlib
 
 # Emscripten-specific flags
@@ -23,7 +23,7 @@ EMFLAGS = \
 	-s EXPORT_ES6=1 \
 	-s EXPORT_NAME='FilterBankModule' \
 	-s ALLOW_MEMORY_GROWTH=1 \
-	-s ENVIRONMENT='web,worker' \
+	-s ENVIRONMENT='web,worker,node' \
 	-s FILESYSTEM=0 \
 	-s ASSERTIONS=0 \
 	-s SINGLE_FILE=0

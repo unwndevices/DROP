@@ -8,6 +8,11 @@ const DATUM_MAGIC = [0x44, 0x41, 0x54, 0x4D]; // "DATM"
 const DATUM_VERSION = 2;
 // Header size: 512 bytes (sector aligned)
 const DATUM_HEADER_SIZE = 512;
+// Default frame rate for legacy v2 datums that predate the explicit frameRateHz field
+// (firmware-generated, 24-sample analysis blocks at 48 kHz → 2000 fps).
+const DEFAULT_FRAME_RATE_HZ = 2000;
+// Reserved zone size after carving out 4 bytes for frameRateHz (was 361, now 357).
+const RESERVED_SIZE = 357;
 
 // Binary format structures
 export interface DatumHeader {
@@ -27,6 +32,12 @@ export interface DatumHeader {
   warpCvDest: number;
   warpType: number;
   selectedLUT: number;
+  /**
+   * Spectral frames per second. Carved from the legacy reserved zone — 0 in pre-existing
+   * v2 files (treated as 2000 by readers). Lets HD datums advertise their analysis rate
+   * without bumping the format version (firmware loader rejects unknown versions).
+   */
+  frameRateHz: number;
   reserved: Uint8Array;
 }
 
@@ -75,6 +86,7 @@ export class DatumBinaryFormat {
     return {
       frames,
       sampleRate: 44100, // Default sample rate for compatibility
+      frameRateHz: header.frameRateHz || DEFAULT_FRAME_RATE_HZ,
       frameCount: header.frames,
       bandCount: 20, // Fixed to 20 bands per spec
       name: header.name,
@@ -120,7 +132,8 @@ export class DatumBinaryFormat {
       warpCvDest: datum.warpCvDest || 0,
       warpType: datum.warpType || 0,
       selectedLUT: datum.selectedLUT || 0,
-      reserved: new Uint8Array(361)
+      frameRateHz: datum.frameRateHz || DEFAULT_FRAME_RATE_HZ,
+      reserved: new Uint8Array(RESERVED_SIZE)
     };
   }
 
@@ -204,8 +217,12 @@ export class DatumBinaryFormat {
     view.setUint8(offset, header.selectedLUT);
     offset += 1;
 
-    // Reserved (361 bytes)
-    for (let i = 0; i < 361; i++) {
+    // Frame rate Hz (4 bytes) — first slot of the former reserved zone.
+    view.setUint32(offset, header.frameRateHz, true);
+    offset += 4;
+
+    // Reserved (357 bytes, was 361 before carving out frameRateHz)
+    for (let i = 0; i < RESERVED_SIZE; i++) {
       view.setUint8(offset + i, header.reserved[i]);
     }
   }
@@ -295,9 +312,13 @@ export class DatumBinaryFormat {
     const selectedLUT = view.getUint8(offset);
     offset += 1;
 
+    // Frame rate Hz (4 bytes). Pre-existing v2 files have zero here → reader defaults to 2000.
+    const frameRateHz = view.getUint32(offset, true);
+    offset += 4;
+
     // Reserved
-    const reserved = new Uint8Array(361);
-    for (let i = 0; i < 361; i++) {
+    const reserved = new Uint8Array(RESERVED_SIZE);
+    for (let i = 0; i < RESERVED_SIZE; i++) {
       reserved[i] = view.getUint8(offset + i);
     }
 
@@ -318,6 +339,7 @@ export class DatumBinaryFormat {
       warpCvDest,
       warpType,
       selectedLUT,
+      frameRateHz,
       reserved
     };
   }

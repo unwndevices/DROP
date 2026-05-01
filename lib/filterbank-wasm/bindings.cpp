@@ -33,30 +33,48 @@ public:
     
     /**
      * Analyze audio samples and return spectral frames as a flat array.
-     * 
-     * Input: Float32Array of audio samples (mono, 48kHz)
+     *
+     * Input:
+     *   inputSamples: Float32Array of audio samples (mono, 48kHz)
+     *   blockSizeArg: analysis block size in samples. Must be a multiple of
+     *     kBlockSizeFloor (3 in HD mode, 12 in legacy mode) and ≤ kMaxFilterBankBlockSize.
+     *     Frame rate = 48000 / blockSize. Defaults to kAnalysisBlockSize (24, i.e. 2 kHz).
      * Output: Object with:
      *   - frames: Float32Array of spectral data (numFrames * 20 bands)
      *   - frameCount: number of frames generated
      *   - bandCount: always 20
      */
-    val AnalyzeAudio(val inputSamples) {
+    val AnalyzeAudio(val inputSamples, int blockSizeArg) {
         if (!initialized_) {
             return val::null();
         }
-        
+
         // Get input data from JavaScript
         std::vector<float> samples = vecFromJSArray<float>(inputSamples);
         uint32_t numSamples = samples.size();
-        
-        // Check limits (27 seconds at 48kHz)
-        const uint32_t MAX_SAMPLES = 27 * 48000;
+
+        // Resolve block size: clamp to valid range and snap down to a multiple of the floor
+        uint32_t blockSize = (blockSizeArg <= 0)
+            ? eisei::kAnalysisBlockSize
+            : static_cast<uint32_t>(blockSizeArg);
+        if (blockSize > eisei::kMaxFilterBankBlockSize) {
+            blockSize = eisei::kMaxFilterBankBlockSize;
+        }
+        if (blockSize % eisei::kBlockSizeFloor != 0) {
+            blockSize -= blockSize % eisei::kBlockSizeFloor;
+        }
+        if (blockSize == 0) {
+            blockSize = eisei::kBlockSizeFloor;
+        }
+
+        // Cap input length to the firmware datum slot capacity (kMaxFramesPerSlot frames)
+        const uint32_t MAX_FRAMES = 54000; // matches eisei::kDatumSize on the Daisy
+        const uint32_t MAX_SAMPLES = MAX_FRAMES * blockSize;
         if (numSamples > MAX_SAMPLES) {
             numSamples = MAX_SAMPLES;
         }
-        
+
         // Calculate expected frames
-        const uint32_t blockSize = eisei::kAnalysisBlockSize; // 24
         uint32_t maxFrames = numSamples / blockSize;
         
         // Allocate frame storage
@@ -159,5 +177,8 @@ EMSCRIPTEN_BINDINGS(filterbank_module) {
     // Expose constants
     constant("NUM_BANDS", eisei::kNumBands);
     constant("ANALYSIS_BLOCK_SIZE", eisei::kAnalysisBlockSize);
+    constant("BLOCK_SIZE_FLOOR", eisei::kBlockSizeFloor);
+    constant("MAX_FILTERBANK_BLOCK_SIZE", eisei::kMaxFilterBankBlockSize);
+    constant("MAX_FRAMES_PER_SLOT", 54000);
     constant("MAX_SECONDS", 27);
 }
