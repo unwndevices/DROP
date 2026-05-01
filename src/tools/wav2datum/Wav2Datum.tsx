@@ -489,13 +489,69 @@ export const Wav2Datum: React.FC = () => {
                                     size="sm"
                                     helper={(() => {
                                         const opt = DETAIL_OPTIONS.find(o => o.value === settings.analysisBlockSize);
-                                        if (!opt) return '';
-                                        const overflow = audioDuration > opt.maxSeconds;
-                                        return overflow
-                                            ? `${opt.fps} fps · ${audioDuration.toFixed(2)}s exceeds ${opt.maxSeconds}s slot — input will be truncated.`
-                                            : `${opt.fps} fps · ${(opt.fps * 20 * 4 * Math.min(audioDuration, opt.maxSeconds) / 1024 / 1024).toFixed(2)} MB at current duration`;
+                                        return opt ? `${opt.fps} fps · ${(opt.fps * 20 * 4 * Math.min(audioDuration || opt.maxSeconds, opt.maxSeconds) / 1024 / 1024).toFixed(2)} MB at current duration` : '';
                                     })()}
                                 />
+
+                                {audioDuration > 0 && (() => {
+                                    const opt = DETAIL_OPTIONS.find(o => o.value === settings.analysisBlockSize);
+                                    if (!opt) return null;
+                                    const trackEnd = Math.max(audioDuration, opt.maxSeconds);
+                                    const usedPct = (Math.min(audioDuration, opt.maxSeconds) / trackEnd) * 100;
+                                    const truncatedPct = Math.max(0, (audioDuration - opt.maxSeconds) / trackEnd) * 100;
+                                    const capPct = (opt.maxSeconds / trackEnd) * 100;
+                                    const overflow = audioDuration > opt.maxSeconds;
+                                    return (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--ds-spacing-xs)' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--ds-color-text-secondary)' }}>
+                                                <span>Sample {audioDuration.toFixed(2)}s · slot {opt.maxSeconds}s</span>
+                                                {overflow && (
+                                                    <span style={{ color: 'var(--ds-color-warning)' }}>
+                                                        ⚠ {(audioDuration - opt.maxSeconds).toFixed(2)}s will be cut
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div style={{
+                                                position: 'relative',
+                                                height: '8px',
+                                                backgroundColor: 'var(--ds-color-background-tertiary)',
+                                                borderRadius: '4px',
+                                                overflow: 'hidden'
+                                            }}>
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    left: 0,
+                                                    top: 0,
+                                                    height: '100%',
+                                                    width: `${usedPct}%`,
+                                                    backgroundColor: 'var(--ds-color-primary)',
+                                                    transition: 'width 0.2s ease'
+                                                }} />
+                                                {overflow && (
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        left: `${capPct}%`,
+                                                        top: 0,
+                                                        height: '100%',
+                                                        width: `${truncatedPct}%`,
+                                                        backgroundColor: 'var(--ds-color-warning)',
+                                                        opacity: 0.4,
+                                                        transition: 'left 0.2s ease, width 0.2s ease'
+                                                    }} />
+                                                )}
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    left: `${capPct}%`,
+                                                    top: '-2px',
+                                                    bottom: '-2px',
+                                                    width: '2px',
+                                                    backgroundColor: overflow ? 'var(--ds-color-warning)' : 'var(--ds-color-text-muted)',
+                                                    transition: 'left 0.2s ease'
+                                                }} />
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
 
                                 <Button
                                     variant="secondary"
