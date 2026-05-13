@@ -60,11 +60,12 @@
   border: 0;
   height: 100%;
   padding: 0 var(--nfo-space-3, 12px);
-  font-family: var(--nfo-font-primary);
-  font-size: var(--nfo-t-xs, 0.5625rem);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--nfo-ink-4);
+  font-family: var(--nfo-font-wordmark);
+  font-weight: 300;
+  font-size: var(--nfo-t-small, 0.8125rem);
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  color: var(--nfo-ink-3);
   cursor: pointer;
   border-bottom: 2px solid transparent;
   transition: color 80ms linear, border-color 80ms linear;
@@ -72,7 +73,7 @@
 }
 
 .nfo-topbar__tab:hover:not(.is-active) {
-  color: var(--nfo-ink-2);
+  color: var(--nfo-ink-1);
 }
 
 .nfo-topbar__tab.is-active {
