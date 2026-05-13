@@ -12,7 +12,7 @@ detailed task list and acceptance criteria. Commits are atomic per task.
 | 1  | App shell & navigation             | `phase-1-shell.md`            | done     |
 | 2  | Firmware tool (flash + download)   | `phase-2-firmware.md`         | done     |
 | 3  | Wav2Datum rework                   | `phase-3-wav2datum.md`        | done     |
-| 4  | Tool curation & cleanup            | `phase-4-cleanup.md`          | pending  |
+| 4  | Tool curation & cleanup            | `phase-4-cleanup.md`          | done     |
 | 5  | Polish, PWA, docs                  | `phase-5-polish.md`           | pending  |
 
 Update the status column as phases progress: `pending` → `in-progress` → `done`.
