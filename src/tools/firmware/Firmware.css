@@ -30,8 +30,9 @@
   color: var(--nfo-ink-1);
 }
 
-.firmware-tool__bracket {
-  color: var(--nfo-ink-3);
+.firmware-tool__prompt {
+  color: var(--nfo-accent, #da532c);
+  font-weight: var(--nfo-fw-medium, 500);
 }
 
 .firmware-section {

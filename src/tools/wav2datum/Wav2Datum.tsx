@@ -272,9 +272,8 @@ export const Wav2Datum: React.FC = () => {
     <div className="wav2datum">
       <header className="wav2datum__header">
         <h1 className="wav2datum__title">
-          <span className="wav2datum__bracket">[</span>
+          <span className="wav2datum__titleprompt" aria-hidden="true">›</span>
           <span>wav2datum</span>
-          <span className="wav2datum__bracket">]</span>
         </h1>
       </header>
 
@@ -285,7 +284,7 @@ export const Wav2Datum: React.FC = () => {
         <div className="wav2datum__source">
           <DropZone
             accept=".wav,.mp3,.ogg,.flac,.m4a,audio/*"
-            label="[ drop wav here ]"
+            label="drop wav here"
             hint="or click to browse — wav / mp3 / ogg / flac / m4a"
             disabled={conversionStatus.isProcessing}
             onFiles={(files) => {
@@ -364,7 +363,7 @@ export const Wav2Datum: React.FC = () => {
             onClick={() => void handleReprocess()}
             disabled={conversionStatus.isProcessing || !waveformData}
           >
-            [ re-run analysis ]
+            re-run analysis
           </button>
           {conversionStatus.isProcessing && (
             <StatusBadge kind="info">
@@ -451,7 +450,7 @@ export const Wav2Datum: React.FC = () => {
             onClick={() => void handleExport()}
             disabled={!spectralData || conversionStatus.isProcessing}
           >
-            [ DOWNLOAD .DATUM ]
+            download .datum
           </button>
         </div>
 

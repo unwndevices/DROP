@@ -51,9 +51,8 @@ export const Firmware: React.FC = () => {
     <div className="firmware-tool">
       <header className="firmware-tool__header">
         <h1 className="firmware-tool__title">
-          <span className="firmware-tool__bracket">[</span>
+          <span className="firmware-tool__prompt" aria-hidden="true">›</span>
           <span>firmware</span>
-          <span className="firmware-tool__bracket">]</span>
         </h1>
       </header>
 
@@ -75,7 +74,7 @@ export const Firmware: React.FC = () => {
             {visibleReleases.map((r) => {
               const beta = isBeta(r.version);
               const tagLatest = r.version === latestId ? '  (latest)' : '';
-              const tagBeta = beta ? '  [BETA]' : '';
+              const tagBeta = beta ? '  (beta)' : '';
               return (
                 <option key={r.version} value={r.version}>
                   {r.version}{tagLatest}{tagBeta}

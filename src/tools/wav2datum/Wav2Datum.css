@@ -27,8 +27,9 @@
   letter-spacing: 0.08em;
 }
 
-.wav2datum__bracket {
-  color: var(--nfo-ink-3);
+.wav2datum__titleprompt {
+  color: var(--nfo-accent, #da532c);
+  font-weight: var(--nfo-fw-medium, 500);
 }
 
 .wav2datum__section {
@@ -117,8 +118,6 @@
   border-color: var(--nfo-accent, #da532c);
   color: var(--nfo-accent, #da532c);
   font-weight: var(--nfo-fw-medium, 500);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
 }
 
 /* ───────── preview ───────── */

@@ -96,7 +96,7 @@ export const DaisyFlashSection: React.FC<BaseProps> = ({
           onClick={connect}
           disabled={!canConnect}
         >
-          {connected ? '[ daisy connected ]' : '[ connect daisy (dfu) ]'}
+          {connected ? 'daisy connected' : 'connect daisy (dfu)'}
         </button>
         <button
           type="button"
@@ -104,7 +104,7 @@ export const DaisyFlashSection: React.FC<BaseProps> = ({
           onClick={() => void flash()}
           disabled={!canFlash}
         >
-          {phase === 'flashing' ? '[ flashing… ]' : '[ flash ]'}
+          {phase === 'flashing' ? 'flashing…' : 'flash'}
         </button>
       </div>
 
@@ -228,7 +228,7 @@ export const Esp32FlashSection: React.FC<Esp32Props> = ({
           onClick={connect}
           disabled={!canConnect}
         >
-          {connected ? '[ esp32 connected ]' : '[ connect esp32 (serial) ]'}
+          {connected ? 'esp32 connected' : 'connect esp32 (serial)'}
         </button>
         <button
           type="button"
@@ -236,7 +236,7 @@ export const Esp32FlashSection: React.FC<Esp32Props> = ({
           onClick={() => void flash()}
           disabled={!canFlash}
         >
-          {phase === 'flashing' ? '[ flashing… ]' : '[ flash ]'}
+          {phase === 'flashing' ? 'flashing…' : 'flash'}
         </button>
       </div>
 
