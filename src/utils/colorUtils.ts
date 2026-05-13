@@ -1,4 +1,3 @@
-import { getTheme } from '../styles/theme';
 import type { ThemeName } from '../types/settings';
 
 /**
@@ -142,62 +141,6 @@ export function applyThemeMode(mode: ThemeMode): void {
     root.setAttribute('data-theme', mode);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function _legacyApplyTheme(themeName: ThemeName): void {
-    const theme = getTheme(themeName);
-    const root = document.documentElement;
-
-    // Apply all theme colors directly
-    root.style.setProperty('--color-accent', theme.colors.accent);
-    root.style.setProperty('--color-accent-light', theme.colors.accentLight);
-    root.style.setProperty('--color-accent-dark', theme.colors.accentDark);
-    
-    // Set legacy amber variables for backward compatibility
-    root.style.setProperty('--color-amber', theme.colors.accent);
-    root.style.setProperty('--color-amber-light', theme.colors.accentLight);
-    root.style.setProperty('--color-amber-dark', theme.colors.accentDark);
-    root.style.setProperty('--color-amber-bright', theme.colors.accentLight);
-    root.style.setProperty('--color-text-primary', theme.colors.textPrimary);
-    root.style.setProperty('--color-text-secondary', theme.colors.textSecondary);
-    root.style.setProperty('--color-text-muted', theme.colors.textMuted);
-    root.style.setProperty('--color-border', theme.colors.border);
-    root.style.setProperty('--color-border-muted', theme.colors.borderMuted);
-    root.style.setProperty('--color-background', theme.colors.background);
-    root.style.setProperty('--color-background-secondary', theme.colors.backgroundSecondary);
-    root.style.setProperty('--color-background-tertiary', theme.colors.backgroundTertiary);
-    root.style.setProperty('--color-editor-background', theme.colors.editorBackground);
-    root.style.setProperty('--color-editor-selection', theme.colors.editorSelection);
-    root.style.setProperty('--color-editor-cursor', theme.colors.editorCursor);
-    root.style.setProperty('--color-editor-gutter', theme.colors.editorGutter);
-    root.style.setProperty('--color-editor-line-number', theme.colors.editorLineNumber);
-    root.style.setProperty('--color-success', theme.colors.success);
-    root.style.setProperty('--color-error', theme.colors.error);
-    root.style.setProperty('--color-warning', theme.colors.warning);
-
-    // Generate RGB values for transparency effects
-    const accentRgb = hexToRgb(theme.colors.accent);
-    const backgroundRgb = hexToRgb(theme.colors.background);
-    const borderMutedRgb = hexToRgb(theme.colors.borderMuted);
-    
-    root.style.setProperty('--color-glow-rgb', `${accentRgb[0]}, ${accentRgb[1]}, ${accentRgb[2]}`);
-    root.style.setProperty('--color-background-rgb', `${backgroundRgb[0]}, ${backgroundRgb[1]}, ${backgroundRgb[2]}`);
-    root.style.setProperty('--color-border-muted-rgb', `${borderMutedRgb[0]}, ${borderMutedRgb[1]}, ${borderMutedRgb[2]}`);
-
-    // Apply other theme properties
-    root.style.setProperty('--font-mono', theme.fonts.mono);
-    root.style.setProperty('--spacing-xs', theme.spacing.xs);
-    root.style.setProperty('--spacing-sm', theme.spacing.sm);
-    root.style.setProperty('--spacing-md', theme.spacing.md);
-    root.style.setProperty('--spacing-lg', theme.spacing.lg);
-    root.style.setProperty('--spacing-xl', theme.spacing.xl);
-    root.style.setProperty('--spacing-xxl', theme.spacing.xxl);
-    root.style.setProperty('--border-radius-sm', theme.borderRadius.sm);
-    root.style.setProperty('--border-radius-md', theme.borderRadius.md);
-    root.style.setProperty('--shadow-glow', theme.shadows.glow);
-    root.style.setProperty('--shadow-glow-strong', theme.shadows.glowStrong);
-
-    console.log('DROP: Theme applied:', themeName);
-}
 
 /**
  * Apply theme colors to CSS variables (legacy function for backward compatibility)

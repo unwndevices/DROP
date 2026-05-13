@@ -22,8 +22,9 @@ export const ThemeSettings: React.FC = () => {
     const newTheme = e.target.value as ThemeName;
     updateSettings({
       theme: {
-        name: newTheme
-      }
+        ...settings.theme,
+        name: newTheme,
+      },
     });
   };
 
