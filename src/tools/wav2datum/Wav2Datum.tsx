@@ -3,7 +3,13 @@ import { SimpleSpectrumChart } from '../../components/Visualizer/SimpleSpectrumC
 import { DatumFileService } from '../../services/DatumPersistence/DatumFileService';
 import type { Datum, SpectralFrame } from '../../services/DataModel/types';
 import FilterBankModuleFactory, { type FilterBank } from 'filterbank-wasm';
-import { DropZone, SectionLabel, StatusBadge } from '../../design-system';
+import {
+  DropZone,
+  ParamSlider,
+  SectionLabel,
+  Segmented,
+  StatusBadge,
+} from '../../design-system';
 import './Wav2Datum.css';
 
 interface ConversionSettings {
@@ -292,15 +298,17 @@ export const Wav2Datum: React.FC = () => {
         <SectionLabel index={2}>analysis</SectionLabel>
 
         <div className="wav2datum__controls">
-          <div className="wav2datum__control">
-            <label htmlFor="w2d-detail">detail rate</label>
+          <div className="wav2datum__row">
+            <span className="wav2datum__rowlabel">detail rate</span>
+            <span className="wav2datum__rowprompt" aria-hidden="true">›</span>
             <select
-              id="w2d-detail"
+              className="wav2datum__select"
               value={settings.analysisBlockSize}
               onChange={(e) =>
                 setSettings((p) => ({ ...p, analysisBlockSize: parseInt(e.target.value, 10) }))
               }
               disabled={conversionStatus.isProcessing}
+              aria-label="detail rate"
             >
               {DETAIL_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>{o.label}</option>
@@ -308,38 +316,29 @@ export const Wav2Datum: React.FC = () => {
             </select>
           </div>
 
-          <div className="wav2datum__control">
-            <label htmlFor="w2d-gain">
-              input gain <span className="wav2datum__value">{settings.inputGain.toFixed(2)}</span>
-            </label>
-            <input
-              id="w2d-gain"
-              type="range"
-              min={0}
-              max={2}
-              step={0.01}
-              value={settings.inputGain}
-              onChange={(e) =>
-                setSettings((p) => ({ ...p, inputGain: parseFloat(e.target.value) }))
-              }
-              disabled={conversionStatus.isProcessing}
-            />
-          </div>
+          <ParamSlider
+            label="input gain"
+            value={settings.inputGain}
+            min={0}
+            max={2}
+            step={0.01}
+            disabled={conversionStatus.isProcessing}
+            onChange={(v) => setSettings((p) => ({ ...p, inputGain: v }))}
+          />
 
-          <div className="wav2datum__control">
-            <label htmlFor="w2d-preroll">preroll</label>
-            <select
-              id="w2d-preroll"
+          <div className="wav2datum__row">
+            <span className="wav2datum__rowlabel">preroll</span>
+            <Segmented<ConversionSettings['prerollMode']>
+              options={[
+                { value: 'reverse', label: 'reverse' },
+                { value: 'loop', label: 'loop' },
+                { value: 'none', label: 'none' },
+              ]}
               value={settings.prerollMode}
-              onChange={(e) =>
-                setSettings((p) => ({ ...p, prerollMode: e.target.value as ConversionSettings['prerollMode'] }))
-              }
-              disabled={conversionStatus.isProcessing}
-            >
-              <option value="reverse">reverse</option>
-              <option value="loop">loop</option>
-              <option value="none">none</option>
-            </select>
+              onChange={(v) => setSettings((p) => ({ ...p, prerollMode: v }))}
+              ariaLabel="preroll mode"
+              size="sm"
+            />
           </div>
         </div>
 

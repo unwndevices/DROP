@@ -57,22 +57,26 @@
   gap: var(--nfo-space-3, 12px);
 }
 
-.wav2datum__control {
+.wav2datum__row {
   display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 12px;
+  grid-template-columns: 120px auto 1fr;
+  gap: 8px;
   align-items: center;
 }
 
-.wav2datum__control > label {
+.wav2datum__rowlabel {
   font-size: var(--nfo-t-small, 0.75rem);
   text-transform: lowercase;
   letter-spacing: 0.06em;
   color: var(--nfo-ink-2);
 }
 
-.wav2datum__control select,
-.wav2datum__control input[type='range'],
+.wav2datum__rowprompt {
+  color: var(--nfo-accent, #da532c);
+  font-weight: var(--nfo-fw-medium, 500);
+}
+
+.wav2datum__select,
 .wav2datum__preset input {
   font-family: inherit;
   font-size: var(--nfo-t-body, 0.8125rem);
@@ -82,18 +86,6 @@
   border-radius: 0;
   padding: 4px 8px;
   width: 100%;
-}
-
-.wav2datum__control input[type='range'] {
-  padding: 0;
-  border: none;
-  accent-color: var(--nfo-accent, #da532c);
-}
-
-.wav2datum__value {
-  color: var(--nfo-ink-3);
-  font-variant-numeric: tabular-nums;
-  margin-left: 4px;
 }
 
 .wav2datum__rerun,
