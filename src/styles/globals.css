@@ -645,41 +645,47 @@ input[type="file"]::file-selector-button {
   justify-content: flex-end;
 }
 
-/* Alert/Status messages */
+/* Alert/Status messages — NFO retheme: text-only bracket convention,
+   no fill, no rounded corners. Coloured label only; message body uses
+   ink-1 for legibility. */
 .alert {
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius-md);
-  border: 1px solid;
-  margin-bottom: var(--spacing-md);
+  padding: var(--nfo-space-2) var(--nfo-space-3);
+  border-radius: 0;
+  border: 1px solid var(--nfo-border-faint);
+  background: var(--nfo-surface);
+  color: var(--nfo-ink-1);
+  margin-bottom: var(--nfo-space-3);
   display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-size: 0.875rem;
+  align-items: baseline;
+  gap: var(--nfo-space-2);
+  font-family: var(--nfo-font-mono);
+  font-size: var(--nfo-t-small);
+  line-height: var(--nfo-lh-snug);
 }
 
-.alert-info {
-  background: rgba(var(--color-info-rgb), 0.1);
-  border-color: var(--color-info);
-  color: var(--color-info);
+.alert-tag {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25em;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: var(--nfo-fw-medium);
+  flex-shrink: 0;
 }
 
-.alert-success {
-  background: rgba(var(--color-success-rgb), 0.1);
-  border-color: var(--color-success);
-  color: var(--color-success);
-}
+.alert-tag-bracket { color: var(--nfo-ink-3); }
+.alert-msg         { color: var(--nfo-ink-1); }
+.alert-icon        { display: inline-flex; align-items: center; flex-shrink: 0; }
 
-.alert-warning {
-  background: rgba(var(--color-warning-rgb), 0.1);
-  border-color: var(--color-warning);
-  color: var(--color-warning);
-}
+.alert-info    .alert-tag-label { color: var(--nfo-info); }
+.alert-success .alert-tag-label { color: var(--nfo-ok); }
+.alert-warning .alert-tag-label { color: var(--nfo-warn); }
+.alert-error   .alert-tag-label { color: var(--nfo-err); }
 
-.alert-error {
-  background: rgba(var(--color-error-rgb), 0.1);
-  border-color: var(--color-error);
-  color: var(--color-error);
-}
+.alert-info    { border-color: var(--nfo-border-faint); }
+.alert-success { border-color: var(--nfo-border-faint); }
+.alert-warning { border-color: var(--nfo-border-faint); }
+.alert-error   { border-color: var(--nfo-err); }
 
 /* Card/Panel system */
 .card {
@@ -753,58 +759,51 @@ input[type="file"]::file-selector-button {
   margin: var(--spacing-xs) 0;
 }
 
-/* Badge system */
+/* Badge system — NFO retheme: hairline outline, square, mono caps. */
 .badge {
   display: inline-flex;
   align-items: center;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  font-size: 0.7rem;
-  font-weight: 600;
-  border-radius: var(--border-radius-sm);
+  padding: 1px var(--nfo-space-2);
+  font-family: var(--nfo-font-mono);
+  font-size: var(--nfo-t-xs);
+  font-weight: var(--nfo-fw-medium);
+  border-radius: 0;
+  border: 1px solid var(--nfo-border);
+  background: var(--nfo-surface);
+  color: var(--nfo-ink-1);
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.08em;
 }
 
-.badge-primary {
-  background: var(--color-amber);
-  color: var(--color-background);
-}
+.badge-primary   { color: var(--nfo-accent); border-color: var(--nfo-accent); }
+.badge-secondary { color: var(--nfo-ink-2); }
+.badge-success   { color: var(--nfo-ok);   border-color: var(--nfo-ok); }
+.badge-error     { color: var(--nfo-err);  border-color: var(--nfo-err); }
+.badge-warning   { color: var(--nfo-warn); border-color: var(--nfo-warn); }
 
-.badge-secondary {
-  background: var(--color-background-tertiary);
-  color: var(--color-text-secondary);
-}
-
-.badge-success {
-  background: var(--color-success);
-  color: var(--color-background);
-}
-
-.badge-error {
-  background: var(--color-error);
-  color: white;
-}
-
-.badge-warning {
-  background: var(--color-warning);
-  color: var(--color-background);
-}
-
-/* Progress bar */
+/* Progress bar — NFO retheme: square, hairline frame, accent fill. */
 .progress {
   width: 100%;
-  height: 8px;
-  background: var(--color-background-tertiary);
-  border-radius: var(--border-radius-md);
+  height: 4px;
+  background: var(--nfo-surface-alt);
+  border: 1px solid var(--nfo-border-faint);
+  border-radius: 0;
   overflow: hidden;
 }
 
 .progress-bar {
   height: 100%;
-  background: var(--color-amber);
-  transition: width var(--transition-medium);
+  background: var(--nfo-ink-1);
+  transition: width var(--nfo-duration-base, 200ms) var(--nfo-ease-default, ease-out);
   position: relative;
 }
+
+.progress-success .progress-bar,
+.progress-bar.progress-success { background: var(--nfo-ok); }
+.progress-warning .progress-bar,
+.progress-bar.progress-warning { background: var(--nfo-warn); }
+.progress-error   .progress-bar,
+.progress-bar.progress-error   { background: var(--nfo-err); }
 
 .progress-bar.striped {
   background-image: linear-gradient(45deg,

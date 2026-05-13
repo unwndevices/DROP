@@ -8,23 +8,33 @@ export interface StatusIndicatorProps {
   style?: React.CSSProperties;
 }
 
+const VARIANT_LABEL: Record<StatusIndicatorProps['variant'], string> = {
+  info: 'INFO',
+  success: 'OK',
+  warning: 'WARN',
+  error: 'ERR',
+};
+
 export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   variant,
   children,
   icon,
   className = '',
-  style
+  style,
 }) => {
-  const alertClasses = [
-    'alert',
-    `alert-${variant}`,
-    className
-  ].filter(Boolean).join(' ');
+  const classes = ['alert', `alert-${variant}`, className]
+    .filter(Boolean)
+    .join(' ');
 
   return (
-    <div className={alertClasses} style={style}>
-      {icon && <span className="flex-shrink-0">{icon}</span>}
-      <span>{children}</span>
+    <div className={classes} style={style} role="status">
+      <span className="alert-tag" aria-hidden="true">
+        <span className="alert-tag-bracket">[</span>
+        <span className="alert-tag-label">{VARIANT_LABEL[variant]}</span>
+        <span className="alert-tag-bracket">]</span>
+      </span>
+      {icon && <span className="alert-icon">{icon}</span>}
+      <span className="alert-msg">{children}</span>
     </div>
   );
 };
@@ -38,23 +48,17 @@ export interface BadgeProps {
 export const Badge: React.FC<BadgeProps> = ({
   variant = 'secondary',
   children,
-  className = ''
+  className = '',
 }) => {
-  const badgeClasses = [
-    'badge',
-    `badge-${variant}`,
-    className
-  ].filter(Boolean).join(' ');
+  const classes = ['badge', `badge-${variant}`, className]
+    .filter(Boolean)
+    .join(' ');
 
-  return (
-    <span className={badgeClasses}>
-      {children}
-    </span>
-  );
+  return <span className={classes}>{children}</span>;
 };
 
 export interface ProgressBarProps {
-  value: number; // 0-100
+  value: number;
   max?: number;
   striped?: boolean;
   variant?: 'primary' | 'success' | 'warning' | 'error';
@@ -68,30 +72,30 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
   striped = false,
   variant = 'primary',
   label,
-  className = ''
+  className = '',
 }) => {
   const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
-  
-  const progressBarClasses = [
+
+  const classes = [
     'progress-bar',
     striped && 'striped',
     variant !== 'primary' && `progress-${variant}`,
-    className
-  ].filter(Boolean).join(' ');
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className="progress">
-      <div 
-        className={progressBarClasses}
+      <div
+        className={classes}
         style={{ width: `${percentage}%` }}
         role="progressbar"
         aria-valuenow={value}
         aria-valuemin={0}
         aria-valuemax={max}
       >
-        {label && (
-          <span className="sr-only">{label}</span>
-        )}
+        {label && <span className="sr-only">{label}</span>}
       </div>
     </div>
   );
