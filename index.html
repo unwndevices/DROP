@@ -6,127 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DROP - Datum Research Open Platform</title>
     
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap" rel="stylesheet">
-    
-    <!-- PWA Manifest -->
+    <!-- NFO theme color for browser chrome -->
+    <meta name="theme-color" content="#f4f1eb" />
+
+    <!-- PWA shell will be removed in phase 5; these tags stay until then -->
     <link rel="manifest" href="/manifest.json" />
-    
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#C7EE1B" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="DROP" />
     <meta name="application-name" content="DROP" />
-    <meta name="msapplication-TileColor" content="#181818" />
+    <meta name="msapplication-TileColor" content="#f4f1eb" />
     <meta name="msapplication-config" content="/browserconfig.xml" />
-    
-    <!-- Apple Touch Icons -->
+
     <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192x192.png" />
-    
-    <!-- Favicon -->
+
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16x16.png" />
-    <script>
-      // Apply theme colors immediately before React loads to prevent flash
-      (function() {
-        try {
-          const savedSettings = localStorage.getItem('drop-settings');
-          if (savedSettings) {
-            const settings = JSON.parse(savedSettings);
-            const accentColor = settings.theme?.accentColor || '#C7EE1B';
-            const backgroundColor = settings.theme?.backgroundColor || '#181818';
-            
-            // Generate color variants
-            function hexToHsl(hex) {
-              const r = parseInt(hex.slice(1, 3), 16) / 255;
-              const g = parseInt(hex.slice(3, 5), 16) / 255;
-              const b = parseInt(hex.slice(5, 7), 16) / 255;
-              const max = Math.max(r, g, b);
-              const min = Math.min(r, g, b);
-              let h, s, l = (max + min) / 2;
-              if (max === min) {
-                h = s = 0;
-              } else {
-                const d = max - min;
-                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-                switch (max) {
-                  case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-                  case g: h = (b - r) / d + 2; break;
-                  case b: h = (r - g) / d + 4; break;
-                }
-                h /= 6;
-              }
-              return [h * 360, s * 100, l * 100];
-            }
-            
-            function hslToHex(h, s, l) {
-              h /= 360; s /= 100; l /= 100;
-              const hue2rgb = (p, q, t) => {
-                if (t < 0) t += 1;
-                if (t > 1) t -= 1;
-                if (t < 1/6) return p + (q - p) * 6 * t;
-                if (t < 1/2) return q;
-                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-                return p;
-              };
-              let r, g, b;
-              if (s === 0) {
-                r = g = b = l;
-              } else {
-                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-                const p = 2 * l - q;
-                r = hue2rgb(p, q, h + 1/3);
-                g = hue2rgb(p, q, h);
-                b = hue2rgb(p, q, h - 1/3);
-              }
-              return '#' + [r, g, b].map(c => {
-                const hex = Math.round(c * 255).toString(16);
-                return hex.length === 1 ? '0' + hex : hex;
-              }).join('');
-            }
-            
-            function hexToRgb(hex) {
-              const r = parseInt(hex.slice(1, 3), 16);
-              const g = parseInt(hex.slice(3, 5), 16);
-              const b = parseInt(hex.slice(5, 7), 16);
-              return [r, g, b];
-            }
-            
-            // Generate variants
-            const [h, s, l] = hexToHsl(accentColor);
-            const [bgH, bgS, bgL] = hexToHsl(backgroundColor);
-            
-            const accentLight = hslToHex(h, s, Math.min(95, l + 25));
-            const accentDark = hslToHex(h, s, Math.max(5, l - 25));
-            const bgSecondary = hslToHex(bgH, bgS, Math.min(95, bgL + 8));
-            const bgTertiary = hslToHex(bgH, bgS, Math.min(95, bgL + 4));
-            
-            const [accentR, accentG, accentB] = hexToRgb(accentColor);
-            const [accentDarkR, accentDarkG, accentDarkB] = hexToRgb(accentDark);
-            const [bgR, bgG, bgB] = hexToRgb(backgroundColor);
-            
-            // Apply to root
-            const root = document.documentElement;
-            root.style.setProperty('--initial-accent', accentColor);
-            root.style.setProperty('--initial-accent-light', accentLight);
-            root.style.setProperty('--initial-accent-dark', accentDark);
-            root.style.setProperty('--initial-accent-rgb', `${accentR}, ${accentG}, ${accentB}`);
-            root.style.setProperty('--initial-accent-dark-rgb', `${accentDarkR}, ${accentDarkG}, ${accentDarkB}`);
-            root.style.setProperty('--initial-bg', backgroundColor);
-            root.style.setProperty('--initial-bg-secondary', bgSecondary);
-            root.style.setProperty('--initial-bg-tertiary', bgTertiary);
-            root.style.setProperty('--initial-bg-rgb', `${bgR}, ${bgG}, ${bgB}`);
-          }
-        } catch (e) {
-          // Silently fail, use CSS defaults
-        }
-      })();
-    </script>
   </head>
   <body>
     <div id="root"></div>

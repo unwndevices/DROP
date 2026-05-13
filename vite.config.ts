@@ -97,6 +97,13 @@ export default defineConfig({
       '@/types': path.resolve(__dirname, './src/types')
     }
   },
+  // Bind to all interfaces so the dev server is reachable over Tailscale
+  // (e.g. http://unwnserver:5173 or http://100.80.173.106:5173). HMR uses
+  // the host the browser connected from.
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+  },
   base: process.env.NODE_ENV === 'production' ? '/DROP/' : '/',
   build: {
     outDir: 'dist',

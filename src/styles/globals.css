@@ -1,76 +1,77 @@
-/* DROP Global Styles - Retro Terminal Theme */
+/* DROP Global Styles — NFO theme
+   Legacy --color-* / --spacing-* / --shadow-* tokens are aliased to the
+   NFO palette so any code still referencing them picks up the new values.
+   New code should prefer --ds-* or --nfo-*.
+*/
 
 :root {
-  /* Theme variables - will be set by JavaScript before React loads */
-  /* Fallback colors for initial load */
-  --color-background: var(--initial-bg, #0a0a0a);
-  --color-background-secondary: var(--initial-bg-secondary, #141414);
-  --color-background-tertiary: var(--initial-bg-tertiary, #1a1a1a);
+  --color-background:           var(--nfo-bg);
+  --color-background-secondary: var(--nfo-bg-alt);
+  --color-background-tertiary:  var(--nfo-bg-deep);
 
-  /* Accent Colors - Electric Amber/Green */
-  --color-text-primary: var(--initial-accent, #D4FF00);
-  --color-text-secondary: #E0E0E0;
-  --color-text-muted: #888888;
-  --color-text-tertiary: #555555;
+  --color-text-primary:   var(--nfo-ink-1);
+  --color-text-secondary: var(--nfo-ink-2);
+  --color-text-muted:     var(--nfo-ink-3);
+  --color-text-tertiary:  var(--nfo-ink-4);
 
-  --color-border: var(--initial-accent, #D4FF00);
-  --color-border-muted: var(--initial-accent-dark, #4A5900);
-  --color-border-subtle: #333333;
+  --color-border:        var(--nfo-border);
+  --color-border-muted:  var(--nfo-border-faint);
+  --color-border-subtle: var(--nfo-border-faint);
 
-  --color-success: #00FF9D;
-  --color-error: #FF2A2A;
-  --color-warning: #FFB800;
-  --color-info: #00D1FF;
+  --color-success: var(--nfo-ok);
+  --color-error:   var(--nfo-err);
+  --color-warning: var(--nfo-warn);
+  --color-info:    var(--nfo-info);
 
-  --color-editor-background: var(--initial-bg, #0a0a0a);
-  --color-editor-selection: #2a2a00;
-  --color-editor-cursor: var(--initial-accent, #D4FF00);
-  --color-editor-gutter: var(--initial-bg-tertiary, #141414);
-  --color-editor-line-number: #444444;
+  --color-editor-background:  var(--nfo-surface);
+  --color-editor-selection:   var(--nfo-accent-tint);
+  --color-editor-cursor:      var(--nfo-accent);
+  --color-editor-gutter:      var(--nfo-bg-alt);
+  --color-editor-line-number: var(--nfo-ink-4);
 
-  --color-amber: var(--initial-accent, #D4FF00);
-  --color-amber-dark: var(--initial-accent-dark, #8BA600);
-  --color-amber-light: var(--initial-accent-light, #E5FF4D);
-  --color-amber-glow: rgba(212, 255, 0, 0.15);
+  --color-amber:       var(--nfo-accent);
+  --color-amber-dark:  var(--nfo-accent-dim);
+  --color-amber-light: var(--nfo-accent);
+  --color-amber-glow:  var(--nfo-accent-tint);
 
-  --color-background-rgb: var(--initial-bg-rgb, 10, 10, 10);
-  --color-glow-rgb: var(--initial-accent-rgb, 212, 255, 0);
-  --color-error-rgb: 255, 42, 42;
-  --color-success-rgb: 0, 255, 157;
-  --color-warning-rgb: 255, 184, 0;
-  --color-info-rgb: 0, 209, 255;
-  --color-border-muted-rgb: var(--initial-accent-dark-rgb, 74, 89, 0);
+  --color-background-rgb:   244, 241, 235;
+  --color-glow-rgb:         218, 83, 44;
+  --color-error-rgb:        194, 59, 34;
+  --color-success-rgb:      61, 122, 79;
+  --color-warning-rgb:      181, 122, 31;
+  --color-info-rgb:         46, 96, 152;
+  --color-border-muted-rgb: 216, 212, 203;
 
-  --font-mono: 'Geist Mono', 'Fira Mono', 'Monaco', 'Consolas', 'Courier New', monospace;
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: var(--nfo-font-mono);
+  --font-sans: var(--nfo-font-primary);
 
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-  --spacing-xxl: 48px;
+  --spacing-xs:  var(--nfo-space-1);
+  --spacing-sm:  var(--nfo-space-2);
+  --spacing-md:  var(--nfo-space-4);
+  --spacing-lg:  var(--nfo-space-5);
+  --spacing-xl:  var(--nfo-space-6);
+  --spacing-xxl: var(--nfo-space-7);
 
-  --border-radius-sm: 2px;
-  --border-radius-md: 6px;
-  --border-radius-lg: 12px;
-  --border-radius-full: 9999px;
+  --border-radius-sm:   0;
+  --border-radius-md:   0;
+  --border-radius-lg:   0;
+  --border-radius-full: 0;
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 12px rgba(var(--color-glow-rgb), 0.2);
-  --shadow-glow-strong: 0 0 24px rgba(var(--color-glow-rgb), 0.4);
-  --shadow-error: 0 0 12px rgba(var(--color-error-rgb), 0.3);
+  --shadow-sm:           none;
+  --shadow-md:           none;
+  --shadow-lg:           none;
+  --shadow-glow:         none;
+  --shadow-glow-strong:  none;
+  --shadow-error:        none;
 
-  --backdrop-blur: blur(12px);
-  --surface-glass: rgba(20, 20, 20, 0.7);
-  --surface-glass-hover: rgba(30, 30, 30, 0.8);
+  --backdrop-blur: none;
+  --surface-glass:       var(--nfo-surface);
+  --surface-glass-hover: var(--nfo-surface-alt);
 
-  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-medium: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-bounce: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-fast:   var(--nfo-duration-fast) var(--nfo-ease-default);
+  --transition-medium: var(--nfo-duration-base) var(--nfo-ease-default);
+  --transition-slow:   var(--nfo-duration-slow) var(--nfo-ease-default);
+  --transition-bounce: var(--nfo-duration-base) var(--nfo-ease-snap);
 }
 
 /* Reset and base styles */

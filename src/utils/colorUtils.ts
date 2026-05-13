@@ -116,9 +116,17 @@ export function generateColorVariants(baseColor: string): ColorVariants {
 }
 
 /**
- * Apply theme by name to CSS variables
+ * Apply theme by name to CSS variables.
+ * NFO retheme: this function is now a no-op — the NFO palette is the single
+ * brand identity and lives in CSS tokens. The legacy multi-theme JS path
+ * will be removed entirely in phase 0.6 when light/dark replaces it.
  */
-export function applyTheme(themeName: ThemeName): void {
+export function applyTheme(_themeName: ThemeName): void {
+    return;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _legacyApplyTheme(themeName: ThemeName): void {
     const theme = getTheme(themeName);
     const root = document.documentElement;
 
