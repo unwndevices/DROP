@@ -23,6 +23,9 @@ export type { StatusBadgeProps, StatusKind } from './components/StatusBadge';
 export { Segmented } from './components/Segmented';
 export type { SegmentedProps, SegmentedOption } from './components/Segmented';
 
+export { DropZone } from './components/DropZone';
+export type { DropZoneProps } from './components/DropZone';
+
 export { Modal, ModalHeader, ModalContent, ModalFooter } from './components/Modal';
 export type { ModalProps, ModalHeaderProps, ModalContentProps, ModalFooterProps } from './components/Modal';
 
