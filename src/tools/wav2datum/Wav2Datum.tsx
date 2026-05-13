@@ -5,10 +5,12 @@ import type { Datum, SpectralFrame } from '../../services/DataModel/types';
 import FilterBankModuleFactory, { type FilterBank } from 'filterbank-wasm';
 import {
   DropZone,
+  Panel,
   ParamSlider,
   SectionLabel,
   Segmented,
   StatusBadge,
+  TransportBar,
 } from '../../design-system';
 import './Wav2Datum.css';
 
@@ -356,33 +358,28 @@ export const Wav2Datum: React.FC = () => {
       <section className="wav2datum__section">
         <SectionLabel index={3}>preview</SectionLabel>
 
-        <div className="wav2datum__chart">
-          <SimpleSpectrumChart
-            frames={spectralData?.frames || []}
-            currentFrame={currentFrame}
-            onFrameChange={setCurrentFrame}
-            showControls={false}
-            className={`${spectralData ? '' : 'empty'} ${conversionStatus.isProcessing ? 'loading' : ''}`}
-          />
-        </div>
-
-        {spectralData && (
-          <div className="wav2datum__transport">
-            <button
-              type="button"
-              onClick={() => setIsPlaying(!isPlaying)}
-              className="wav2datum__playbtn"
-              aria-label={isPlaying ? 'pause' : 'play'}
-            >
-              {isPlaying ? '[ pause ]' : '[ play ]'}
-            </button>
-            <span className="wav2datum__framecount">
-              frame {currentFrame + 1} / {spectralData.frameCount}
-            </span>
+        <Panel title="spectral preview" padded={false}>
+          <div className="wav2datum__chart">
+            <SimpleSpectrumChart
+              frames={spectralData?.frames || []}
+              currentFrame={currentFrame}
+              onFrameChange={setCurrentFrame}
+              showControls={false}
+              className={`${spectralData ? '' : 'empty'} ${conversionStatus.isProcessing ? 'loading' : ''}`}
+            />
           </div>
-        )}
+        </Panel>
 
-        <div className="wav2datum__slot">
+        <TransportBar
+          currentFrame={currentFrame}
+          totalFrames={spectralData?.frameCount ?? 0}
+          isPlaying={isPlaying}
+          onFrameChange={setCurrentFrame}
+          onPlayToggle={() => setIsPlaying(!isPlaying)}
+          disabled={!spectralData || conversionStatus.isProcessing}
+        />
+
+        <div className="wav2datum__slotmeta">
           <span>
             slot fits {slotFrames} / {SLOT_FRAME_CAPACITY} frames
           </span>
@@ -392,6 +389,12 @@ export const Wav2Datum: React.FC = () => {
             </StatusBadge>
           )}
           {!overflow && spectralData && <StatusBadge kind="ok">ready</StatusBadge>}
+        </div>
+        <div className="wav2datum__hairline" aria-hidden="true">
+          <span
+            className="wav2datum__hairline-fill"
+            style={{ width: `${(slotFrames / SLOT_FRAME_CAPACITY) * 100}%` }}
+          />
         </div>
       </section>
 

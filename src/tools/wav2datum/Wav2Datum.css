@@ -127,31 +127,31 @@
 /* ───────── preview ───────── */
 .wav2datum__chart {
   height: 240px;
-  border: 1px solid var(--nfo-border-faint, var(--ds-color-border));
   overflow: hidden;
 }
 
-.wav2datum__transport {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: var(--nfo-t-small, 0.75rem);
-  color: var(--nfo-ink-2);
-}
-
-.wav2datum__framecount {
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
-  text-transform: lowercase;
-}
-
-.wav2datum__slot {
+.wav2datum__slotmeta {
   display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
   font-size: var(--nfo-t-small, 0.75rem);
   color: var(--nfo-ink-2);
+}
+
+.wav2datum__hairline {
+  position: relative;
+  height: 1px;
+  background: var(--nfo-border-faint, var(--ds-color-border));
+}
+
+.wav2datum__hairline-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: var(--nfo-accent, #da532c);
+  transition: width 0.15s linear;
 }
 
 /* ───────── output ───────── */

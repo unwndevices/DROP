@@ -26,6 +26,9 @@ export type { SegmentedProps, SegmentedOption } from './components/Segmented';
 export { ParamSlider } from './components/ParamSlider';
 export type { ParamSliderProps } from './components/ParamSlider';
 
+export { TransportBar } from './components/TransportBar';
+export type { TransportBarProps } from './components/TransportBar';
+
 export { DropZone } from './components/DropZone';
 export type { DropZoneProps } from './components/DropZone';
 
