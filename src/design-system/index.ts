@@ -11,6 +11,9 @@ export type { SelectProps, SelectOption } from './components/Select';
 export { Card, CardHeader, CardBody, CardFooter } from './components/Card';
 export type { CardProps, CardHeaderProps, CardBodyProps, CardFooterProps } from './components/Card';
 
+export { Panel } from './components/Panel';
+export type { PanelProps } from './components/Panel';
+
 export { Modal, ModalHeader, ModalContent, ModalFooter } from './components/Modal';
 export type { ModalProps, ModalHeaderProps, ModalContentProps, ModalFooterProps } from './components/Modal';
 
