@@ -1,0 +1,106 @@
+.datum-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nfo-space-4, 16px);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--nfo-space-4, 16px);
+  font-family: var(--nfo-font-primary, var(--ds-font-mono));
+  color: var(--nfo-ink-1, var(--ds-color-text-primary));
+}
+
+.datum-viewer__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--nfo-space-3, 12px);
+  flex-wrap: wrap;
+}
+
+.datum-viewer__title {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35em;
+  margin: 0;
+  font-family: inherit;
+  font-size: var(--nfo-t-h1, 1rem);
+  font-weight: var(--nfo-fw-medium, 500);
+  text-transform: lowercase;
+  letter-spacing: 0.08em;
+}
+
+.datum-viewer__prompt {
+  color: var(--nfo-accent, #da532c);
+  font-weight: var(--nfo-fw-medium, 500);
+}
+
+.datum-viewer__clear {
+  font-family: inherit;
+  font-size: var(--nfo-t-small, 0.75rem);
+  color: var(--nfo-ink-2);
+  background: none;
+  border: 1px dashed var(--nfo-border-faint, var(--ds-color-border));
+  border-radius: 0;
+  padding: 2px 10px;
+  cursor: pointer;
+  text-transform: lowercase;
+}
+
+.datum-viewer__clear:hover {
+  color: var(--nfo-ink-1);
+  border-color: var(--nfo-ink-3);
+}
+
+.datum-viewer__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--nfo-space-5, 24px);
+  align-items: start;
+}
+
+@media (min-width: 880px) {
+  .datum-viewer__grid {
+    grid-template-columns: minmax(280px, 1fr) minmax(0, 1.6fr);
+  }
+}
+
+.datum-viewer__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nfo-space-3, 12px);
+  min-width: 0;
+}
+
+.datum-viewer__chart {
+  height: 320px;
+  overflow: hidden;
+}
+
+.datum-viewer__props {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  font-size: var(--nfo-t-body, 0.8125rem);
+}
+
+.datum-viewer__prop {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.datum-viewer__prop dt {
+  color: var(--nfo-ink-3);
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+  font-size: var(--nfo-t-small, 0.75rem);
+}
+
+.datum-viewer__prop dd {
+  color: var(--nfo-ink-1);
+  margin: 0;
+  word-break: break-word;
+  font-variant-numeric: tabular-nums;
+}
