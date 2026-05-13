@@ -39,8 +39,8 @@ export { Timeline } from './components/Timeline';
 export type { TimelineProps } from './components/Timeline';
 
 // Design System Layouts
-export { ToolLayout } from './layouts/ToolLayout';
-export type { ToolLayoutProps } from './layouts/ToolLayout';
+export { ToolLayout, ToolHeader } from './layouts/ToolLayout';
+export type { ToolLayoutProps, ToolHeaderProps } from './layouts/ToolLayout';
 
 // Code Editor Components
 export { CodeEditor, SpectralEditor, PixelArtEditor } from './components/CodeEditor';

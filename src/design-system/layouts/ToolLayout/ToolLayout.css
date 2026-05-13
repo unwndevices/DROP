@@ -1,11 +1,13 @@
-/* ToolLayout Component Styles */
+/* ToolLayout — NFO retheme: flat surfaces, hairline regions, mono
+   labels, no shadows or rounded corners. Outer padding follows
+   --nfo-page-gutter, content caps at --nfo-max-width with auto margins. */
 
 .tool-layout {
   display: grid;
-  height: 100vh;
-  background: var(--ds-color-background);
-  color: var(--ds-color-text-primary);
-  font-family: var(--ds-font-mono);
+  height: 100%;
+  background: var(--nfo-bg);
+  color: var(--nfo-ink-1);
+  font-family: var(--nfo-font-primary);
   overflow: hidden;
 }
 
@@ -84,10 +86,10 @@
 .tool-layout-header-row {
   grid-area: header;
   display: flex;
-  background: var(--ds-color-background-secondary);
-  border-bottom: 1px solid var(--ds-color-border-subtle);
+  background: var(--nfo-bg);
+  border-bottom: 1px solid var(--nfo-border-faint);
   z-index: 10;
-  box-shadow: var(--ds-shadow-sm);
+  box-shadow: none;
 }
 
 .tool-layout-logo {
@@ -95,18 +97,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--ds-spacing-md);
-  background: var(--ds-color-background-tertiary);
-  border-right: 1px solid var(--ds-color-border-subtle);
-  border-bottom: 1px solid var(--ds-color-border-subtle);
-  min-width: 60px;
+  padding: var(--nfo-space-3);
+  background: transparent;
+  border-right: 1px solid var(--nfo-border-faint);
+  border-bottom: 1px solid var(--nfo-border-faint);
+  min-width: 48px;
 }
 
 .tool-layout-header {
   flex: 1;
   display: flex;
   align-items: center;
-  padding: var(--ds-spacing-md) var(--ds-spacing-lg);
+  padding: var(--nfo-space-3) var(--nfo-page-gutter, var(--nfo-space-4));
 }
 
 .tool-layout-header-content {
@@ -124,17 +126,20 @@
 }
 
 .tool-layout-title {
-  font-size: var(--ds-font-size-xl);
-  font-weight: var(--ds-font-weight-semibold);
-  color: var(--ds-color-text-primary);
+  font-family: var(--nfo-font-primary);
+  font-size: var(--nfo-t-h4);
+  font-weight: var(--nfo-fw-medium);
+  color: var(--nfo-ink-1);
   margin: 0;
-  letter-spacing: -0.02em;
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
 }
 
 .tool-layout-description {
-  font-size: var(--ds-font-size-sm);
-  color: var(--ds-color-text-secondary);
+  font-size: var(--nfo-t-small);
+  color: var(--nfo-ink-2);
   margin: 0;
+  text-transform: lowercase;
 }
 
 .tool-layout-actions {
@@ -160,8 +165,8 @@
 .tool-layout-sidebar {
   display: flex;
   flex-direction: column;
-  background: var(--ds-color-background-secondary);
-  border-right: 1px solid var(--ds-color-border-subtle);
+  background: var(--nfo-bg-alt);
+  border-right: 1px solid var(--nfo-border-faint);
   position: relative;
   transition: width var(--ds-transition-medium);
   width: 260px;
@@ -175,27 +180,27 @@
 
 .sidebar-toggle {
   position: absolute;
-  top: var(--ds-spacing-xs);
-  right: var(--ds-spacing-xs);
+  top: var(--nfo-space-1);
+  right: var(--nfo-space-1);
   z-index: 10;
-  background: var(--ds-color-background-tertiary);
-  border: 1px solid var(--ds-color-border-subtle);
-  color: var(--ds-color-text-secondary);
+  background: var(--nfo-surface);
+  border: 1px solid var(--nfo-border);
+  color: var(--nfo-ink-2);
   padding: 0;
-  border-radius: var(--ds-border-radius-sm);
+  border-radius: 0;
   cursor: pointer;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--ds-transition-fast);
+  transition: color var(--ds-transition-fast), border-color var(--ds-transition-fast);
 }
 
 .sidebar-toggle:hover {
-  background: var(--ds-color-background);
-  border-color: var(--ds-color-border);
-  color: var(--ds-color-text-primary);
+  background: var(--nfo-surface-alt);
+  border-color: var(--nfo-border-strong);
+  color: var(--nfo-ink-1);
 }
 
 .tool-layout-sidebar-content {
@@ -216,43 +221,44 @@
   flex-direction: column;
   overflow: hidden;
   height: 100%;
-  background: var(--ds-color-background);
+  background: var(--nfo-bg);
 }
 
-/* Panel Layouts */
+/* Panel Layouts — single panels honour --nfo-page-gutter and
+   --nfo-max-width so tool bodies feel breathable on wide displays. */
 .tool-layout-single-panel {
   flex: 1;
-  overflow: hidden;
+  overflow: auto;
   height: 100%;
-  padding: var(--ds-spacing-md);
+  padding: var(--nfo-space-5) var(--nfo-page-gutter, var(--nfo-space-4));
+  width: 100%;
+  max-width: var(--nfo-max-width, 1280px);
+  margin: 0 auto;
 }
 
 .tool-layout-dual-panels {
   flex: 1;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1px;
-  background: var(--ds-color-border-subtle);
+  gap: 0;
+  background: transparent;
   overflow: hidden;
   height: 100%;
 }
 
 .tool-layout-panel {
-  background: var(--ds-color-background);
+  background: var(--nfo-bg);
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  padding: var(--nfo-space-5) var(--nfo-page-gutter, var(--nfo-space-4));
 }
 
 .tool-layout-left-panel {
-  border-right: none;
-}
-
-.tool-layout-right-panel {
-  border-left: none;
+  border-right: 1px solid var(--nfo-border-faint);
 }
 
 /* Status Bar */
@@ -261,12 +267,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--ds-spacing-xs) var(--ds-spacing-md);
-  background: var(--ds-color-background-secondary);
-  border-top: 1px solid var(--ds-color-border-subtle);
-  font-size: var(--ds-font-size-xs);
-  color: var(--ds-color-text-secondary);
-  min-height: 28px;
+  padding: var(--nfo-space-1) var(--nfo-space-3);
+  background: var(--nfo-bg-alt);
+  border-top: 1px solid var(--nfo-border-faint);
+  font-family: var(--nfo-font-primary);
+  font-size: var(--nfo-t-xs);
+  color: var(--nfo-ink-2);
+  min-height: 24px;
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
 }
 
 /* Responsive Design */
