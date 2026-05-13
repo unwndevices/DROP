@@ -17,6 +17,9 @@ export type { PanelProps } from './components/Panel';
 export { SectionLabel } from './components/SectionLabel';
 export type { SectionLabelProps } from './components/SectionLabel';
 
+export { StatusBadge } from './components/StatusBadge';
+export type { StatusBadgeProps, StatusKind } from './components/StatusBadge';
+
 export { Modal, ModalHeader, ModalContent, ModalFooter } from './components/Modal';
 export type { ModalProps, ModalHeaderProps, ModalContentProps, ModalFooterProps } from './components/Modal';
 

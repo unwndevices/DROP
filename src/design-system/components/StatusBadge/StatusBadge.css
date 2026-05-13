@@ -1,0 +1,30 @@
+.nfo-status-badge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4em;
+  font-family: var(--nfo-font-primary, var(--ds-font-mono));
+  font-size: var(--nfo-t-small, 0.6875rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: var(--nfo-lh-snug, 1.3);
+}
+
+.nfo-status-badge__bracket {
+  color: var(--nfo-ink-3);
+}
+
+.nfo-status-badge__label {
+  font-weight: var(--nfo-fw-medium, 500);
+}
+
+.nfo-status-badge__msg {
+  color: var(--nfo-ink-2);
+  font-weight: var(--nfo-fw-regular, 400);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.nfo-status-badge--ok   .nfo-status-badge__label { color: var(--nfo-ok); }
+.nfo-status-badge--err  .nfo-status-badge__label { color: var(--nfo-err); }
+.nfo-status-badge--warn .nfo-status-badge__label { color: var(--nfo-warn); }
+.nfo-status-badge--info .nfo-status-badge__label { color: var(--nfo-info); }
