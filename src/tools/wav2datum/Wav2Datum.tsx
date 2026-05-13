@@ -403,15 +403,19 @@ export const Wav2Datum: React.FC = () => {
         <SectionLabel index={4}>output</SectionLabel>
 
         <div className="wav2datum__output">
-          <div className="wav2datum__preset">
+          <label className="wav2datum__preset">
             <span className="wav2datum__prompt" aria-hidden="true">›</span>
             <input
               type="text"
               placeholder="preset name"
               value={settings.presetName}
               onChange={(e) => setSettings((p) => ({ ...p, presetName: e.target.value }))}
+              spellCheck={false}
+              autoCapitalize="off"
+              autoComplete="off"
             />
-          </div>
+            <span className="wav2datum__preset-ext" aria-hidden="true">.datum</span>
+          </label>
 
           <button
             type="button"

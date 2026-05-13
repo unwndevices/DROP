@@ -76,8 +76,7 @@
   font-weight: var(--nfo-fw-medium, 500);
 }
 
-.wav2datum__select,
-.wav2datum__preset input {
+.wav2datum__select {
   font-family: inherit;
   font-size: var(--nfo-t-body, 0.8125rem);
   color: var(--nfo-ink-1);
@@ -168,6 +167,37 @@
   gap: 8px;
   flex: 1;
   min-width: 240px;
+  border: 1px solid var(--nfo-border-strong, var(--ds-color-border));
+  padding: 4px 10px;
+  background: var(--nfo-surface, transparent);
+  cursor: text;
+}
+
+.wav2datum__preset:focus-within {
+  border-color: var(--nfo-accent, #da532c);
+}
+
+.wav2datum__preset input {
+  flex: 1;
+  font-family: inherit;
+  font-size: var(--nfo-t-body, 0.8125rem);
+  color: var(--nfo-ink-1);
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  min-width: 0;
+}
+
+.wav2datum__preset input::placeholder {
+  color: var(--nfo-ink-3);
+}
+
+.wav2datum__preset-ext {
+  color: var(--nfo-ink-3);
+  font-size: var(--nfo-t-small, 0.75rem);
+  letter-spacing: 0.04em;
+  user-select: none;
 }
 
 .wav2datum__prompt {
