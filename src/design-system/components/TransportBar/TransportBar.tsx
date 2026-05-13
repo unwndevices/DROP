@@ -67,7 +67,7 @@ export const TransportBar: React.FC<TransportBarProps> = ({
           disabled={disabled || totalFrames === 0}
           aria-label={isPlaying ? 'pause' : 'play'}
         >
-          {isPlaying ? '[ pause ]' : '[ play ]'}
+          {isPlaying ? 'pause' : 'play'}
         </button>
       )}
 

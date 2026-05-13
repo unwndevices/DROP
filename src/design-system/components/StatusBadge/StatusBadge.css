@@ -9,10 +9,6 @@
   line-height: var(--nfo-lh-snug, 1.3);
 }
 
-.nfo-status-badge__bracket {
-  color: var(--nfo-ink-3);
-}
-
 .nfo-status-badge__label {
   font-weight: var(--nfo-fw-medium, 500);
 }

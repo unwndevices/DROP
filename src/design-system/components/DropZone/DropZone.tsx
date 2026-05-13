@@ -17,7 +17,7 @@ export const DropZone: React.FC<DropZoneProps> = ({
   accept,
   multiple = false,
   disabled = false,
-  label = '[ drop file here ]',
+  label = 'drop file here',
   hint,
   className = '',
   children,

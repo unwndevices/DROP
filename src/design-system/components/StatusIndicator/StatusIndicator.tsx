@@ -29,9 +29,7 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
   return (
     <div className={classes} style={style} role="status">
       <span className="alert-tag" aria-hidden="true">
-        <span className="alert-tag-bracket">[</span>
         <span className="alert-tag-label">{VARIANT_LABEL[variant]}</span>
-        <span className="alert-tag-bracket">]</span>
       </span>
       {icon && <span className="alert-icon">{icon}</span>}
       <span className="alert-msg">{children}</span>

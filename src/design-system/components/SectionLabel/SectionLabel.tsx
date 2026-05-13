@@ -23,9 +23,7 @@ export const SectionLabel: React.FC<SectionLabelProps> = ({
         <span className="nfo-section-label__index">{formatIndex(index)}</span>
       )}
       <span className="nfo-section-label__title">
-        <span className="nfo-section-label__bracket">[</span>
         <span className="nfo-section-label__label">{children}</span>
-        <span className="nfo-section-label__bracket">]</span>
       </span>
       <span className="nfo-section-label__rule" aria-hidden="true" />
       {actions && <span className="nfo-section-label__actions">{actions}</span>}

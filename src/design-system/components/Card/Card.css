@@ -1,6 +1,5 @@
 /* Card — NFO retheme: flat, square, hairline. No shadow, no blur.
-   For chrome-heavy panels (titled headers, [ TITLE ] brackets), use the
-   Panel primitive instead. */
+   For chrome-heavy panels with titled headers, use the Panel primitive. */
 
 .ds-card {
     background: var(--nfo-surface);

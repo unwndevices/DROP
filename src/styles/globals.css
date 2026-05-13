@@ -664,7 +664,6 @@ input[type="file"]::file-selector-button {
   flex-shrink: 0;
 }
 
-.alert-tag-bracket { color: var(--nfo-ink-3); }
 .alert-msg         { color: var(--nfo-ink-1); }
 .alert-icon        { display: inline-flex; align-items: center; flex-shrink: 0; }
 

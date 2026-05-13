@@ -22,10 +22,6 @@
   flex-shrink: 0;
 }
 
-.nfo-section-label__bracket {
-  color: var(--nfo-ink-3);
-}
-
 .nfo-section-label__label {
   color: var(--nfo-ink-1);
   font-weight: var(--nfo-fw-medium, 500);

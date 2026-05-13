@@ -28,9 +28,7 @@ export const Panel: React.FC<PanelProps> = ({
         <header className="nfo-panel__chrome">
           {title && (
             <span className="nfo-panel__title">
-              <span className="nfo-panel__bracket">[</span>
               <span className="nfo-panel__label">{title}</span>
-              <span className="nfo-panel__bracket">]</span>
             </span>
           )}
           {actions && <span className="nfo-panel__actions">{actions}</span>}

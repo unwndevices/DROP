@@ -26,9 +26,7 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
       className={`nfo-status-badge nfo-status-badge--${kind} ${className}`.trim()}
       role="status"
     >
-      <span className="nfo-status-badge__bracket">[</span>
       <span className="nfo-status-badge__label">{LABEL[kind]}</span>
-      <span className="nfo-status-badge__bracket">]</span>
       {children && <span className="nfo-status-badge__msg">{children}</span>}
     </span>
   );

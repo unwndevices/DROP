@@ -25,10 +25,6 @@
   font-weight: var(--nfo-fw-medium, 500);
 }
 
-.nfo-panel__bracket {
-  color: var(--nfo-ink-3);
-}
-
 .nfo-panel__label {
   color: var(--nfo-ink-1);
 }
