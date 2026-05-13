@@ -103,22 +103,14 @@ body {
   flex-direction: column;
 }
 
-/* Main App */
+/* Main App — NFO shell: top-bar + tool body, no sidebar. */
 .drop-app {
   height: 100vh;
   display: flex;
-  flex-direction: row;
-  background: var(--color-background);
-  color: var(--color-text-primary);
-  font-family: var(--font-mono);
-}
-
-/* Main content area with navbar */
-.app-with-navbar {
-  flex: 1;
-  display: flex;
   flex-direction: column;
-  overflow: hidden;
+  background: var(--nfo-bg);
+  color: var(--nfo-ink-1);
+  font-family: var(--nfo-font-primary);
 }
 
 /* Tool container */
