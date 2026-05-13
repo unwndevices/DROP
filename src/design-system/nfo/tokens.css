@@ -128,7 +128,9 @@
 }
 
 
-/* Dark palette */
+/* Dark palette — applied when <html data-theme="dark"> is set, or when
+   the OS prefers dark mode and no explicit data-theme is present. An
+   explicit `data-theme="light"` overrides the OS preference. */
 [data-theme="dark"] {
   --nfo-bg:          #0f0e0c;
   --nfo-bg-alt:      #181714;
@@ -145,4 +147,24 @@
   --nfo-border:        #2e2b26;
   --nfo-border-faint:  #232018;
   --nfo-border-strong: #4a4540;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --nfo-bg:          #0f0e0c;
+    --nfo-bg-alt:      #181714;
+    --nfo-bg-deep:     #1e1d1a;
+    --nfo-surface:     #1c1b18;
+    --nfo-surface-alt: #252320;
+
+    --nfo-ink-1:       #f0ede5;
+    --nfo-ink-2:       #b0a89e;
+    --nfo-ink-3:       #706862;
+    --nfo-ink-4:       #4a4540;
+    --nfo-ink-inv:     #1a1916;
+
+    --nfo-border:        #2e2b26;
+    --nfo-border-faint:  #232018;
+    --nfo-border-strong: #4a4540;
+  }
 }

@@ -125,6 +125,23 @@ export function applyTheme(_themeName: ThemeName): void {
     return;
 }
 
+import type { ThemeMode } from '../types/settings';
+
+/**
+ * Apply light/dark mode by setting `data-theme` on <html>. When mode is
+ * `system`, the attribute is removed and the OS `prefers-color-scheme`
+ * media query drives the palette (handled in tokens.css under
+ * `@media (prefers-color-scheme: dark)`).
+ */
+export function applyThemeMode(mode: ThemeMode): void {
+    const root = document.documentElement;
+    if (mode === 'system') {
+        root.removeAttribute('data-theme');
+        return;
+    }
+    root.setAttribute('data-theme', mode);
+}
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _legacyApplyTheme(themeName: ThemeName): void {
     const theme = getTheme(themeName);

@@ -5,8 +5,11 @@ export interface LayoutSettings {
 
 export type ThemeName = 'rose-pine' | 'catppuccin' | 'gruvbox' | 'nord' | 'rose-pine-dawn' | 'jellyfish' | 'aura' | 'dobri' | 'cute-pink-light';
 
+export type ThemeMode = 'system' | 'light' | 'dark';
+
 export interface ThemeSettings {
     name: ThemeName;
+    mode: ThemeMode;
 }
 
 export interface RetroSettings {
@@ -32,6 +35,7 @@ export const defaultSettings: Settings = {
     },
     theme: {
         name: 'rose-pine',
+        mode: 'system',
     },
     retro: {
         intensity: 1,

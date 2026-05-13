@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { Settings, SettingsContextType } from '../types/settings';
 import { defaultSettings as defaultSettingsValue } from '../types/settings';
-import { applyTheme } from '../utils/colorUtils';
+import { applyTheme, applyThemeMode } from '../utils/colorUtils';
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
@@ -30,14 +30,17 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
 
         // Apply theme immediately after loading from localStorage
         applyTheme(mergedSettings.theme.name);
+        applyThemeMode(mergedSettings.theme.mode);
       } else {
         // Apply default theme if no saved settings
         applyTheme(defaultSettingsValue.theme.name);
+        applyThemeMode(defaultSettingsValue.theme.mode);
       }
     } catch (error) {
       console.warn('DROP: Failed to load settings from localStorage:', error);
       // Apply default theme on error
       applyTheme(defaultSettingsValue.theme.name);
+      applyThemeMode(defaultSettingsValue.theme.mode);
     }
   }, []);
 
@@ -55,6 +58,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
     // Apply theme immediately when theme settings change
     if (newSettings.theme) {
       applyTheme(updatedSettings.theme.name);
+      applyThemeMode(updatedSettings.theme.mode);
     }
 
     // Save to localStorage
@@ -77,6 +81,7 @@ export const SettingsProvider: React.FC<SettingsProviderProps> = ({ children }) 
 
     // Apply default theme
     applyTheme(defaultSettingsValue.theme.name);
+    applyThemeMode(defaultSettingsValue.theme.mode);
   };
 
   const contextValue: SettingsContextType = {

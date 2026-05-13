@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSettings } from '../../../contexts/SettingsContext';
-import type { ThemeName } from '../../../types/settings';
+import type { ThemeName, ThemeMode } from '../../../types/settings';
+import { Segmented } from '../../../design-system';
 
 const themeOptions: { value: ThemeName; label: string; description: string }[] = [
   { value: 'gruvbox', label: 'Gruvbox', description: 'Retro groove with warm colors' },
@@ -26,8 +27,39 @@ export const ThemeSettings: React.FC = () => {
     });
   };
 
+  const handleModeChange = (mode: ThemeMode) => {
+    updateSettings({
+      theme: {
+        ...settings.theme,
+        mode,
+      },
+    });
+  };
+
   return (
     <div className="theme-settings">
+      <div className="settings-control">
+        <div className="settings-control-label">
+          <div className="settings-control-title">Appearance</div>
+          <div className="settings-control-description">
+            Light, dark, or follow OS preference
+          </div>
+        </div>
+        <div className="settings-control-input">
+          <Segmented<ThemeMode>
+            size="sm"
+            ariaLabel="appearance mode"
+            value={settings.theme.mode}
+            onChange={handleModeChange}
+            options={[
+              { value: 'system', label: 'system' },
+              { value: 'light',  label: 'light' },
+              { value: 'dark',   label: 'dark' },
+            ]}
+          />
+        </div>
+      </div>
+
       <div className="settings-control">
         <div className="settings-control-label">
           <div className="settings-control-title">Theme</div>
