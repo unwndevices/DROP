@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StatusBadge } from '../../../design-system';
 import type { Release } from '../releases';
 import './DownloadPanel.css';
@@ -18,6 +18,27 @@ const stripV = (v: string) => v.replace(/^v/i, '');
  */
 const daisyFilename = (): string => 'firmware.bin';
 const espFilename = (version: string): string => `eisei-${stripV(version)}.esp`;
+
+/**
+ * Cross-origin <a download> is ignored by browsers — GitHub raw URLs would
+ * save under the source filename, not our microSD-conventional name. Fetch
+ * the binary into a same-origin blob and trigger the save from there so
+ * the `download` attribute is honoured.
+ */
+async function saveBlobAs(url: string, filename: string): Promise<void> {
+  const res = await fetch(url, { mode: 'cors' });
+  if (!res.ok) throw new Error(`fetch failed: ${res.status} ${res.statusText}`);
+  const blob = await res.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = objectUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  // Revoke after a tick so Safari has time to start the download.
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+}
 
 export const DownloadPanel: React.FC<DownloadPanelProps> = ({
   release,
@@ -75,18 +96,38 @@ const DownloadRow: React.FC<{ label: string; url: string; filename: string }> = 
   label,
   url,
   filename,
-}) => (
-  <li className="download-row">
-    <span className="download-row__prompt" aria-hidden="true">›</span>
-    <span className="download-row__label">{label}</span>
-    <span className="download-row__arrow" aria-hidden="true">→</span>
-    <a
-      className="download-row__link"
-      href={url}
-      download={filename}
-      rel="noopener noreferrer"
-    >
-      {filename}
-    </a>
-  </li>
-);
+}) => {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const onClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await saveBlobAs(url, filename);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'download failed');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <li className="download-row">
+      <span className="download-row__prompt" aria-hidden="true">›</span>
+      <span className="download-row__label">{label}</span>
+      <span className="download-row__arrow" aria-hidden="true">→</span>
+      <a
+        className="download-row__link"
+        href={url}
+        onClick={onClick}
+        aria-busy={busy}
+      >
+        {busy ? 'saving…' : filename}
+      </a>
+      {error && <StatusBadge kind="err">{error}</StatusBadge>}
+    </li>
+  );
+};
