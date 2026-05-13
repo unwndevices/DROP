@@ -1,41 +1,22 @@
 import React from 'react';
-import { Settings, Sun, Moon, MonitorCog } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 import { VISIBLE_TOOLS, type ToolEntry } from '../../tools/registry';
-import { useSettings } from '../../contexts/SettingsContext';
-import type { ThemeMode } from '../../types/settings';
+import { useTheme } from '../../hooks/useTheme';
 import './TopBar.css';
 
 interface TopBarProps {
   activeToolId: string;
   onSelectTool: (tool: ToolEntry) => void;
-  onOpenSettings: () => void;
-  /** Optional slot for the device-status indicator (wired in phase 2). */
-  statusSlot?: React.ReactNode;
 }
-
-const NEXT_MODE: Record<ThemeMode, ThemeMode> = {
-  system: 'light',
-  light: 'dark',
-  dark: 'system',
-};
-
-const MODE_LABEL: Record<ThemeMode, string> = {
-  system: 'theme: system',
-  light: 'theme: light',
-  dark: 'theme: dark',
-};
 
 export const TopBar: React.FC<TopBarProps> = ({
   activeToolId,
   onSelectTool,
-  onOpenSettings,
-  statusSlot,
 }) => {
-  const { settings, updateSettings } = useSettings();
-  const mode = settings.theme.mode;
-  const cycleTheme = () =>
-    updateSettings({ theme: { ...settings.theme, mode: NEXT_MODE[mode] } });
-  const ThemeIcon = mode === 'light' ? Sun : mode === 'dark' ? Moon : MonitorCog;
+  const { mode, toggle } = useTheme();
+  const ThemeIcon = mode === 'light' ? Moon : Sun;
+  const nextLabel = mode === 'light' ? 'switch to dark' : 'switch to light';
+
   return (
     <header className="nfo-topbar" role="banner">
       <div className="nfo-topbar__brand">
@@ -64,24 +45,14 @@ export const TopBar: React.FC<TopBarProps> = ({
       </nav>
 
       <div className="nfo-topbar__actions">
-        <div className="nfo-topbar__status">{statusSlot}</div>
         <button
           type="button"
           className="nfo-topbar__icon-btn"
-          onClick={cycleTheme}
-          aria-label={MODE_LABEL[mode]}
-          title={MODE_LABEL[mode]}
+          onClick={toggle}
+          aria-label={nextLabel}
+          title={nextLabel}
         >
-          <ThemeIcon size={14} strokeWidth={1.5} />
-        </button>
-        <button
-          type="button"
-          className="nfo-topbar__icon-btn"
-          onClick={onOpenSettings}
-          aria-label="settings"
-          title="settings"
-        >
-          <Settings size={14} strokeWidth={1.5} />
+          <ThemeIcon size={16} strokeWidth={1.5} />
         </button>
       </div>
     </header>

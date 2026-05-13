@@ -1,6 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { FaPlay, FaPause } from 'react-icons/fa';
-import { useSettings } from '../../contexts/SettingsContext';
 import type { SpectralFrame } from '../../services/DataModel/types';
 import './SimpleSpectrumChart.css';
 
@@ -32,7 +31,6 @@ export const SimpleSpectrumChart: React.FC<SimpleSpectrumChartProps> = ({
     }
     return false;
   });
-  const { settings } = useSettings();
 
   // Auto-play effect
   useEffect(() => {
@@ -54,16 +52,22 @@ export const SimpleSpectrumChart: React.FC<SimpleSpectrumChartProps> = ({
     localStorage.setItem('drop-chart-settings', JSON.stringify(settings));
   }, [isPlaying]);
 
-  // Get current theme colors from CSS variables
+  // Re-render when the user toggles light/dark.
+  const [themeTick, setThemeTick] = useState(0);
+  useEffect(() => {
+    const obs = new MutationObserver(() => setThemeTick((n) => n + 1));
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => obs.disconnect();
+  }, []);
+
+  // Get current theme colors from NFO CSS variables.
   const getThemeColors = () => {
-    const root = document.documentElement;
-    const computedStyle = getComputedStyle(root);
-    
+    const cs = getComputedStyle(document.documentElement);
     return {
-      background: computedStyle.getPropertyValue('--color-background').trim() || '#181818',
-      primary: computedStyle.getPropertyValue('--color-accent').trim() || '#C7EE1B',
-      primaryMuted: computedStyle.getPropertyValue('--color-accent-dark').trim() || '#9EBE0E',
-      textMuted: computedStyle.getPropertyValue('--color-text-muted').trim() || '#999999',
+      background: cs.getPropertyValue('--nfo-surface').trim() || '#faf8f3',
+      primary:    cs.getPropertyValue('--nfo-accent').trim()  || '#da532c',
+      primaryMuted: cs.getPropertyValue('--nfo-accent-dim').trim() || '#b84322',
+      textMuted:  cs.getPropertyValue('--nfo-ink-3').trim()   || '#948e84',
     };
   };
 
@@ -100,7 +104,7 @@ export const SimpleSpectrumChart: React.FC<SimpleSpectrumChartProps> = ({
     // Draw frequency labels and grid
     drawFrequencyLabels(ctx, rect.width, rect.height, colors);
     
-  }, [frames, currentFrame, settings.theme.name]); // Include theme dependencies for immediate updates
+  }, [frames, currentFrame, themeTick]);
 
   const getFrequencyForBand = (band: number, totalBands: number = 20): number => {
     const freqRatio = band / (totalBands - 1);

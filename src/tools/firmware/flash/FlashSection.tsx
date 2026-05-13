@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StatusBadge } from '../../../design-system';
 import { fetchBinary, type Release } from '../releases';
-import { useDeviceStatus } from '../../../contexts/DeviceStatusContext';
 import { DaisyFlasher } from './dfu';
 import { Esp32Flasher } from './esp';
 import './FlashSection.css';
@@ -20,7 +19,6 @@ export const DaisyFlashSection: React.FC<BaseProps> = ({
   busy: externalBusy,
   onBusyChange,
 }) => {
-  const { state: globalConn, setState: setGlobalConn } = useDeviceStatus();
   const flasherRef = useRef<DaisyFlasher | null>(null);
   const [phase, setPhase] = useState<Phase>('idle');
   const [connected, setConnected] = useState(false);
@@ -31,11 +29,6 @@ export const DaisyFlashSection: React.FC<BaseProps> = ({
   useEffect(() => {
     onBusyChange?.(busy);
   }, [busy, onBusyChange]);
-
-  useEffect(() => {
-    setGlobalConn({ ...globalConn, daisy: connected });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connected]);
 
   const loggers = useMemo(
     () => ({
@@ -132,7 +125,6 @@ export const Esp32FlashSection: React.FC<Esp32Props> = ({
   includeDaisy,
   onToggleIncludeDaisy,
 }) => {
-  const { state: globalConn, setState: setGlobalConn } = useDeviceStatus();
   const flasherRef = useRef<Esp32Flasher | null>(null);
   const [phase, setPhase] = useState<Phase>('idle');
   const [connected, setConnected] = useState(false);
@@ -143,11 +135,6 @@ export const Esp32FlashSection: React.FC<Esp32Props> = ({
   useEffect(() => {
     onBusyChange?.(busy);
   }, [busy, onBusyChange]);
-
-  useEffect(() => {
-    setGlobalConn({ ...globalConn, esp: connected });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connected]);
 
   const loggers = useMemo(
     () => ({
