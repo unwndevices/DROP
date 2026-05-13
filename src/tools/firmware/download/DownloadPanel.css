@@ -5,6 +5,12 @@
   font-family: var(--nfo-font-primary, var(--ds-font-mono));
 }
 
+.download-panel__hint {
+  margin: 0;
+  font-size: var(--nfo-t-small, 0.75rem);
+  color: var(--nfo-ink-3);
+}
+
 .download-panel__variant {
   display: inline-flex;
   align-items: center;

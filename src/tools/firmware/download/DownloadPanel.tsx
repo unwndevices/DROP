@@ -1,11 +1,9 @@
 import React from 'react';
 import { StatusBadge } from '../../../design-system';
 import type { Release } from '../releases';
-import type { FirmwareTarget } from '../Firmware';
 import './DownloadPanel.css';
 
 export interface DownloadPanelProps {
-  target: FirmwareTarget;
   release: Release | undefined;
   useDaisyDebug: boolean;
   onToggleDaisyDebug: (next: boolean) => void;
@@ -18,15 +16,10 @@ const stripV = (v: string) => v.replace(/^v/i, '');
  * - Daisy: `firmware.bin` (Daisy bootloader auto-flashes from SD root)
  * - ESP32: `eisei-X.Y.Z.esp` (Daisy scans + forwards over UART)
  */
-function daisyFilename(): string {
-  return 'firmware.bin';
-}
-function espFilename(version: string): string {
-  return `eisei-${stripV(version)}.esp`;
-}
+const daisyFilename = (): string => 'firmware.bin';
+const espFilename = (version: string): string => `eisei-${stripV(version)}.esp`;
 
 export const DownloadPanel: React.FC<DownloadPanelProps> = ({
-  target,
   release,
   useDaisyDebug,
   onToggleDaisyDebug,
@@ -40,8 +33,6 @@ export const DownloadPanel: React.FC<DownloadPanelProps> = ({
   }
 
   const daisyDebugAvailable = Boolean(release.platforms.daisy_debug);
-  const showDaisy = target === 'daisy' || target === 'both';
-  const showEsp = target === 'esp32' || target === 'both';
   const daisyUrl =
     useDaisyDebug && daisyDebugAvailable
       ? release.platforms.daisy_debug!
@@ -49,12 +40,11 @@ export const DownloadPanel: React.FC<DownloadPanelProps> = ({
 
   return (
     <div className="download-panel">
-      <StatusBadge kind="info">
-        save each file to the microsd root. one click per file — no zip, no
-        auto-trigger.
-      </StatusBadge>
+      <p className="download-panel__hint">
+        save each file to the microsd root. one click per file — no zip.
+      </p>
 
-      {showDaisy && daisyDebugAvailable && (
+      {daisyDebugAvailable && (
         <label className="download-panel__variant">
           <input
             type="checkbox"
@@ -66,20 +56,16 @@ export const DownloadPanel: React.FC<DownloadPanelProps> = ({
       )}
 
       <ul className="download-panel__list">
-        {showDaisy && (
-          <DownloadRow
-            label={`daisy${useDaisyDebug && daisyDebugAvailable ? ' (debug)' : ''}`}
-            url={daisyUrl}
-            filename={daisyFilename()}
-          />
-        )}
-        {showEsp && (
-          <DownloadRow
-            label="esp32"
-            url={release.platforms.esp32}
-            filename={espFilename(release.version)}
-          />
-        )}
+        <DownloadRow
+          label={`daisy${useDaisyDebug && daisyDebugAvailable ? ' (debug)' : ''}`}
+          url={daisyUrl}
+          filename={daisyFilename()}
+        />
+        <DownloadRow
+          label="esp32"
+          url={release.platforms.esp32}
+          filename={espFilename(release.version)}
+        />
       </ul>
     </div>
   );

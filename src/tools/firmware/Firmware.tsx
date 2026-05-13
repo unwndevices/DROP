@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { SectionLabel, Segmented, StatusBadge } from '../../design-system';
+import { SectionLabel, StatusBadge } from '../../design-system';
 import {
   filterReleases,
   isBeta,
@@ -8,31 +8,20 @@ import {
   type Release,
 } from './releases';
 import { ReleaseNotes } from './ReleaseNotes';
-import { FlashPanel } from './flash/FlashPanel';
+import { DaisyFlashSection, Esp32FlashSection } from './flash/FlashSection';
 import { DownloadPanel } from './download/DownloadPanel';
 import './Firmware.css';
 
-export type FirmwareMode = 'flash' | 'download';
-export type FirmwareTarget = 'daisy' | 'esp32' | 'both';
-
-const MODE_OPTIONS: { value: FirmwareMode; label: string }[] = [
-  { value: 'flash', label: 'flash' },
-  { value: 'download', label: 'download' },
-];
-
-const TARGET_OPTIONS: { value: FirmwareTarget; label: string }[] = [
-  { value: 'daisy', label: 'daisy' },
-  { value: 'esp32', label: 'esp32' },
-  { value: 'both', label: 'both' },
-];
-
 export const Firmware: React.FC = () => {
   const { releases, latestId, loading, error, fromCache, refresh } = useReleases();
-  const [mode, setMode] = useState<FirmwareMode>('flash');
-  const [target, setTarget] = useState<FirmwareTarget>('daisy');
   const [showBetas, setShowBetas] = useState(false);
   const [selectedVersion, setSelectedVersion] = useState<string>('');
   const [useDaisyDebug, setUseDaisyDebug] = useState(false);
+  const [includeDaisyOnEsp, setIncludeDaisyOnEsp] = useState(true);
+
+  // Track which section is mid-flash to lock the other.
+  const [daisyBusy, setDaisyBusy] = useState(false);
+  const [espBusy, setEspBusy] = useState(false);
 
   const visibleReleases = useMemo(
     () => filterReleases(releases, { showBetas }),
@@ -66,26 +55,10 @@ export const Firmware: React.FC = () => {
           <span>firmware</span>
           <span className="firmware-tool__bracket">]</span>
         </h1>
-        <Segmented<FirmwareMode>
-          options={MODE_OPTIONS}
-          value={mode}
-          onChange={setMode}
-          ariaLabel="firmware mode"
-        />
       </header>
 
       <section className="firmware-section">
-        <SectionLabel index={1}>target</SectionLabel>
-        <Segmented<FirmwareTarget>
-          options={TARGET_OPTIONS}
-          value={target}
-          onChange={setTarget}
-          ariaLabel="firmware target"
-        />
-      </section>
-
-      <section className="firmware-section">
-        <SectionLabel index={2}>version</SectionLabel>
+        <SectionLabel index={1}>version</SectionLabel>
 
         <div className="firmware-version">
           <span className="firmware-version__prompt" aria-hidden="true">›</span>
@@ -141,17 +114,32 @@ export const Firmware: React.FC = () => {
       </section>
 
       <section className="firmware-section">
-        <SectionLabel index={3}>action</SectionLabel>
-        {mode === 'flash' ? (
-          <FlashPanel target={target} release={selectedRelease} />
-        ) : (
-          <DownloadPanel
-            target={target}
-            release={selectedRelease}
-            useDaisyDebug={useDaisyDebug}
-            onToggleDaisyDebug={setUseDaisyDebug}
-          />
-        )}
+        <SectionLabel index={2}>download for microsd</SectionLabel>
+        <DownloadPanel
+          release={selectedRelease}
+          useDaisyDebug={useDaisyDebug}
+          onToggleDaisyDebug={setUseDaisyDebug}
+        />
+      </section>
+
+      <section className="firmware-section">
+        <SectionLabel index={3}>flash daisy (dfu)</SectionLabel>
+        <DaisyFlashSection
+          release={selectedRelease}
+          busy={espBusy}
+          onBusyChange={setDaisyBusy}
+        />
+      </section>
+
+      <section className="firmware-section">
+        <SectionLabel index={4}>flash esp32 (serial)</SectionLabel>
+        <Esp32FlashSection
+          release={selectedRelease}
+          busy={daisyBusy}
+          onBusyChange={setEspBusy}
+          includeDaisy={includeDaisyOnEsp}
+          onToggleIncludeDaisy={setIncludeDaisyOnEsp}
+        />
       </section>
     </div>
   );

@@ -1,19 +1,17 @@
-.flash-panel {
+.flash-section {
   display: flex;
   flex-direction: column;
   gap: var(--nfo-space-3, 12px);
   font-family: var(--nfo-font-primary, var(--ds-font-mono));
 }
 
-.flash-panel__connect {
+.flash-section__controls {
   display: flex;
   flex-wrap: wrap;
   gap: var(--nfo-space-2, 8px);
 }
 
-.flash-panel__btn,
-.flash-panel__primary,
-.flash-panel__reset {
+.flash-section__btn {
   font-family: inherit;
   font-size: var(--nfo-t-body, 0.8125rem);
   text-transform: lowercase;
@@ -26,60 +24,61 @@
   cursor: pointer;
 }
 
-.flash-panel__btn:hover:not(:disabled),
-.flash-panel__primary:hover:not(:disabled) {
+.flash-section__btn:hover:not(:disabled) {
   border-color: var(--nfo-accent, #da532c);
   color: var(--nfo-accent, #da532c);
 }
 
-.flash-panel__btn:disabled,
-.flash-panel__primary:disabled {
+.flash-section__btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
 
-.flash-panel__primary {
-  align-self: flex-start;
-  font-weight: var(--nfo-fw-medium, 500);
+.flash-section__btn--primary {
   border-color: var(--nfo-accent, #da532c);
   color: var(--nfo-accent, #da532c);
+  font-weight: var(--nfo-fw-medium, 500);
 }
 
-.flash-panel__primary:disabled {
+.flash-section__btn--primary:disabled {
   border-color: var(--nfo-border-faint, var(--ds-color-border));
   color: var(--nfo-ink-3);
 }
 
-.flash-panel__hint {
-  display: flex;
+.flash-section__option {
+  display: inline-flex;
   align-items: center;
+  gap: 8px;
+  font-size: var(--nfo-t-small, 0.75rem);
+  color: var(--nfo-ink-2);
+  cursor: pointer;
+  user-select: none;
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
 }
 
-.flash-panel__action {
-  display: flex;
-  gap: var(--nfo-space-3, 12px);
-  align-items: center;
-  flex-wrap: wrap;
+.flash-section__option input {
+  accent-color: var(--nfo-accent, #da532c);
 }
 
-.flash-panel__progress {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.flash-section__option em {
+  color: var(--nfo-ink-3);
+  font-style: normal;
+}
+
+.flash-section__hint {
+  margin: 0;
+  font-size: var(--nfo-t-small, 0.75rem);
+  color: var(--nfo-ink-3);
 }
 
 .flash-progress {
   display: grid;
-  grid-template-columns: 60px 1fr 48px;
+  grid-template-columns: 1fr 48px;
   gap: 10px;
   align-items: center;
   font-size: var(--nfo-t-small, 0.75rem);
   color: var(--nfo-ink-2);
-}
-
-.flash-progress__label {
-  text-transform: lowercase;
-  letter-spacing: 0.06em;
 }
 
 .flash-progress__bar {
@@ -105,11 +104,4 @@
 
 .flash-progress--active .flash-progress__pct {
   color: var(--nfo-ink-1);
-}
-
-.flash-panel__reset {
-  align-self: flex-start;
-  font-size: var(--nfo-t-small, 0.75rem);
-  border-style: dashed;
-  color: var(--nfo-ink-3);
 }
