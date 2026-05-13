@@ -596,7 +596,6 @@ input[type="file"]::file-selector-button {
   position: fixed;
   inset: 0;
   background: rgba(var(--color-background-rgb), 0.85);
-  backdrop-filter: blur(8px);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -605,10 +604,10 @@ input[type="file"]::file-selector-button {
 }
 
 .modal {
-  background: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-lg), var(--shadow-glow);
+  background: var(--nfo-surface);
+  border: 1px solid var(--nfo-border);
+  border-radius: 0;
+  box-shadow: none;
   max-width: 90vw;
   max-height: 90vh;
   overflow: hidden;

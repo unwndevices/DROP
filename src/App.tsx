@@ -14,7 +14,6 @@ import { Wav2Datum } from './tools/wav2datum/Wav2Datum';
 
 import { PixelArtGenerator } from './tools/pixel-art-generator/PixelArtGenerator';
 import { ToastProvider } from './design-system';
-import { RetroOverlay } from './components/UI/RetroOverlay/RetroOverlay';
 
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { pwaService } from './services/PWAService';
@@ -155,7 +154,6 @@ const AppContent: React.FC = () => {
       />
 
       <PWAStatus />
-      <RetroOverlay />
     </div>
   );
 };
