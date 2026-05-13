@@ -1,19 +1,18 @@
 .nfo-dropzone {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--nfo-space-2, 8px);
+  gap: var(--nfo-space-3, 12px);
   width: 100%;
-  min-height: 160px;
   padding: var(--nfo-space-6, 32px) var(--nfo-space-5, 24px);
   border: 1px dashed var(--nfo-border);
   background: var(--nfo-surface);
   color: var(--nfo-ink-2);
   font-family: var(--nfo-font-primary, var(--ds-font-mono));
   font-size: var(--nfo-t-body, 0.9375rem);
-  letter-spacing: 0.04em;
-  text-transform: lowercase;
+  line-height: var(--nfo-lh-normal, 1.5);
   text-align: center;
   cursor: pointer;
   user-select: none;
@@ -43,15 +42,19 @@
 }
 
 .nfo-dropzone__label {
+  display: block;
   font-weight: var(--nfo-fw-medium, 500);
-  font-size: var(--nfo-t-h4, 1.0625rem);
+  font-size: var(--nfo-t-h3, 1.1875rem);
+  line-height: 1.3;
   color: var(--nfo-ink-1);
-  letter-spacing: 0.02em;
 }
 
 .nfo-dropzone__hint {
+  display: block;
   color: var(--nfo-ink-3);
   font-size: var(--nfo-t-small, 0.8125rem);
+  line-height: 1.4;
+  max-width: 36ch;
 }
 
 .nfo-dropzone__input {
