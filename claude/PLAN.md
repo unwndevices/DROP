@@ -9,7 +9,7 @@ detailed task list and acceptance criteria. Commits are atomic per task.
 | #  | Phase                              | File                          | Status   |
 | -- | ---------------------------------- | ----------------------------- | -------- |
 | 0  | NFO design foundations             | `phase-0-foundations.md`      | done     |
-| 1  | App shell & navigation             | `phase-1-shell.md`            | in-progress |
+| 1  | App shell & navigation             | `phase-1-shell.md`            | done     |
 | 2  | Firmware tool (flash + download)   | `phase-2-firmware.md`         | pending  |
 | 3  | Wav2Datum rework                   | `phase-3-wav2datum.md`        | pending  |
 | 4  | Tool curation & cleanup            | `phase-4-cleanup.md`          | pending  |
