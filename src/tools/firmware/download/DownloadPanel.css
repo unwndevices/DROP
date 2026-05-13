@@ -43,8 +43,9 @@
   font-size: var(--nfo-t-body, 0.8125rem);
 }
 
-.download-row__bracket {
-  color: var(--nfo-ink-3);
+.download-row__prompt {
+  color: var(--nfo-accent, #da532c);
+  font-weight: var(--nfo-fw-medium, 500);
 }
 
 .download-row__label {

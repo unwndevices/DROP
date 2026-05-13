@@ -77,7 +77,7 @@ const DownloadRow: React.FC<{ label: string; url: string; filename: string }> = 
   filename,
 }) => (
   <li className="download-row">
-    <span className="download-row__bracket">[</span>
+    <span className="download-row__prompt" aria-hidden="true">›</span>
     <span className="download-row__label">{label}</span>
     <span className="download-row__arrow" aria-hidden="true">→</span>
     <a
@@ -88,6 +88,5 @@ const DownloadRow: React.FC<{ label: string; url: string; filename: string }> = 
     >
       {filename}
     </a>
-    <span className="download-row__bracket">]</span>
   </li>
 );
