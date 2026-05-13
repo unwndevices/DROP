@@ -70,19 +70,6 @@
   --ds-border-radius-lg:   0;
   --ds-border-radius-full: 0;
 
-  /* No shadows or glow */
-  --ds-shadow-sm:    none;
-  --ds-shadow-md:    none;
-  --ds-shadow-lg:    none;
-  --ds-shadow-glow:  none;
-  --ds-shadow-glow-strong: none;
-  --ds-shadow-error: none;
-
-  /* No backdrop blur — flat surfaces */
-  --ds-backdrop-blur: none;
-  --ds-surface-glass:       var(--nfo-surface);
-  --ds-surface-glass-hover: var(--nfo-surface-alt);
-
   /* Transitions */
   --ds-transition-fast:   var(--nfo-duration-fast) var(--nfo-ease-default);
   --ds-transition-medium: var(--nfo-duration-base) var(--nfo-ease-default);

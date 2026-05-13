@@ -33,7 +33,7 @@
 
 .drop-play-button:hover {
   background: var(--color-amber-light);
-  box-shadow: var(--shadow-glow-strong);
+  
 }
 
 .drop-play-button:active {
@@ -83,7 +83,7 @@
 .drop-frame-slider::-webkit-slider-thumb:hover {
   background: var(--color-amber-light);
   transform: scale(1.1);
-  box-shadow: var(--shadow-glow-strong);
+  
 }
 
 .drop-frame-slider::-moz-range-thumb {
@@ -138,7 +138,7 @@
 
 .drop-chart-stats span:first-child {
   color: var(--color-amber);
-  border-color: rgba(var(--color-glow-rgb), 0.5);
+  border-color: var(--nfo-accent);
   font-weight: 600;
 }
 
@@ -240,7 +240,7 @@
 /* Focus and accessibility */
 .drop-play-button:focus,
 .drop-frame-slider:focus {
-  box-shadow: 0 0 0 2px rgba(var(--color-glow-rgb), 0.3);
+  
 }
 
 /* High DPI displays */

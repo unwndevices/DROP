@@ -27,7 +27,7 @@
 
 .ds-timeline-play-button:hover:not(:disabled) {
   background: var(--ds-color-accent-light);
-  box-shadow: var(--ds-shadow-glow-strong);
+  
 }
 
 .ds-timeline-play-button:active:not(:disabled) {
@@ -91,7 +91,7 @@
 .ds-timeline-slider::-webkit-slider-thumb:hover:not(:disabled) {
   background: var(--ds-color-accent-light);
   transform: scale(1.1);
-  box-shadow: var(--ds-shadow-glow-strong);
+  
 }
 
 .ds-timeline-slider::-webkit-slider-thumb:disabled {
@@ -114,7 +114,7 @@
 .ds-timeline-slider::-moz-range-thumb:hover:not(:disabled) {
   background: var(--ds-color-accent-light);
   transform: scale(1.1);
-  box-shadow: var(--ds-shadow-glow-strong);
+  
 }
 
 .ds-timeline-slider::-moz-range-thumb:disabled {
