@@ -1,0 +1,148 @@
+/* ============================================================
+   NFO design system — unknown devices / DROP
+   Forked from web10 design system, mono-first variant.
+   Source: claude.ai/design "unknown-devices-design-system" / nfo
+   ============================================================ */
+
+/* Fira Mono — primary body + UI font */
+@font-face { font-family: 'Fira Mono'; src: url('/fonts/FiraMono-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Fira Mono'; src: url('/fonts/FiraMono-Medium.woff2')  format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Fira Mono'; src: url('/fonts/FiraMono-Bold.woff2')    format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+
+/* Helvetica Neue Cyr — wordmark only ("unwn") */
+@font-face { font-family: 'Helvetica Neue Cyr'; src: url('/fonts/HelveticaNeueCyr-Roman.woff2')  format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Helvetica Neue Cyr'; src: url('/fonts/HelveticaNeueCyr-Italic.woff2') format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: 'Helvetica Neue Cyr'; src: url('/fonts/HelveticaNeueCyr-Light.woff2')  format('woff2'); font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Helvetica Neue Cyr'; src: url('/fonts/HelveticaNeueCyr-Medium.woff2') format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Helvetica Neue Cyr'; src: url('/fonts/HelveticaNeueCyr-Bold.woff2')   format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+
+
+:root {
+  /* Light palette (default) */
+
+  /* Backgrounds — layered warm paper hierarchy */
+  --nfo-bg:           #f4f1eb;
+  --nfo-bg-alt:       #eceae1;
+  --nfo-bg-deep:      #dedad1;
+  --nfo-surface:      #faf8f3;
+  --nfo-surface-alt:  #f3f1ea;
+
+  /* Ink */
+  --nfo-ink-1:        #1a1916;
+  --nfo-ink-2:        #575349;
+  --nfo-ink-3:        #948e84;
+  --nfo-ink-4:        #c0bbb2;
+  --nfo-ink-inv:      #f4f1eb;
+
+  /* Accent — brand rust */
+  --nfo-accent:       #da532c;
+  --nfo-accent-dim:   #b84322;
+  --nfo-accent-tint:  rgba(218, 83, 44, 0.08);
+  --nfo-accent-fg:    #ffffff;
+
+  /* Borders */
+  --nfo-border:        #c8c4bb;
+  --nfo-border-faint:  #d8d4cb;
+  --nfo-border-strong: #8a857d;
+
+  /* Status */
+  --nfo-ok:    #3d7a4f;
+  --nfo-warn:  #b57a1f;
+  --nfo-err:   #c23b22;
+  --nfo-info:  #2e6098;
+
+  /* Fonts */
+  --nfo-font-primary:  'Fira Mono', 'Courier New', Courier, monospace;
+  --nfo-font-mono:     'Fira Mono', 'Courier New', Courier, monospace;
+  --nfo-font-wordmark: 'Helvetica Neue Cyr', 'Helvetica Neue', Helvetica, sans-serif;
+
+  --nfo-fw-regular: 400;
+  --nfo-fw-medium:  500;
+  --nfo-fw-bold:    700;
+
+  /* Type scale — mono renders dense, sizes calibrated for Fira Mono */
+  --nfo-t-hero:    clamp(2.5rem, 5vw, 4rem);
+  --nfo-t-h1:      clamp(1.5rem, 3vw, 2rem);
+  --nfo-t-h2:      1.25rem;
+  --nfo-t-h3:      1.0625rem;
+  --nfo-t-h4:      0.9375rem;
+  --nfo-t-body:    0.8125rem;   /* 13px */
+  --nfo-t-small:   0.6875rem;   /* 11px */
+  --nfo-t-xs:      0.5625rem;   /* 9px */
+  --nfo-t-mono:    0.6875rem;
+  --nfo-t-mono-sm: 0.5625rem;
+
+  /* Line heights */
+  --nfo-lh-tight:  1.15;
+  --nfo-lh-snug:   1.3;
+  --nfo-lh-normal: 1.5;
+  --nfo-lh-code:   1.65;
+  --nfo-lh-loose:  1.8;
+
+  /* Letter spacing */
+  --nfo-ls-tight:  -0.02em;
+  --nfo-ls-normal:  0em;
+  --nfo-ls-wide:    0.04em;
+  --nfo-ls-caps:    0.1em;
+  --nfo-ls-wider:   0.14em;
+
+  /* Spacing — 4px base */
+  --nfo-space-1:   4px;
+  --nfo-space-2:   8px;
+  --nfo-space-3:  12px;
+  --nfo-space-4:  16px;
+  --nfo-space-5:  24px;
+  --nfo-space-6:  32px;
+  --nfo-space-7:  48px;
+  --nfo-space-8:  64px;
+  --nfo-space-9:  96px;
+  --nfo-space-10: 128px;
+
+  /* Borders — radius is zero everywhere */
+  --nfo-radius: 0px;
+
+  --nfo-border-default:     1px solid var(--nfo-border);
+  --nfo-border-faint-line:  1px solid var(--nfo-border-faint);
+  --nfo-border-strong-line: 1px solid var(--nfo-border-strong);
+  --nfo-border-accent:      1px solid var(--nfo-accent);
+
+  /* No shadows — borders define elevation */
+  --nfo-shadow: none;
+
+  /* Transitions */
+  --nfo-ease-default: cubic-bezier(0.22, 0.1, 0.36, 1);
+  --nfo-ease-snap:    cubic-bezier(0.4, 0, 0.2, 1);
+  --nfo-duration-fast: 90ms;
+  --nfo-duration-base: 150ms;
+  --nfo-duration-slow: 260ms;
+
+  --nfo-transition-color:  color var(--nfo-duration-fast) var(--nfo-ease-default),
+                           background-color var(--nfo-duration-fast) var(--nfo-ease-default);
+  --nfo-transition-border: border-color var(--nfo-duration-fast) var(--nfo-ease-default);
+
+  /* Layout */
+  --nfo-max-width:   1200px;
+  --nfo-max-width-sm: 800px;
+  --nfo-nav-height:  48px;
+  --nfo-page-gutter: clamp(16px, 4vw, 48px);
+}
+
+
+/* Dark palette */
+[data-theme="dark"] {
+  --nfo-bg:          #0f0e0c;
+  --nfo-bg-alt:      #181714;
+  --nfo-bg-deep:     #1e1d1a;
+  --nfo-surface:     #1c1b18;
+  --nfo-surface-alt: #252320;
+
+  --nfo-ink-1:       #f0ede5;
+  --nfo-ink-2:       #b0a89e;
+  --nfo-ink-3:       #706862;
+  --nfo-ink-4:       #4a4540;
+  --nfo-ink-inv:     #1a1916;
+
+  --nfo-border:        #2e2b26;
+  --nfo-border-faint:  #232018;
+  --nfo-border-strong: #4a4540;
+}
