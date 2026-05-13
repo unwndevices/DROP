@@ -1,4 +1,5 @@
-/* Input Component Styles */
+/* Input — NFO retheme: square, hairline, `›` accent prefix slot,
+   focus = border-strong shift. */
 
 .ds-input-container {
     display: flex;
@@ -17,8 +18,9 @@
     font-family: var(--ds-font-mono);
     font-size: var(--ds-font-size-sm);
     font-weight: var(--ds-font-weight-medium);
-    color: var(--ds-color-text-secondary);
-    letter-spacing: 0.02em;
+    color: var(--nfo-ink-2);
+    letter-spacing: 0.06em;
+    text-transform: lowercase;
     transition: color var(--ds-transition-fast);
 }
 
@@ -32,149 +34,143 @@
     width: 100%;
 }
 
+/* `›` prompt prefix — applies to inputs whose wrapper opts in via
+   the `ds-input-wrapper--prompt` class. Plain `.ds-input-wrapper` stays clean. */
+.ds-input-wrapper--prompt::before {
+    content: '›';
+    position: absolute;
+    left: var(--ds-spacing-sm);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--nfo-accent);
+    font-family: var(--ds-font-mono);
+    font-size: var(--ds-font-size-base);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.ds-input-wrapper--prompt .ds-input {
+    padding-left: calc(var(--ds-spacing-md) + 10px);
+}
+
 .ds-input {
     width: 100%;
-    background: var(--ds-color-background-tertiary);
-    border: 1px solid var(--ds-color-border-subtle);
-    border-radius: var(--ds-border-radius-md);
-    color: var(--ds-color-text-primary);
+    background: var(--nfo-surface);
+    border: 1px solid var(--nfo-border);
+    border-radius: 0;
+    color: var(--nfo-ink-1);
     font-family: var(--ds-font-mono);
-    transition: all var(--ds-transition-fast);
+    transition:
+        border-color var(--ds-transition-fast),
+        background-color var(--ds-transition-fast),
+        color var(--ds-transition-fast);
     outline: none;
 }
 
 .ds-input::placeholder {
-    color: var(--ds-color-text-muted);
-    opacity: 0.5;
+    color: var(--nfo-ink-3);
+    opacity: 1;
 }
 
 /* Sizes */
-.ds-input-xs {
-    height: 24px;
-    padding: 0 var(--ds-spacing-sm);
-    font-size: var(--ds-font-size-xs);
-}
+.ds-input-xs { height: 22px; padding: 0 var(--ds-spacing-sm); font-size: var(--ds-font-size-xs); }
+.ds-input-sm { height: 28px; padding: 0 var(--ds-spacing-sm); font-size: var(--ds-font-size-sm); }
+.ds-input-md { height: 32px; padding: 0 var(--ds-spacing-md); font-size: var(--ds-font-size-sm); }
+.ds-input-lg { height: 40px; padding: 0 var(--ds-spacing-md); font-size: var(--ds-font-size-base); }
 
-.ds-input-sm {
-    height: 32px;
-    padding: 0 var(--ds-spacing-md);
-    font-size: var(--ds-font-size-sm);
-}
-
-.ds-input-md {
-    height: 40px;
-    padding: 0 var(--ds-spacing-md);
-    font-size: var(--ds-font-size-base);
-}
-
-.ds-input-lg {
-    height: 48px;
-    padding: 0 var(--ds-spacing-lg);
-    font-size: var(--ds-font-size-lg);
-}
-
-/* Textarea specific */
 textarea.ds-input {
     height: auto;
     padding: var(--ds-spacing-sm);
     min-height: 80px;
     resize: vertical;
+    line-height: var(--nfo-lh-code, 1.65);
 }
 
-/* States */
-.ds-input:hover:not(:disabled) {
-    border-color: var(--ds-color-text-muted);
-    background: rgba(255, 255, 255, 0.05);
+.ds-input:hover:not(:disabled):not(:focus) {
+    border-color: var(--nfo-border-strong);
 }
 
 .ds-input:focus:not(:disabled) {
-    border-color: var(--ds-color-accent);
-    background: var(--ds-color-background-secondary);
-    box-shadow: 0 0 0 1px var(--ds-color-accent), var(--ds-shadow-glow);
+    border-color: var(--nfo-border-strong);
+    background: var(--nfo-bg);
+    box-shadow: none;
 }
 
 .ds-input:disabled {
-    opacity: 0.5;
+    opacity: 0.55;
     cursor: not-allowed;
-    background: var(--ds-color-background);
+    background: var(--nfo-surface-alt);
 }
 
 /* Variants */
 .ds-input-error {
-    border-color: var(--ds-color-error);
+    border-color: var(--nfo-err);
 }
-
-.ds-input-error:focus {
-    box-shadow: 0 0 0 1px var(--ds-color-error), var(--ds-shadow-error);
-}
+.ds-input-error:focus { border-color: var(--nfo-err); }
 
 .ds-input-success {
-    border-color: var(--ds-color-success);
+    border-color: var(--nfo-ok);
 }
+.ds-input-success:focus { border-color: var(--nfo-ok); }
 
-.ds-input-success:focus {
-    box-shadow: 0 0 0 1px var(--ds-color-success), 0 0 8px rgba(var(--color-success-rgb), 0.3);
-}
-
-/* Helper Text */
+/* Helper / error text */
 .ds-input-helper {
     font-size: var(--ds-font-size-xs);
-    color: var(--ds-color-text-muted);
+    color: var(--nfo-ink-3);
     margin-top: 2px;
 }
 
 .ds-input-error-text {
     font-size: var(--ds-font-size-xs);
-    color: var(--ds-color-error);
+    color: var(--nfo-err);
     margin-top: 2px;
     display: flex;
     align-items: center;
     gap: 4px;
 }
 
-/* File Input Styles - Terminal TUI Theme */
+/* Native file input — keep as a fallback but flatten to NFO. Most file
+   pick UI should migrate to the DropZone primitive. */
 input[type="file"] {
     width: 100%;
-    background: var(--ds-color-background-tertiary);
-    border: none;
+    background: var(--nfo-surface);
+    border: 1px dashed var(--nfo-border);
     border-radius: 0;
-    color: var(--ds-color-text-primary);
+    color: var(--nfo-ink-2);
     font-family: var(--ds-font-mono);
-    transition: all var(--ds-transition-fast);
+    transition: border-color var(--ds-transition-fast), background-color var(--ds-transition-fast);
     outline: none;
     cursor: pointer;
     padding: var(--ds-spacing-sm) var(--ds-spacing-md);
     padding-left: calc(var(--ds-spacing-md) + 12px);
-    font-size: var(--ds-font-size-base);
+    font-size: var(--ds-font-size-sm);
     position: relative;
 }
 
-/* Terminal TUI indicator for file inputs */
 input[type="file"]::before {
-    content: '>';
+    content: '›';
     position: absolute;
     left: var(--ds-spacing-sm);
     top: 50%;
     transform: translateY(-50%);
-    color: var(--ds-color-text-secondary);
+    color: var(--nfo-accent);
     font-family: var(--ds-font-mono);
     font-size: var(--ds-font-size-base);
     pointer-events: none;
 }
 
-/* File input wrapper for consistent styling */
 .ds-file-input-wrapper {
     position: relative;
     width: 100%;
 }
 
 .ds-file-input-wrapper::before {
-    content: '>';
+    content: '›';
     position: absolute;
     left: var(--ds-spacing-sm);
     top: 50%;
     transform: translateY(-50%);
-    color: var(--ds-color-text-secondary);
+    color: var(--nfo-accent);
     font-family: var(--ds-font-mono);
     font-size: var(--ds-font-size-base);
     pointer-events: none;
@@ -182,31 +178,20 @@ input[type="file"]::before {
 }
 
 .ds-file-input-wrapper:has(input[type="file"]:focus)::before {
-    content: 'v';
-    color: var(--ds-color-accent);
+    color: var(--nfo-ink-1);
 }
 
 input[type="file"]:hover:not(:disabled) {
-    background: var(--ds-color-background-secondary);
+    border-color: var(--nfo-border-strong);
 }
-
 input[type="file"]:focus:not(:disabled) {
-    background: var(--ds-color-background-secondary);
-    color: var(--ds-color-text-primary);
+    border-color: var(--nfo-border-strong);
 }
-
 input[type="file"]:disabled {
-    opacity: 0.5;
+    opacity: 0.55;
     cursor: not-allowed;
-    background: var(--ds-color-background);
-    color: var(--ds-color-text-tertiary);
+    color: var(--nfo-ink-3);
 }
 
-/* Hide default file input button styling */
-input[type="file"]::-webkit-file-upload-button {
-    display: none;
-}
-
-input[type="file"]::file-selector-button {
-    display: none;
-}
+input[type="file"]::-webkit-file-upload-button { display: none; }
+input[type="file"]::file-selector-button       { display: none; }
