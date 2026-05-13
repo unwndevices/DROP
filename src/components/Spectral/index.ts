@@ -1,1 +1,0 @@
-export { SpectralExportModal } from './SpectralExportModal';

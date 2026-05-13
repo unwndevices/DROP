@@ -14,10 +14,7 @@ import { ToastProvider } from './design-system';
 
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import { pwaService } from './services/PWAService';
-import { debugLuaGlobals } from './debug-lua-globals';
 import './styles/globals.css';
-
-import './tools/device-bridge/DeviceBridge.css';
 
 const AppContent: React.FC = () => {
   const { settings, updateSettings } = useSettings();
@@ -35,7 +32,6 @@ const AppContent: React.FC = () => {
     pwaService.initialize().catch((error) => {
       console.error('DROP: PWA initialization failed:', error);
     });
-    (window as any).debugLuaGlobals = debugLuaGlobals;
   }, []);
 
   const handleSettings = useCallback(() => setIsSettingsOpen(true), []);

@@ -48,10 +48,6 @@ export type { TimelineProps } from './components/Timeline';
 export { ToolLayout, ToolHeader } from './layouts/ToolLayout';
 export type { ToolLayoutProps, ToolHeaderProps } from './layouts/ToolLayout';
 
-// Code Editor Components
-export { CodeEditor, SpectralEditor, PixelArtEditor } from './components/CodeEditor';
-export type { CodeEditorProps, SpectralEditorProps, PixelArtEditorProps } from './components/CodeEditor';
-
 // Toast Notification
 export { ToastProvider, useToast } from './components/Toast/ToastContext';
 export { Toast } from './components/Toast/Toast';

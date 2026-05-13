@@ -1,10 +1,6 @@
 import React from 'react';
-import { SpectralAnalysis } from './spectral-analysis/SpectralAnalysis';
 import { DatumViewer } from './datum-viewer/DatumViewer';
-import { UIGraphicsConverter } from './ui-graphics/UIGraphicsConverter';
-import { DeviceBridge } from './device-bridge/DeviceBridge';
 import { Wav2Datum } from './wav2datum/Wav2Datum';
-import { PixelArtGenerator } from './pixel-art-generator/PixelArtGenerator';
 import { Firmware } from './firmware';
 
 export interface ToolEntry {
@@ -21,9 +17,7 @@ export interface ToolEntry {
 }
 
 /**
- * Canonical tool registry. The TopBar tab strip renders the visible entries
- * in declaration order. `firmware` (phase 2) and `wav2datum` (phase 3) are
- * the post-rework tool surface; others stay hidden until phase 4 cleanup.
+ * Canonical tool registry — eisei launch surface.
  */
 export const TOOL_REGISTRY: ToolEntry[] = [
   {
@@ -39,38 +33,10 @@ export const TOOL_REGISTRY: ToolEntry[] = [
     component: Wav2Datum,
   },
   {
-    id: 'device-bridge',
-    label: 'device bridge',
-    description: 'connect to eisei devices via Bluetooth or USB for real-time control',
-    component: DeviceBridge,
-  },
-  {
-    id: 'ui-graphics',
-    label: 'graphic to ui',
-    description: 'convert image sequences to UI graphics format',
-    component: UIGraphicsConverter,
-    hidden: true,
-  },
-  {
     id: 'datum-viewer',
     label: 'datum viewer',
     description: 'import and preview spectral datum files',
     component: DatumViewer,
-    hidden: true,
-  },
-  {
-    id: 'spectral-analysis',
-    label: 'datum editor',
-    description: 'lua-based spectral data generation and visualization',
-    component: SpectralAnalysis,
-    hidden: true,
-  },
-  {
-    id: 'pixel-art-generator',
-    label: 'pixel art',
-    description: "lua-powered pixel art generator for eisei's 127x127 OLED display",
-    component: PixelArtGenerator,
-    hidden: true,
   },
 ];
 
