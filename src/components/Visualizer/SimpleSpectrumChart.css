@@ -152,19 +152,18 @@
 }
 
 .drop-simple-spectrum-chart.empty::after {
-  content: 'Execute Lua script to generate spectral data visualization';
+  content: 'no data — load a source to preview';
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: var(--color-editor-line-number);
-  font-family: var(--font-mono);
-  font-size: 12px;
+  color: var(--nfo-ink-3);
+  font-family: var(--nfo-font-primary);
+  font-size: var(--nfo-t-small);
   text-align: center;
   pointer-events: none;
   z-index: 10;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.04em;
 }
 
 /* Loading state */
