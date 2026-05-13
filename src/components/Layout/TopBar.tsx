@@ -1,6 +1,8 @@
 import React from 'react';
-import { Settings } from 'lucide-react';
+import { Settings, Sun, Moon, MonitorCog } from 'lucide-react';
 import { VISIBLE_TOOLS, type ToolEntry } from '../../tools/registry';
+import { useSettings } from '../../contexts/SettingsContext';
+import type { ThemeMode } from '../../types/settings';
 import './TopBar.css';
 
 interface TopBarProps {
@@ -11,12 +13,29 @@ interface TopBarProps {
   statusSlot?: React.ReactNode;
 }
 
+const NEXT_MODE: Record<ThemeMode, ThemeMode> = {
+  system: 'light',
+  light: 'dark',
+  dark: 'system',
+};
+
+const MODE_LABEL: Record<ThemeMode, string> = {
+  system: 'theme: system',
+  light: 'theme: light',
+  dark: 'theme: dark',
+};
+
 export const TopBar: React.FC<TopBarProps> = ({
   activeToolId,
   onSelectTool,
   onOpenSettings,
   statusSlot,
 }) => {
+  const { settings, updateSettings } = useSettings();
+  const mode = settings.theme.mode;
+  const cycleTheme = () =>
+    updateSettings({ theme: { ...settings.theme, mode: NEXT_MODE[mode] } });
+  const ThemeIcon = mode === 'light' ? Sun : mode === 'dark' ? Moon : MonitorCog;
   return (
     <header className="nfo-topbar" role="banner">
       <div className="nfo-topbar__brand">
@@ -46,6 +65,15 @@ export const TopBar: React.FC<TopBarProps> = ({
 
       <div className="nfo-topbar__actions">
         <div className="nfo-topbar__status">{statusSlot}</div>
+        <button
+          type="button"
+          className="nfo-topbar__icon-btn"
+          onClick={cycleTheme}
+          aria-label={MODE_LABEL[mode]}
+          title={MODE_LABEL[mode]}
+        >
+          <ThemeIcon size={14} strokeWidth={1.5} />
+        </button>
         <button
           type="button"
           className="nfo-topbar__icon-btn"
