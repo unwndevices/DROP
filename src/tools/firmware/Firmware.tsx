@@ -9,6 +9,7 @@ import {
 } from './releases';
 import { ReleaseNotes } from './ReleaseNotes';
 import { FlashPanel } from './flash/FlashPanel';
+import { DownloadPanel } from './download/DownloadPanel';
 import './Firmware.css';
 
 export type FirmwareMode = 'flash' | 'download';
@@ -31,6 +32,7 @@ export const Firmware: React.FC = () => {
   const [target, setTarget] = useState<FirmwareTarget>('daisy');
   const [showBetas, setShowBetas] = useState(false);
   const [selectedVersion, setSelectedVersion] = useState<string>('');
+  const [useDaisyDebug, setUseDaisyDebug] = useState(false);
 
   const visibleReleases = useMemo(
     () => filterReleases(releases, { showBetas }),
@@ -143,14 +145,12 @@ export const Firmware: React.FC = () => {
         {mode === 'flash' ? (
           <FlashPanel target={target} release={selectedRelease} />
         ) : (
-          <div className="firmware-action firmware-action--placeholder">
-            <StatusBadge kind="info">
-              download for microsd — {target}
-            </StatusBadge>
-            <p className="firmware-action__hint">
-              download links land in the next commit.
-            </p>
-          </div>
+          <DownloadPanel
+            target={target}
+            release={selectedRelease}
+            useDaisyDebug={useDaisyDebug}
+            onToggleDaisyDebug={setUseDaisyDebug}
+          />
         )}
       </section>
     </div>

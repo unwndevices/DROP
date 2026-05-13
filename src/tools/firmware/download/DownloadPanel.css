@@ -1,0 +1,69 @@
+.download-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nfo-space-3, 12px);
+  font-family: var(--nfo-font-primary, var(--ds-font-mono));
+}
+
+.download-panel__variant {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--nfo-t-small, 0.75rem);
+  color: var(--nfo-ink-2);
+  cursor: pointer;
+  user-select: none;
+  text-transform: lowercase;
+  letter-spacing: 0.06em;
+}
+
+.download-panel__variant input {
+  accent-color: var(--nfo-accent, #da532c);
+}
+
+.download-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nfo-space-2, 8px);
+}
+
+.download-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: var(--nfo-t-body, 0.8125rem);
+}
+
+.download-row__bracket {
+  color: var(--nfo-ink-3);
+}
+
+.download-row__label {
+  text-transform: lowercase;
+  letter-spacing: 0.06em;
+  color: var(--nfo-ink-2);
+  min-width: 80px;
+}
+
+.download-row__arrow {
+  color: var(--nfo-ink-3);
+}
+
+.download-row__link {
+  color: var(--nfo-accent, #da532c);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-variant-numeric: tabular-nums;
+}
+
+.download-row__link:hover {
+  color: var(--nfo-ink-1);
+}
+
+.download-row__link:focus-visible {
+  outline: 1px solid var(--nfo-accent);
+  outline-offset: 2px;
+}
