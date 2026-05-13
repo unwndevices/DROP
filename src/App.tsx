@@ -1,6 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { SettingsModal } from './components/UI/SettingsModal';
-import { PWAStatus } from './components/UI/PWAStatus';
 import { TopBar } from './components/Layout/TopBar';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
 import { DeviceStatusProvider } from './contexts/DeviceStatusContext';
@@ -13,7 +12,6 @@ import {
 import { ToastProvider } from './design-system';
 
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
-import { pwaService } from './services/PWAService';
 import './styles/globals.css';
 
 const AppContent: React.FC = () => {
@@ -26,12 +24,6 @@ const AppContent: React.FC = () => {
   const handleToolChange = useCallback((tool: ToolEntry) => {
     setActiveTool(tool);
     localStorage.setItem(ACTIVE_TOOL_STORAGE_KEY, tool.id);
-  }, []);
-
-  useEffect(() => {
-    pwaService.initialize().catch((error) => {
-      console.error('DROP: PWA initialization failed:', error);
-    });
   }, []);
 
   const handleSettings = useCallback(() => setIsSettingsOpen(true), []);
@@ -72,8 +64,6 @@ const AppContent: React.FC = () => {
       </main>
 
       <SettingsModal isOpen={isSettingsOpen} onClose={handleCloseSettings} />
-
-      <PWAStatus />
     </div>
   );
 };
