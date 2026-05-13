@@ -88,8 +88,7 @@
 }
 
 .wav2datum__rerun,
-.wav2datum__download,
-.wav2datum__playbtn {
+.wav2datum__download {
   font-family: inherit;
   font-size: var(--nfo-t-body, 0.8125rem);
   text-transform: lowercase;
@@ -103,8 +102,7 @@
   align-self: flex-start;
 }
 
-.wav2datum__rerun:hover:not(:disabled),
-.wav2datum__playbtn:hover:not(:disabled) {
+.wav2datum__rerun:hover:not(:disabled) {
   border-color: var(--nfo-accent, #da532c);
   color: var(--nfo-accent, #da532c);
 }
