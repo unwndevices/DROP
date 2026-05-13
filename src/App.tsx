@@ -3,6 +3,8 @@ import { SettingsModal } from './components/UI/SettingsModal';
 import { PWAStatus } from './components/UI/PWAStatus';
 import { TopBar } from './components/Layout/TopBar';
 import { SettingsProvider, useSettings } from './contexts/SettingsContext';
+import { DeviceStatusProvider } from './contexts/DeviceStatusContext';
+import { DeviceStatusIndicator } from './components/Layout/DeviceStatusIndicator';
 import {
   ACTIVE_TOOL_STORAGE_KEY,
   resolveActiveTool,
@@ -66,6 +68,7 @@ const AppContent: React.FC = () => {
         activeToolId={activeTool.id}
         onSelectTool={handleToolChange}
         onOpenSettings={handleSettings}
+        statusSlot={<DeviceStatusIndicator />}
       />
 
       <main className="tool-container">
@@ -82,9 +85,11 @@ const AppContent: React.FC = () => {
 function App() {
   return (
     <SettingsProvider>
-      <ToastProvider>
-        <AppContent />
-      </ToastProvider>
+      <DeviceStatusProvider>
+        <ToastProvider>
+          <AppContent />
+        </ToastProvider>
+      </DeviceStatusProvider>
     </SettingsProvider>
   );
 }

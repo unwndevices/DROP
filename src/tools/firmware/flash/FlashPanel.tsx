@@ -1,7 +1,8 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StatusBadge, Terminal, type TerminalLine } from '../../../design-system';
 import { fetchBinary, type Release } from '../releases';
 import type { FirmwareTarget } from '../Firmware';
+import { useDeviceStatus } from '../../../contexts/DeviceStatusContext';
 import { DaisyFlasher } from './dfu';
 import { Esp32Flasher } from './esp';
 import { CombinedFlasher } from './CombinedFlasher';
@@ -10,12 +11,6 @@ import './FlashPanel.css';
 export interface FlashPanelProps {
   target: FirmwareTarget;
   release: Release | undefined;
-  onConnectionChange?: (state: ConnectionState) => void;
-}
-
-export interface ConnectionState {
-  daisy: boolean;
-  esp: boolean;
 }
 
 type Phase = 'idle' | 'connecting' | 'connected' | 'flashing' | 'done' | 'error';
@@ -30,13 +25,24 @@ const EMPTY_PROGRESS: ProgressState = { daisy: 0, esp: 0 };
 export const FlashPanel: React.FC<FlashPanelProps> = ({
   target,
   release,
-  onConnectionChange,
 }) => {
+  const { setState: setGlobalConnection } = useDeviceStatus();
   const [lines, setLines] = useState<TerminalLine[]>([]);
   const [phase, setPhase] = useState<Phase>('idle');
   const [progress, setProgress] = useState<ProgressState>(EMPTY_PROGRESS);
   const [daisyConnected, setDaisyConnected] = useState(false);
   const [espConnected, setEspConnected] = useState(false);
+
+  useEffect(() => {
+    setGlobalConnection({ daisy: daisyConnected, esp: espConnected });
+  }, [daisyConnected, espConnected, setGlobalConnection]);
+
+  useEffect(() => {
+    return () => {
+      // Reset top-bar status when the firmware tool unmounts.
+      setGlobalConnection({ daisy: false, esp: false });
+    };
+  }, [setGlobalConnection]);
 
   const daisyRef = useRef<DaisyFlasher | null>(null);
   const espRef = useRef<Esp32Flasher | null>(null);
@@ -49,14 +55,10 @@ export const FlashPanel: React.FC<FlashPanelProps> = ({
     [],
   );
 
-  const notifyConnections = useCallback(
-    (d: boolean, e: boolean) => {
-      setDaisyConnected(d);
-      setEspConnected(e);
-      onConnectionChange?.({ daisy: d, esp: e });
-    },
-    [onConnectionChange],
-  );
+  const notifyConnections = useCallback((d: boolean, e: boolean) => {
+    setDaisyConnected(d);
+    setEspConnected(e);
+  }, []);
 
   const loggers = useMemo(
     () => ({
