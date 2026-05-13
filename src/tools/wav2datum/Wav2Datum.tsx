@@ -277,8 +277,9 @@ export const Wav2Datum: React.FC = () => {
         </h1>
       </header>
 
+      <div className="wav2datum__grid">
       {/* ── 01 SOURCE ─────────────────────────────────────── */}
-      <section className="wav2datum__section">
+      <section className="wav2datum__section wav2datum__section--source">
         <SectionLabel index={1}>source</SectionLabel>
 
         <div className="wav2datum__source">
@@ -307,6 +308,7 @@ export const Wav2Datum: React.FC = () => {
         </div>
       </section>
 
+      <div className="wav2datum__column">
       {/* ── 02 ANALYSIS ───────────────────────────────────── */}
       <section className="wav2datum__section">
         <SectionLabel index={2}>analysis</SectionLabel>
@@ -458,6 +460,8 @@ export const Wav2Datum: React.FC = () => {
           <StatusBadge kind={exportStatus.kind}>{exportStatus.text}</StatusBadge>
         )}
       </section>
+      </div>
+      </div>
     </div>
   );
 };
