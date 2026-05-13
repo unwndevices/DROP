@@ -1,0 +1,44 @@
+.firmware-notes {
+  font-family: var(--nfo-font-primary, var(--ds-font-mono));
+  font-size: var(--nfo-t-small, 0.75rem);
+  line-height: 1.55;
+  color: var(--nfo-ink-2, var(--ds-color-text-secondary));
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.firmware-notes--empty {
+  color: var(--nfo-ink-3);
+  font-style: normal;
+}
+
+.firmware-notes p {
+  margin: 0 0 0.5em;
+}
+
+.firmware-notes ul,
+.firmware-notes ol {
+  margin: 0 0 0.5em;
+  padding-left: 1.25em;
+}
+
+.firmware-notes li {
+  margin: 0.1em 0;
+}
+
+.firmware-notes code {
+  font-family: inherit;
+  background: var(--nfo-surface-2, transparent);
+  padding: 0 0.25em;
+  border: 1px solid var(--nfo-border-faint);
+}
+
+.firmware-notes h1,
+.firmware-notes h2,
+.firmware-notes h3 {
+  font-size: var(--nfo-t-body, 0.8125rem);
+  margin: 0.4em 0 0.2em;
+  text-transform: lowercase;
+  color: var(--nfo-ink-1);
+}

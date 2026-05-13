@@ -7,6 +7,7 @@ import { UIGraphicsConverter } from './ui-graphics/UIGraphicsConverter';
 import { DeviceBridge } from './device-bridge/DeviceBridge';
 import { Wav2Datum } from './wav2datum/Wav2Datum';
 import { PixelArtGenerator } from './pixel-art-generator/PixelArtGenerator';
+import { Firmware } from './firmware';
 
 export interface ToolEntry {
   /** Stable id used for routing + localStorage. */
@@ -23,20 +24,15 @@ export interface ToolEntry {
 
 /**
  * Canonical tool registry. The TopBar tab strip renders the visible entries
- * in declaration order. Placeholder ids `firmware` and `wav2datum` cover the
- * post-rework tool surface; others stay hidden until they get their NFO
- * restyle in phases 3/4.
+ * in declaration order. `firmware` (phase 2) and `wav2datum` (phase 3) are
+ * the post-rework tool surface; others stay hidden until phase 4 cleanup.
  */
 export const TOOL_REGISTRY: ToolEntry[] = [
   {
     id: 'firmware',
     label: 'firmware',
     description: 'flash & download firmware for eisei',
-    // Placeholder until phase 2 lands the unified firmware tool. Until then
-    // the daisy-flasher tool remains the canonical surface and `firmware`
-    // stays hidden.
-    component: DaisyFlasher,
-    hidden: true,
+    component: Firmware,
   },
   {
     id: 'wav2datum',
