@@ -205,11 +205,9 @@
   font-weight: var(--nfo-fw-medium, 500);
 }
 
-/* ───────── footer ───────── */
-.wav2datum__footer {
+.wav2datum__analysis-action {
   display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-  min-height: 1.4em;
 }

@@ -69,6 +69,9 @@ export const Wav2Datum: React.FC = () => {
     progress: 0,
     message: 'initialising…',
   });
+  const [exportStatus, setExportStatus] = useState<
+    { kind: 'ok' | 'err'; text: string } | null
+  >(null);
 
   const [settings, setSettings] = useState<ConversionSettings>({
     presetName: '',
@@ -246,13 +249,16 @@ export const Wav2Datum: React.FC = () => {
 
   const handleExport = useCallback(async () => {
     if (!spectralData) return;
+    setExportStatus(null);
     const datumToExport: Datum = {
       ...spectralData,
       name: settings.presetName || spectralData.name,
     };
     const result = await DatumFileService.exportDatum(datumToExport);
     if (!result.success) {
-      setConversionStatus((p) => ({ ...p, error: result.error || 'export failed' }));
+      setExportStatus({ kind: 'err', text: result.error || 'export failed' });
+    } else {
+      setExportStatus({ kind: 'ok', text: `saved ${datumToExport.name}.datum` });
     }
   }, [spectralData, settings.presetName]);
 
@@ -291,6 +297,13 @@ export const Wav2Datum: React.FC = () => {
             <div className="wav2datum__filemeta">
               › loaded: {audioFile.name} · {audioSampleRate} hz · {audioDuration.toFixed(2)} s
             </div>
+          )}
+          {!isWasmReady && <StatusBadge kind="info">loading filterbank wasm…</StatusBadge>}
+          {isWasmReady && !audioFile && !conversionStatus.error && (
+            <StatusBadge kind="info">drop a wav to begin</StatusBadge>
+          )}
+          {conversionStatus.error && !waveformData && (
+            <StatusBadge kind="err">{conversionStatus.error}</StatusBadge>
           )}
         </div>
       </section>
@@ -344,14 +357,29 @@ export const Wav2Datum: React.FC = () => {
           </div>
         </div>
 
-        <button
-          type="button"
-          className="wav2datum__rerun"
-          onClick={() => void handleReprocess()}
-          disabled={conversionStatus.isProcessing || !waveformData}
-        >
-          [ re-run analysis ]
-        </button>
+        <div className="wav2datum__analysis-action">
+          <button
+            type="button"
+            className="wav2datum__rerun"
+            onClick={() => void handleReprocess()}
+            disabled={conversionStatus.isProcessing || !waveformData}
+          >
+            [ re-run analysis ]
+          </button>
+          {conversionStatus.isProcessing && (
+            <StatusBadge kind="info">
+              {conversionStatus.message} ({Math.round(conversionStatus.progress)}%)
+            </StatusBadge>
+          )}
+          {!conversionStatus.isProcessing && spectralData && !conversionStatus.error && (
+            <StatusBadge kind="ok">
+              {spectralData.frameCount} frames · {spectralData.bandCount} bands
+            </StatusBadge>
+          )}
+          {!conversionStatus.isProcessing && conversionStatus.error && waveformData && (
+            <StatusBadge kind="err">{conversionStatus.error}</StatusBadge>
+          )}
+        </div>
       </section>
 
       {/* ── 03 PREVIEW ────────────────────────────────────── */}
@@ -426,21 +454,11 @@ export const Wav2Datum: React.FC = () => {
             [ DOWNLOAD .DATUM ]
           </button>
         </div>
-      </section>
 
-      {/* ── status footer ─────────────────────────────────── */}
-      <footer className="wav2datum__footer">
-        {!isWasmReady && <StatusBadge kind="info">loading filterbank wasm…</StatusBadge>}
-        {isWasmReady && !audioFile && <StatusBadge kind="info">drop a wav to begin</StatusBadge>}
-        {conversionStatus.error && (
-          <StatusBadge kind="err">{conversionStatus.error}</StatusBadge>
+        {exportStatus && (
+          <StatusBadge kind={exportStatus.kind}>{exportStatus.text}</StatusBadge>
         )}
-        {conversionStatus.isProcessing && (
-          <StatusBadge kind="info">
-            {conversionStatus.message} ({Math.round(conversionStatus.progress)}%)
-          </StatusBadge>
-        )}
-      </footer>
+      </section>
     </div>
   );
 };
