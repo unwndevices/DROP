@@ -151,21 +151,6 @@
   filter: grayscale(100%);
 }
 
-.drop-simple-spectrum-chart.empty::after {
-  content: 'no data — load a source to preview';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: var(--nfo-ink-3);
-  font-family: var(--nfo-font-primary);
-  font-size: var(--nfo-t-small);
-  text-align: center;
-  pointer-events: none;
-  z-index: 10;
-  letter-spacing: 0.04em;
-}
-
 /* Loading state */
 .drop-simple-spectrum-chart.loading::before {
   content: '';
