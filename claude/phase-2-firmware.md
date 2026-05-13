@@ -5,26 +5,54 @@ covers both USB flashing and microSD download paths.
 
 Depends on phase 0 and phase 1.
 
-## Goal
+## Post-implementation note (2026-05-13)
+
+Shipped shape differs from the original mock below. The final layout uses
+**four numbered sections in a two-column grid** on desktop, with no
+top-level segmented tabs and bare `OK`/`ERR`/`WARN`/`INFO` status tokens
+(no `[ ]` chrome):
+
+```
+› firmware
+
+┌── 01 version ─────────────┐  ┌── 02 flash esp32 (serial) ─┐
+│ › v1.0.0  (latest)        │  │  connect esp32 (serial)    │
+│ [_] show betas            │  │  flash                     │
+│ release notes…            │  └────────────────────────────┘
+│                           │  ┌── 03 flash daisy (dfu) ────┐
+│                           │  │  connect daisy (dfu)       │
+│                           │  │  flash                     │
+│                           │  └────────────────────────────┘
+│                           │  ┌── 04 download for microsd ─┐
+│                           │  │ › daisy → firmware.bin     │
+│                           │  │ › esp32 → eisei-1.0.0.esp  │
+└───────────────────────────┘  └────────────────────────────┘
+```
+
+ESP32 is presented first to match recommended provisioning order; downloads
+are last as a fallback path. On mobile, the grid collapses to a single
+column.
+
+## Goal (original mock — historical)
 
 A single tool with two top-level segments:
 
 ```
-[ FIRMWARE ]
+firmware
   flash · download
 
-01 [ TARGET ] ───────────────────────────────────
+01 target ───────────────────────────────────
    ( ) daisy   ( ) esp32   ( ) both
 
-02 [ VERSION ] ──────────────────────────────────
-   › v1.0.0  (latest)            [ show betas ☐ ]
+02 version ──────────────────────────────────
+   › v1.0.0  (latest)            show betas ☐
    release notes...
 
-03 [ ACTION ] ───────────────────────────────────
+03 action ───────────────────────────────────
    flash via usb        OR        download for microsd
 
-   [INFO] connect daisy in DFU mode, then press flash.
-   ........................... 100%   [OK] done.
+   INFO connect daisy in DFU mode, then press flash.
+   ........................... 100%   OK done.
 ```
 
 ## Folder layout
@@ -108,7 +136,7 @@ src/tools/firmware/
      the **Daisy firmware**, not the ESP wrapper — `daisy_debug` available as a
      "debug" sub-toggle (only shown when present in `platforms.daisy_debug`).
    - When target = `both`, render **two stacked download links**:
-     `[ daisy → firmware.bin ]` and `[ esp32 → eisei-X.Y.Z.esp ]`. Each is a
+     `› daisy → firmware.bin` and `› esp32 → eisei-X.Y.Z.esp`. Each is a
      separate click. No zip.
    - Commit: `feat(firmware): download panel with microSD rename`.
 
@@ -130,13 +158,13 @@ src/tools/firmware/
 - Default view: target = `daisy`, mode = `flash`, version = latest stable.
 - Only versions >= `v1.0.0` ever appear. No `v0.x` entries.
 - Beta toggle hidden → only stable versions in the dropdown.
-- Beta toggle revealed → betas appear with a `[BETA]` badge after the
+- Beta toggle revealed → betas appear with a `(beta)` tag after the
   version string.
 - "Flash" path:
   - Daisy alone → DFU flow, single progress bar.
   - ESP32 alone → ESP serial flow, single progress bar.
   - Both → Daisy DFU → ESP32 serial (app+littlefs), stacked progress bars,
-    terminal log streams `[OK]` / `[ERR]` lines.
+    terminal log streams `OK` / `ERR` badges.
 - "Download" path:
   - Daisy → one click → file named `firmware.bin`.
   - ESP32 → one click → file named `eisei-X.Y.Z.esp` (or `...b1.esp`
@@ -148,5 +176,5 @@ src/tools/firmware/
 
 - Should `flash` mode require an explicit "I have the device connected"
   acknowledgment before kicking off, given the daisy-flasher fix history
-  (commits `1af67ac`, `4fc0ec2`)? Plan: yes, a small `[ flash ]` button
+  (commits `1af67ac`, `4fc0ec2`)? Plan: yes, a small `flash` button
   becomes active only after `connect`.

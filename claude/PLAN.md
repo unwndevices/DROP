@@ -46,8 +46,8 @@ Update the status column as phases progress: `pending` → `in-progress` → `do
 - **Beta toggle**: off by default.
 - **Download filenames**: rename to device convention on save
   (`firmware.bin`, `eisei-X.Y.Z.esp`).
-- **Tone**: lowercase UI labels, `[ BRACKETED ]` panel titles, `›` prompt char,
-  `[OK]/[ERR]/[WARN]/[INFO]` status badges. No emoji.
+- **Tone**: lowercase UI labels, `›` prompt char for section/title leads,
+  bare `OK`/`ERR`/`WARN`/`INFO` status tokens (no brackets), no emoji.
 
 ## Commit etiquette
 

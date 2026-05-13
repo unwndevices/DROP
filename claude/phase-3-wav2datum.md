@@ -5,31 +5,32 @@ clear top-to-bottom flow.
 
 Depends on phase 0.
 
+## Post-implementation note (2026-05-13)
+
+Final layout uses a **two-column grid** on desktop: `01 source` on the
+left, `02 analysis` / `03 preview` / `04 output` stacked in the right
+column. Mobile collapses to a single column. All `[ ]` chrome dropped —
+section titles and badges render bare (e.g. `OK ready`, `download .datum`).
+
 ## Goal
 
-A single scrollable column:
-
 ```
-[ WAV2DATUM ]
+› wav2datum
 
-01 [ SOURCE ] ───────────────────────────────────
-   [ drop wav here ] or click to browse
-   loaded: mysample.wav · 44100 Hz · 3.2 s
-
-02 [ ANALYSIS ] ─────────────────────────────────
-   detail rate  › 1× — 2 kHz, max 27 s (std)
-   input gain   ▮▮▮▮▮▯▯▯▯▯ 1.00
-   preroll      › reverse
-
-03 [ PREVIEW ] ──────────────────────────────────
-   ┌────────────────────────────────────────────┐
-   │ spectral preview (transport bar)           │
-   └────────────────────────────────────────────┘
-   slot fits 162 / 256 frames        [OK]  ready
-
-04 [ OUTPUT ] ───────────────────────────────────
-   preset name › my_sample__
-   [ download .datum ]
+┌── 01 source ──────────────┐  ┌── 02 analysis ─────────────┐
+│ drop wav here             │  │ detail rate › 1× — 2 kHz   │
+│ loaded: mysample.wav      │  │ input gain  ▮▮▮▮▮▯▯ 1.00   │
+│         44100 hz · 3.2 s  │  │ preroll     › reverse      │
+└───────────────────────────┘  └────────────────────────────┘
+                               ┌── 03 preview ──────────────┐
+                               │ spectral preview chart     │
+                               │ ◀ ▶  ───●──────  43 / 256  │
+                               │ slot fits 162 / 256  OK    │
+                               └────────────────────────────┘
+                               ┌── 04 output ───────────────┐
+                               │ › my_sample.datum          │
+                               │   download .datum          │
+                               └────────────────────────────┘
 ```
 
 ## Tasks
@@ -52,8 +53,7 @@ A single scrollable column:
    - Commit: `style(wav2datum): NFO controls for analysis settings`.
 
 4. **Preview panel**
-   - Keep `SimpleSpectrumChart`. Wrap in `Panel` with `[ SPECTRAL PREVIEW ]`
-     header.
+   - Keep `SimpleSpectrumChart`. Wrap in `Panel` titled `spectral preview`.
    - Add the NFO `TransportBar` (frame counter + scrubbable line + accent
      dot) replacing the current play controls.
    - Surface the slot-capacity bar from commit `0a7b810` as a mono
@@ -62,7 +62,7 @@ A single scrollable column:
 
 5. **Output**
    - Preset name as `TextInput` with `›` prefix.
-   - Single primary button `[ DOWNLOAD .DATUM ]` (NFO uppercase mono).
+   - Single primary button `download .datum` (accent border, lowercase).
    - Commit: `style(wav2datum): NFO output controls`.
 
 6. **Status log**
