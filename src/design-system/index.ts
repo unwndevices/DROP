@@ -20,6 +20,9 @@ export type { SectionLabelProps } from './components/SectionLabel';
 export { StatusBadge } from './components/StatusBadge';
 export type { StatusBadgeProps, StatusKind } from './components/StatusBadge';
 
+export { Segmented } from './components/Segmented';
+export type { SegmentedProps, SegmentedOption } from './components/Segmented';
+
 export { Modal, ModalHeader, ModalContent, ModalFooter } from './components/Modal';
 export type { ModalProps, ModalHeaderProps, ModalContentProps, ModalFooterProps } from './components/Modal';
 
