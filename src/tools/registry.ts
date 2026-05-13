@@ -1,8 +1,6 @@
 import React from 'react';
 import { SpectralAnalysis } from './spectral-analysis/SpectralAnalysis';
 import { DatumViewer } from './datum-viewer/DatumViewer';
-import { ESP32Flasher } from './esp32-flasher/ESP32Flasher';
-import { DaisyFlasher } from './daisy-flasher/DaisyFlasher';
 import { UIGraphicsConverter } from './ui-graphics/UIGraphicsConverter';
 import { DeviceBridge } from './device-bridge/DeviceBridge';
 import { Wav2Datum } from './wav2datum/Wav2Datum';
@@ -39,18 +37,6 @@ export const TOOL_REGISTRY: ToolEntry[] = [
     label: 'wav2datum',
     description: 'convert WAV audio files to spectral datum format',
     component: Wav2Datum,
-  },
-  {
-    id: 'daisy-flasher',
-    label: 'daisy flasher',
-    description: 'flash Daisy Seed firmware via DFU and monitor serial',
-    component: DaisyFlasher,
-  },
-  {
-    id: 'esp32-flasher',
-    label: 'esp32 flasher',
-    description: 'flash ESP32-S3 firmware and monitor serial',
-    component: ESP32Flasher,
   },
   {
     id: 'device-bridge',
