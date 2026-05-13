@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--nfo-space-4, 16px);
-  max-width: 1200px;
+  max-width: 1360px;
   margin: 0 auto;
   padding: var(--nfo-space-4, 16px);
   font-family: var(--nfo-font-primary, var(--ds-font-mono));
@@ -58,9 +58,9 @@
   align-items: start;
 }
 
-@media (min-width: 880px) {
+@media (min-width: 960px) {
   .datum-viewer__grid {
-    grid-template-columns: minmax(280px, 1fr) minmax(0, 1.6fr);
+    grid-template-columns: minmax(340px, 1fr) minmax(0, 1.7fr);
   }
 }
 
