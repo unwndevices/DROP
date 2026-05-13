@@ -3,7 +3,7 @@ import { SimpleSpectrumChart } from '../../components/Visualizer/SimpleSpectrumC
 import { DatumFileService } from '../../services/DatumPersistence/DatumFileService';
 import type { Datum, SpectralFrame } from '../../services/DataModel/types';
 import FilterBankModuleFactory, { type FilterBank } from 'filterbank-wasm';
-import { SectionLabel, StatusBadge } from '../../design-system';
+import { DropZone, SectionLabel, StatusBadge } from '../../design-system';
 import './Wav2Datum.css';
 
 interface ConversionSettings {
@@ -269,17 +269,16 @@ export const Wav2Datum: React.FC = () => {
         <SectionLabel index={1}>source</SectionLabel>
 
         <div className="wav2datum__source">
-          <label className="wav2datum__filebtn">
-            <span>[ drop wav here ] or click to browse</span>
-            <input
-              type="file"
-              accept=".wav,.mp3,.ogg,.flac,.m4a,audio/*"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) void handleFileSelect(f);
-              }}
-            />
-          </label>
+          <DropZone
+            accept=".wav,.mp3,.ogg,.flac,.m4a,audio/*"
+            label="[ drop wav here ]"
+            hint="or click to browse — wav / mp3 / ogg / flac / m4a"
+            disabled={conversionStatus.isProcessing}
+            onFiles={(files) => {
+              const f = files[0];
+              if (f) void handleFileSelect(f);
+            }}
+          />
           {audioFile && (
             <div className="wav2datum__filemeta">
               › loaded: {audioFile.name} · {audioSampleRate} hz · {audioDuration.toFixed(2)} s
