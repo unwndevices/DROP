@@ -109,7 +109,8 @@ export const DaisyFlashSection: React.FC<BaseProps> = ({
       </div>
 
       <p className="flash-section__hint">
-        connect daisy in dfu mode: press reset, then boot — the led pulses.
+        daisy can be powered or unpowered. enter dfu mode: hold boot, tap
+        reset, release boot — the led pulses.
       </p>
 
       <ProgressBar pct={progress} active={phase === 'flashing'} />
@@ -240,7 +241,8 @@ export const Esp32FlashSection: React.FC<Esp32Props> = ({
       </div>
 
       <p className="flash-section__hint">
-        hold boot then press reset on the esp32 to enter download mode.
+        plug in usb and pick the serial port — the esp32 enters bootloader
+        automatically.
       </p>
 
       <ProgressBar pct={progress} active={phase === 'flashing'} />
