@@ -14,6 +14,9 @@ export type { CardProps, CardHeaderProps, CardBodyProps, CardFooterProps } from 
 export { Panel } from './components/Panel';
 export type { PanelProps } from './components/Panel';
 
+export { SectionLabel } from './components/SectionLabel';
+export type { SectionLabelProps } from './components/SectionLabel';
+
 export { Modal, ModalHeader, ModalContent, ModalFooter } from './components/Modal';
 export type { ModalProps, ModalHeaderProps, ModalContentProps, ModalFooterProps } from './components/Modal';
 
