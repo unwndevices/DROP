@@ -1,10 +1,9 @@
 .nfo-topbar {
   display: grid;
   grid-template-columns: auto 1fr auto;
-  align-items: center;
+  align-items: baseline;
   gap: var(--nfo-space-4, 16px);
-  height: var(--nfo-nav-height, 48px);
-  padding: 0 var(--nfo-space-4, 16px);
+  padding: 14px var(--nfo-space-4, 16px) 8px;
   background: var(--nfo-bg-alt);
   border-bottom: 1px solid var(--nfo-border);
   font-family: var(--nfo-font-primary);
@@ -45,9 +44,8 @@
 /* Tabs */
 .nfo-topbar__tabs {
   display: flex;
-  align-items: stretch;
+  align-items: baseline;
   gap: 0;
-  height: 100%;
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -58,8 +56,7 @@
   appearance: none;
   background: transparent;
   border: 0;
-  height: 100%;
-  padding: 0 var(--nfo-space-3, 12px);
+  padding: 0 var(--nfo-space-3, 12px) 4px;
   font-family: var(--nfo-font-wordmark);
   font-weight: 300;
   font-size: var(--nfo-t-small, 0.8125rem);
@@ -92,15 +89,9 @@
   align-items: center;
   gap: var(--nfo-space-3, 12px);
   flex-shrink: 0;
+  align-self: center;
+  transform: translateY(2px); /* nudge so the icon optically sits with the baseline row */
 }
-
-.nfo-topbar__status {
-  display: inline-flex;
-  align-items: center;
-  min-height: 1em;
-}
-
-.nfo-topbar__status:empty { display: none; }
 
 .nfo-topbar__icon-btn {
   appearance: none;
