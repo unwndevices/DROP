@@ -1,0 +1,216 @@
+.wav2datum {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nfo-space-4, 16px);
+  max-width: 820px;
+  margin: 0 auto;
+  padding: var(--nfo-space-4, 16px);
+  font-family: var(--nfo-font-primary, var(--ds-font-mono));
+  color: var(--nfo-ink-1, var(--ds-color-text-primary));
+}
+
+.wav2datum__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wav2datum__title {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35em;
+  margin: 0;
+  font-family: inherit;
+  font-size: var(--nfo-t-h1, 1rem);
+  font-weight: var(--nfo-fw-medium, 500);
+  text-transform: lowercase;
+  letter-spacing: 0.08em;
+}
+
+.wav2datum__bracket {
+  color: var(--nfo-ink-3);
+}
+
+.wav2datum__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nfo-space-3, 12px);
+}
+
+/* ───────── source ───────── */
+.wav2datum__source {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wav2datum__filebtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 16px;
+  border: 1px dashed var(--nfo-border-strong, var(--ds-color-border));
+  cursor: pointer;
+  font-size: var(--nfo-t-body, 0.8125rem);
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+  color: var(--nfo-ink-2);
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.wav2datum__filebtn:hover {
+  border-color: var(--nfo-accent, #da532c);
+  color: var(--nfo-accent, #da532c);
+}
+
+.wav2datum__filebtn input {
+  display: none;
+}
+
+.wav2datum__filemeta {
+  font-size: var(--nfo-t-small, 0.75rem);
+  color: var(--nfo-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ───────── analysis ───────── */
+.wav2datum__controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nfo-space-3, 12px);
+}
+
+.wav2datum__control {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.wav2datum__control > label {
+  font-size: var(--nfo-t-small, 0.75rem);
+  text-transform: lowercase;
+  letter-spacing: 0.06em;
+  color: var(--nfo-ink-2);
+}
+
+.wav2datum__control select,
+.wav2datum__control input[type='range'],
+.wav2datum__preset input {
+  font-family: inherit;
+  font-size: var(--nfo-t-body, 0.8125rem);
+  color: var(--nfo-ink-1);
+  background: var(--nfo-surface, transparent);
+  border: 1px solid var(--nfo-border-strong, var(--ds-color-border));
+  border-radius: 0;
+  padding: 4px 8px;
+  width: 100%;
+}
+
+.wav2datum__control input[type='range'] {
+  padding: 0;
+  border: none;
+  accent-color: var(--nfo-accent, #da532c);
+}
+
+.wav2datum__value {
+  color: var(--nfo-ink-3);
+  font-variant-numeric: tabular-nums;
+  margin-left: 4px;
+}
+
+.wav2datum__rerun,
+.wav2datum__download,
+.wav2datum__playbtn {
+  font-family: inherit;
+  font-size: var(--nfo-t-body, 0.8125rem);
+  text-transform: lowercase;
+  letter-spacing: 0.06em;
+  color: var(--nfo-ink-1);
+  background: transparent;
+  border: 1px solid var(--nfo-border-strong, var(--ds-color-border));
+  border-radius: 0;
+  padding: 6px 14px;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.wav2datum__rerun:hover:not(:disabled),
+.wav2datum__playbtn:hover:not(:disabled) {
+  border-color: var(--nfo-accent, #da532c);
+  color: var(--nfo-accent, #da532c);
+}
+
+.wav2datum__rerun:disabled,
+.wav2datum__download:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.wav2datum__download {
+  border-color: var(--nfo-accent, #da532c);
+  color: var(--nfo-accent, #da532c);
+  font-weight: var(--nfo-fw-medium, 500);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ───────── preview ───────── */
+.wav2datum__chart {
+  height: 240px;
+  border: 1px solid var(--nfo-border-faint, var(--ds-color-border));
+  overflow: hidden;
+}
+
+.wav2datum__transport {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--nfo-t-small, 0.75rem);
+  color: var(--nfo-ink-2);
+}
+
+.wav2datum__framecount {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
+
+.wav2datum__slot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: var(--nfo-t-small, 0.75rem);
+  color: var(--nfo-ink-2);
+}
+
+/* ───────── output ───────── */
+.wav2datum__output {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.wav2datum__preset {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 240px;
+}
+
+.wav2datum__prompt {
+  color: var(--nfo-accent, #da532c);
+  font-weight: var(--nfo-fw-medium, 500);
+}
+
+/* ───────── footer ───────── */
+.wav2datum__footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-height: 1.4em;
+}
