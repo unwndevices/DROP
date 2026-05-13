@@ -1,69 +1,37 @@
-# React + TypeScript + Vite
+# DROP
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Browser tools for [unwn](https://unwn.dev) **eisei** owners. Three tools live
+under one roof, styled in the NFO design system (warm-paper light / warm-ink
+dark, mono-first, zero radius, rust accent).
 
-Currently, two official plugins are available:
+## Tools
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+| Tool          | What it does                                                                       |
+| ------------- | ---------------------------------------------------------------------------------- |
+| `firmware`    | Flash daisy (DFU) and esp32 (serial) over USB, or download the right files for microSD. |
+| `wav2datum`   | Convert a `.wav` / `.mp3` / `.ogg` / `.flac` / `.m4a` file into a spectral `.datum` preset. |
+| `datum-viewer` | Inspect a saved `.datum` (or `.dat` / `.json`) file — properties + spectral preview. |
 
-## Expanding the ESLint configuration
+## Local development
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```sh
+npm install
+npm run dev      # vite dev server on :5173
+npm run build    # production bundle into dist/
+npm run preview  # serve the built bundle
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+WebUSB / WebSerial are required for the firmware tool — use a Chromium-based
+browser, plug in eisei, and accept the device prompts.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Theme
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Light/dark cycle lives in the top-bar (sun / moon / monitor icon). The
+selected mode persists to `localStorage`. `system` follows the OS via
+`prefers-color-scheme`.
+
+## Project links
+
+- Firmware releases feed:
+  `https://raw.githubusercontent.com/unwndevices/unwn_fw/main/releases.json`
+- Hardware: <https://unwn.dev>
