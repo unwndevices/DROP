@@ -8,6 +8,7 @@ import {
   type Release,
 } from './releases';
 import { ReleaseNotes } from './ReleaseNotes';
+import { FlashPanel } from './flash/FlashPanel';
 import './Firmware.css';
 
 export type FirmwareMode = 'flash' | 'download';
@@ -139,28 +140,18 @@ export const Firmware: React.FC = () => {
 
       <section className="firmware-section">
         <SectionLabel index={3}>action</SectionLabel>
-        <div className="firmware-action firmware-action--placeholder">
-          <StatusBadge kind="info">
-            {mode === 'flash'
-              ? `flash via usb — ${target}`
-              : `download for microsd — ${target}`}
-          </StatusBadge>
-          <p className="firmware-action__hint">
-            {mode === 'flash'
-              ? 'connect device, then press [ flash ] (wired in a follow-up commit).'
-              : 'download links land in a follow-up commit.'}
-          </p>
-          {selectedVersion && (
-            <p className="firmware-action__version">
-              › selected version: <strong>{selectedVersion}</strong>
-              {selectedRelease && (
-                <span className="firmware-action__date">
-                  {' '}— {selectedRelease.releaseDate}
-                </span>
-              )}
+        {mode === 'flash' ? (
+          <FlashPanel target={target} release={selectedRelease} />
+        ) : (
+          <div className="firmware-action firmware-action--placeholder">
+            <StatusBadge kind="info">
+              download for microsd — {target}
+            </StatusBadge>
+            <p className="firmware-action__hint">
+              download links land in the next commit.
             </p>
-          )}
-        </div>
+          </div>
+        )}
       </section>
     </div>
   );

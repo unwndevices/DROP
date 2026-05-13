@@ -7,3 +7,4 @@ export {
   latestStable,
 } from './filters';
 export type { Release, ReleaseIndex, ReleasePlatforms } from './releases.types';
+export { fetchBinary } from './fetchBinary';
