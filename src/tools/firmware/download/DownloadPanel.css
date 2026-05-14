@@ -43,11 +43,6 @@
   font-size: var(--nfo-t-body, 0.8125rem);
 }
 
-.download-row__prompt {
-  color: var(--nfo-accent, #da532c);
-  font-weight: var(--nfo-fw-medium, 500);
-}
-
 .download-row__label {
   text-transform: lowercase;
   letter-spacing: 0.06em;

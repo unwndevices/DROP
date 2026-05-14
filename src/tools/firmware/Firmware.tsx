@@ -50,10 +50,7 @@ export const Firmware: React.FC = () => {
   return (
     <div className="firmware-tool">
       <header className="firmware-tool__header">
-        <h1 className="firmware-tool__title">
-          <span className="firmware-tool__prompt" aria-hidden="true">›</span>
-          <span>firmware</span>
-        </h1>
+        <h1 className="firmware-tool__title">firmware</h1>
       </header>
 
       <div className="firmware-tool__grid">
@@ -61,7 +58,6 @@ export const Firmware: React.FC = () => {
           <SectionLabel index={1}>version</SectionLabel>
 
           <div className="firmware-version">
-            <span className="firmware-version__prompt" aria-hidden="true">›</span>
             <select
               className="firmware-version__select"
               value={selectedVersion}

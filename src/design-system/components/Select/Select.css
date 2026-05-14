@@ -1,5 +1,4 @@
-/* Select — NFO retheme: square, hairline, `›` accent prefix slot,
-   focus = border-strong shift. */
+/* Select — NFO retheme: square, hairline, focus = border-strong shift. */
 
 .ds-select-container {
     display: flex;
@@ -24,7 +23,7 @@
 }
 
 .ds-select-wrapper::before {
-    content: '›';
+    content: '';
     position: absolute;
     left: var(--ds-spacing-sm);
     top: 50%;

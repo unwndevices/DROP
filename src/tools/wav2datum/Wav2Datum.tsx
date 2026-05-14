@@ -271,10 +271,7 @@ export const Wav2Datum: React.FC = () => {
   return (
     <div className="wav2datum">
       <header className="wav2datum__header">
-        <h1 className="wav2datum__title">
-          <span className="wav2datum__titleprompt" aria-hidden="true">›</span>
-          <span>wav2datum</span>
-        </h1>
+        <h1 className="wav2datum__title">wav2datum</h1>
       </header>
 
       <div className="wav2datum__grid">
@@ -295,7 +292,7 @@ export const Wav2Datum: React.FC = () => {
           />
           {audioFile && (
             <div className="wav2datum__filemeta">
-              › loaded: {audioFile.name} · {audioSampleRate} hz · {audioDuration.toFixed(2)} s
+              loaded: {audioFile.name} · {audioSampleRate} hz · {audioDuration.toFixed(2)} s
             </div>
           )}
           {!isWasmReady && <StatusBadge kind="info">loading filterbank wasm…</StatusBadge>}
@@ -316,7 +313,6 @@ export const Wav2Datum: React.FC = () => {
         <div className="wav2datum__controls">
           <div className="wav2datum__row">
             <span className="wav2datum__rowlabel">detail rate</span>
-            <span className="wav2datum__rowprompt" aria-hidden="true">›</span>
             <select
               className="wav2datum__select"
               value={settings.analysisBlockSize}
@@ -433,7 +429,6 @@ export const Wav2Datum: React.FC = () => {
 
         <div className="wav2datum__output">
           <label className="wav2datum__preset">
-            <span className="wav2datum__prompt" aria-hidden="true">›</span>
             <input
               type="text"
               placeholder="preset name"

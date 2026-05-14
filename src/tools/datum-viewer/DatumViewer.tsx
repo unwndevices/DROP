@@ -77,10 +77,7 @@ export const DatumViewer: React.FC = () => {
   return (
     <div className="datum-viewer">
       <header className="datum-viewer__header">
-        <h1 className="datum-viewer__title">
-          <span className="datum-viewer__prompt" aria-hidden="true">›</span>
-          <span>datum viewer</span>
-        </h1>
+        <h1 className="datum-viewer__title">datum viewer</h1>
         {datum && (
           <button
             type="button"

@@ -29,11 +29,6 @@
   letter-spacing: 0.08em;
 }
 
-.datum-viewer__prompt {
-  color: var(--nfo-accent, #da532c);
-  font-weight: var(--nfo-fw-medium, 500);
-}
-
 .datum-viewer__clear {
   font-family: inherit;
   font-size: var(--nfo-t-small, 0.75rem);

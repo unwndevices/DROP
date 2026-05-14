@@ -47,11 +47,6 @@
   letter-spacing: 0.08em;
 }
 
-.wav2datum__titleprompt {
-  color: var(--nfo-accent, #da532c);
-  font-weight: var(--nfo-fw-medium, 500);
-}
-
 .wav2datum__section {
   display: flex;
   flex-direction: column;
@@ -90,11 +85,6 @@
   text-transform: lowercase;
   letter-spacing: 0.06em;
   color: var(--nfo-ink-2);
-}
-
-.wav2datum__rowprompt {
-  color: var(--nfo-accent, #da532c);
-  font-weight: var(--nfo-fw-medium, 500);
 }
 
 .wav2datum__select {
@@ -215,11 +205,6 @@
   font-size: var(--nfo-t-small, 0.75rem);
   letter-spacing: 0.04em;
   user-select: none;
-}
-
-.wav2datum__prompt {
-  color: var(--nfo-accent, #da532c);
-  font-weight: var(--nfo-fw-medium, 500);
 }
 
 .wav2datum__analysis-action {

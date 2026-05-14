@@ -1,5 +1,4 @@
-/* Input — NFO retheme: square, hairline, `›` accent prefix slot,
-   focus = border-strong shift. */
+/* Input — NFO retheme: square, hairline, focus = border-strong shift. */
 
 .ds-input-container {
     display: flex;
@@ -34,10 +33,9 @@
     width: 100%;
 }
 
-/* `›` prompt prefix — applies to inputs whose wrapper opts in via
-   the `ds-input-wrapper--prompt` class. Plain `.ds-input-wrapper` stays clean. */
+/* `ds-input-wrapper--prompt` opt-in slot — kept as a no-op placeholder. */
 .ds-input-wrapper--prompt::before {
-    content: '›';
+    content: '';
     position: absolute;
     left: var(--ds-spacing-sm);
     top: 50%;
@@ -148,7 +146,7 @@ input[type="file"] {
 }
 
 input[type="file"]::before {
-    content: '›';
+    content: '';
     position: absolute;
     left: var(--ds-spacing-sm);
     top: 50%;
@@ -165,7 +163,7 @@ input[type="file"]::before {
 }
 
 .ds-file-input-wrapper::before {
-    content: '›';
+    content: '';
     position: absolute;
     left: var(--ds-spacing-sm);
     top: 50%;

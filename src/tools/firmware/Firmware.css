@@ -50,11 +50,6 @@
   color: var(--nfo-ink-1);
 }
 
-.firmware-tool__prompt {
-  color: var(--nfo-accent, #da532c);
-  font-weight: var(--nfo-fw-medium, 500);
-}
-
 .firmware-section {
   display: flex;
   flex-direction: column;
@@ -66,11 +61,6 @@
   align-items: center;
   gap: var(--nfo-space-3, 12px);
   flex-wrap: wrap;
-}
-
-.firmware-version__prompt {
-  color: var(--nfo-accent, #da532c);
-  font-weight: var(--nfo-fw-medium, 500);
 }
 
 .firmware-version__select {
