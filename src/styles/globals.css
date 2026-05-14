@@ -17,6 +17,13 @@ textarea {
   font-family: inherit;
 }
 
+/* Departure Mono ships in a single weight. Disable browser-synthesized
+   bold/italic so medium/700 declarations render flat instead of
+   smearing pixel glyphs. */
+html {
+  font-synthesis: none;
+}
+
 html {
   font-size: 16px;
   height: 100%;

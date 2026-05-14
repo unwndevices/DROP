@@ -9,6 +9,9 @@
 @font-face { font-family: 'Fira Mono'; src: url('/fonts/FiraMono-Medium.woff2')  format('woff2'); font-weight: 500; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Fira Mono'; src: url('/fonts/FiraMono-Bold.woff2')    format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
 
+/* Departure Mono — pixel UI face (single weight, self-hosted) */
+@font-face { font-family: 'Departure Mono'; src: url('/fonts/DepartureMono-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+
 /* Helvetica Neue Cyr — wordmark only ("unwn") */
 @font-face { font-family: 'Helvetica Neue Cyr'; src: url('/fonts/HelveticaNeueCyr-Roman.woff2')  format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Helvetica Neue Cyr'; src: url('/fonts/HelveticaNeueCyr-Italic.woff2') format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
@@ -51,31 +54,33 @@
   --nfo-err:   #c23b22;
   --nfo-info:  #2e6098;
 
-  /* Fonts — pixel-font experiment v2 (VT323).
-     - VT323 is a monospaced CRT-pixel face, so it covers both primary and
-       mono roles without breaking column alignment.
+  /* Fonts — pixel-font experiment v3 (Departure Mono).
+     - Departure Mono is a tight monospaced pixel face. Single weight;
+       font-synthesis is disabled so medium/bold render flat instead of
+       turning into ugly fake-bold artifacts.
      - Wordmark uses Instrument Serif for the "unwn" mark only. */
-  --nfo-font-primary:  'VT323', 'Fira Mono', 'Courier New', Courier, monospace;
-  --nfo-font-mono:     'VT323', 'Fira Mono', 'Courier New', Courier, monospace;
+  --nfo-font-primary:  'Departure Mono', 'Fira Mono', 'Courier New', Courier, monospace;
+  --nfo-font-mono:     'Departure Mono', 'Fira Mono', 'Courier New', Courier, monospace;
   --nfo-font-wordmark: 'Instrument Serif', 'Helvetica Neue Cyr', 'Helvetica Neue', Helvetica, serif;
 
   --nfo-fw-regular: 400;
   --nfo-fw-medium:  500;
   --nfo-fw-bold:    700;
 
-  /* Type scale — mono renders dense, sizes calibrated for Fira Mono.
-     Bumped one step in 2026-05-13 polish pass so body labels are
-     comfortable on desktop without re-laying out tools. */
-  --nfo-t-hero:    clamp(2.75rem, 5vw, 4.25rem);
-  --nfo-t-h1:      clamp(1.75rem, 3vw, 2.25rem);
-  --nfo-t-h2:      1.375rem;
-  --nfo-t-h3:      1.1875rem;
-  --nfo-t-h4:      1.0625rem;
-  --nfo-t-body:    0.9375rem;   /* 15px (was 13px) */
-  --nfo-t-small:   0.8125rem;   /* 13px (was 11px) */
-  --nfo-t-xs:      0.6875rem;   /* 11px (was 9px) */
-  --nfo-t-mono:    0.8125rem;
-  --nfo-t-mono-sm: 0.6875rem;
+  /* Type scale — pixel-face calibration (Departure Mono).
+     Pixel rendering reads small; baseline pushed up so the smallest
+     legible step (body) is ~17px and `--nfo-t-small` clears the 14px
+     bare-minimum threshold. */
+  --nfo-t-hero:    clamp(3rem, 5.5vw, 4.75rem);
+  --nfo-t-h1:      clamp(2rem, 3.25vw, 2.5rem);
+  --nfo-t-h2:      1.625rem;    /* 26px */
+  --nfo-t-h3:      1.375rem;    /* 22px */
+  --nfo-t-h4:      1.1875rem;   /* 19px */
+  --nfo-t-body:    1.0625rem;   /* 17px */
+  --nfo-t-small:   0.9375rem;   /* 15px */
+  --nfo-t-xs:      0.875rem;    /* 14px — bare min */
+  --nfo-t-mono:    1rem;        /* 16px */
+  --nfo-t-mono-sm: 0.875rem;    /* 14px */
 
   /* Line heights */
   --nfo-lh-tight:  1.15;
