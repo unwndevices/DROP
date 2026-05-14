@@ -16,7 +16,6 @@ export const Firmware: React.FC = () => {
   const { releases, latestId, loading, error, fromCache, refresh } = useReleases();
   const [showBetas, setShowBetas] = useState(false);
   const [selectedVersion, setSelectedVersion] = useState<string>('');
-  const [useDaisyDebug, setUseDaisyDebug] = useState(false);
 
   // Track which section is mid-flash to lock the other.
   const [daisyBusy, setDaisyBusy] = useState(false);
@@ -114,11 +113,7 @@ export const Firmware: React.FC = () => {
         <div className="firmware-tool__column">
           <section className="firmware-section firmware-section--download">
             <SectionLabel index={2}>download for microsd</SectionLabel>
-            <DownloadPanel
-              release={selectedRelease}
-              useDaisyDebug={useDaisyDebug}
-              onToggleDaisyDebug={setUseDaisyDebug}
-            />
+            <DownloadPanel release={selectedRelease} />
           </section>
 
           <section className="firmware-section">

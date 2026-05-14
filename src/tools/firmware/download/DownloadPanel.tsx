@@ -5,8 +5,6 @@ import './DownloadPanel.css';
 
 export interface DownloadPanelProps {
   release: Release | undefined;
-  useDaisyDebug: boolean;
-  onToggleDaisyDebug: (next: boolean) => void;
 }
 
 const stripV = (v: string) => v.replace(/^v/i, '');
@@ -40,11 +38,7 @@ async function saveBlobAs(url: string, filename: string): Promise<void> {
   setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
 }
 
-export const DownloadPanel: React.FC<DownloadPanelProps> = ({
-  release,
-  useDaisyDebug,
-  onToggleDaisyDebug,
-}) => {
+export const DownloadPanel: React.FC<DownloadPanelProps> = ({ release }) => {
   if (!release) {
     return (
       <div className="download-panel">
@@ -53,12 +47,6 @@ export const DownloadPanel: React.FC<DownloadPanelProps> = ({
     );
   }
 
-  const daisyDebugAvailable = Boolean(release.platforms.daisy_debug);
-  const daisyUrl =
-    useDaisyDebug && daisyDebugAvailable
-      ? release.platforms.daisy_debug!
-      : release.platforms.daisy;
-
   return (
     <div className="download-panel">
       <p className="download-panel__hint">
@@ -66,21 +54,10 @@ export const DownloadPanel: React.FC<DownloadPanelProps> = ({
         files to the root, reinsert. one click per file, no zip.
       </p>
 
-      {daisyDebugAvailable && (
-        <label className="download-panel__variant">
-          <input
-            type="checkbox"
-            checked={useDaisyDebug}
-            onChange={(e) => onToggleDaisyDebug(e.target.checked)}
-          />
-          <span>use daisy debug build</span>
-        </label>
-      )}
-
       <ul className="download-panel__list">
         <DownloadRow
-          label={`daisy${useDaisyDebug && daisyDebugAvailable ? ' (debug)' : ''}`}
-          url={daisyUrl}
+          label="daisy"
+          url={release.platforms.daisy}
           filename={daisyFilename()}
         />
         <DownloadRow
