@@ -76,9 +76,8 @@ export const DatumViewer: React.FC = () => {
 
   return (
     <div className="datum-viewer">
-      <header className="datum-viewer__header">
-        <h1 className="datum-viewer__title">datum viewer</h1>
-        {datum && (
+      {datum && (
+        <div className="datum-viewer__header">
           <button
             type="button"
             className="datum-viewer__clear"
@@ -86,8 +85,8 @@ export const DatumViewer: React.FC = () => {
           >
             clear
           </button>
-        )}
-      </header>
+        </div>
+      )}
 
       <div className="datum-viewer__grid">
         <section className="datum-viewer__section">

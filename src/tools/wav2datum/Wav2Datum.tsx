@@ -270,10 +270,6 @@ export const Wav2Datum: React.FC = () => {
 
   return (
     <div className="wav2datum">
-      <header className="wav2datum__header">
-        <h1 className="wav2datum__title">wav2datum</h1>
-      </header>
-
       <div className="wav2datum__grid">
       {/* ── 01 SOURCE ─────────────────────────────────────── */}
       <section className="wav2datum__section wav2datum__section--source">

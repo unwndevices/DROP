@@ -12,21 +12,9 @@
 .datum-viewer__header {
   display: flex;
   align-items: baseline;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: var(--nfo-space-3, 12px);
   flex-wrap: wrap;
-}
-
-.datum-viewer__title {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.35em;
-  margin: 0;
-  font-family: inherit;
-  font-size: var(--nfo-t-h1, 1rem);
-  font-weight: var(--nfo-fw-medium, 500);
-  text-transform: lowercase;
-  letter-spacing: 0.08em;
 }
 
 .datum-viewer__clear {

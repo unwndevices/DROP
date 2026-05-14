@@ -44,27 +44,6 @@
   min-width: 0;
 }
 
-.firmware-tool__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--nfo-space-3, 12px);
-  flex-wrap: wrap;
-}
-
-.firmware-tool__title {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.35em;
-  margin: 0;
-  font-family: inherit;
-  font-size: var(--nfo-t-h1, 1rem);
-  font-weight: var(--nfo-fw-medium, 500);
-  text-transform: lowercase;
-  letter-spacing: 0.08em;
-  color: var(--nfo-ink-1);
-}
-
 .firmware-section {
   display: flex;
   flex-direction: column;

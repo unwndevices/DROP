@@ -71,7 +71,7 @@
      Every step resolves to --nfo-t-base (1rem, 16px) so hierarchy comes
      from weight, color, and spacing instead of size. Easy to revert by
      restoring per-token values. */
-  --nfo-t-base:    1rem;        /* 16px */
+  --nfo-t-base:    0.9375rem;   /* 15px — single size, one step below the 1rem default */
   --nfo-t-hero:    var(--nfo-t-base);
   --nfo-t-h1:      var(--nfo-t-base);
   --nfo-t-h2:      var(--nfo-t-base);

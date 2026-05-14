@@ -29,23 +29,6 @@
   min-width: 0;
 }
 
-.wav2datum__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.wav2datum__title {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.35em;
-  margin: 0;
-  font-family: inherit;
-  font-size: var(--nfo-t-h1, 1rem);
-  font-weight: var(--nfo-fw-medium, 500);
-  text-transform: lowercase;
-  letter-spacing: 0.08em;
-}
 
 .wav2datum__section {
   display: flex;
