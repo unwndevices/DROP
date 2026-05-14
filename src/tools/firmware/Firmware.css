@@ -50,10 +50,51 @@
   gap: var(--nfo-space-3, 12px);
 }
 
+/* Inverted island — overrides the NFO scope so the section contrasts with
+   the page. Light theme → dark slab; dark theme → light slab. */
 .firmware-section--download {
+  --nfo-bg:           #2e2e2e;
+  --nfo-bg-alt:       #383838;
+  --nfo-bg-deep:      #242424;
+  --nfo-surface:      #2e2e2e;
+  --nfo-surface-alt:  #383838;
+
+  --nfo-ink-1:        #f4f4f4;
+  --nfo-ink-2:        #c4c6c9;
+  --nfo-ink-3:        #8e9094;
+  --nfo-ink-4:        #5a5c60;
+  --nfo-ink-inv:      #2e2e2e;
+
+  --nfo-border:        #4d4f51;
+  --nfo-border-faint:  #3a3c3e;
+  --nfo-border-strong: #6c6e70;
+
+  --nfo-grid-dot: rgba(255, 255, 255, 0.05);
+
   border: 1px solid var(--nfo-border);
-  background: var(--nfo-surface);
+  background: var(--nfo-bg);
+  color: var(--nfo-ink-1);
   padding: var(--nfo-space-3, 12px) var(--nfo-space-4, 16px) var(--nfo-space-4, 16px);
+}
+
+[data-theme="dark"] .firmware-section--download {
+  --nfo-bg:           #c4c4c4;
+  --nfo-bg-alt:       #b8b8b8;
+  --nfo-bg-deep:      #aaaaaa;
+  --nfo-surface:      #c4c4c4;
+  --nfo-surface-alt:  #b8b8b8;
+
+  --nfo-ink-1:        #050505;
+  --nfo-ink-2:        #2e3236;
+  --nfo-ink-3:        #5c6065;
+  --nfo-ink-4:        #8a8d92;
+  --nfo-ink-inv:      #c4c4c4;
+
+  --nfo-border:        #8e9094;
+  --nfo-border-faint:  #a4a6aa;
+  --nfo-border-strong: #5a5c60;
+
+  --nfo-grid-dot: rgba(0, 0, 0, 0.08);
 }
 
 .firmware-version {

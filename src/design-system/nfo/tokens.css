@@ -23,19 +23,19 @@
 :root {
   /* Light palette (default) */
 
-  /* Backgrounds — layered warm paper hierarchy */
-  --nfo-bg:           #f4f1eb;
-  --nfo-bg-alt:       #eceae1;
-  --nfo-bg-deep:      #dedad1;
-  --nfo-surface:      #faf8f3;
-  --nfo-surface-alt:  #f3f1ea;
+  /* Backgrounds — layered cold neutral hierarchy, anchored at #DBDBDB */
+  --nfo-bg:           #DBDBDB;
+  --nfo-bg-alt:       #cdcdcd;
+  --nfo-bg-deep:      #c2c2c2;
+  --nfo-surface:      #DBDBDB;
+  --nfo-surface-alt:  #d3d3d3;
 
-  /* Ink */
-  --nfo-ink-1:        #1a1916;
-  --nfo-ink-2:        #575349;
-  --nfo-ink-3:        #948e84;
-  --nfo-ink-4:        #c0bbb2;
-  --nfo-ink-inv:      #f4f1eb;
+  /* Ink — neutral grays */
+  --nfo-ink-1:        #1a1c1e;
+  --nfo-ink-2:        #4f5358;
+  --nfo-ink-3:        #878a8f;
+  --nfo-ink-4:        #b6b8bc;
+  --nfo-ink-inv:      #DBDBDB;
 
   /* Accent — brand rust */
   --nfo-accent:       #da532c;
@@ -44,9 +44,12 @@
   --nfo-accent-fg:    #ffffff;
 
   /* Borders */
-  --nfo-border:        #c8c4bb;
-  --nfo-border-faint:  #d8d4cb;
-  --nfo-border-strong: #8a857d;
+  --nfo-border:        #b8babd;
+  --nfo-border-faint:  #c9cbcd;
+  --nfo-border-strong: #7d8085;
+
+  /* Background grid dot color — used by subtle dotted overlay on the app shell */
+  --nfo-grid-dot: rgba(0, 0, 0, 0.08);
 
   /* Status */
   --nfo-ok:    #3d7a4f;
@@ -158,4 +161,6 @@
   --nfo-border:        #2e2b26;
   --nfo-border-faint:  #232018;
   --nfo-border-strong: #4a4540;
+
+  --nfo-grid-dot: rgba(255, 255, 255, 0.05);
 }

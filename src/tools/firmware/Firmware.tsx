@@ -50,7 +50,7 @@ export const Firmware: React.FC = () => {
     <div className="firmware-tool">
       <div className="firmware-tool__grid">
         <section className="firmware-section firmware-section--version">
-          <SectionLabel index={1}>version</SectionLabel>
+          <SectionLabel>version</SectionLabel>
 
           <div className="firmware-version">
             <select
@@ -109,12 +109,12 @@ export const Firmware: React.FC = () => {
 
         <div className="firmware-tool__column">
           <section className="firmware-section firmware-section--download">
-            <SectionLabel index={2}>download for microsd</SectionLabel>
+            <SectionLabel index={1}>download for microsd</SectionLabel>
             <DownloadPanel release={selectedRelease} />
           </section>
 
           <section className="firmware-section">
-            <SectionLabel index={3}>flash esp32 (serial)</SectionLabel>
+            <SectionLabel index={2}>flash esp32 (serial)</SectionLabel>
             <Esp32FlashSection
               release={selectedRelease}
               busy={daisyBusy}
@@ -123,7 +123,7 @@ export const Firmware: React.FC = () => {
           </section>
 
           <section className="firmware-section">
-            <SectionLabel index={4}>flash daisy (dfu) — fallback</SectionLabel>
+            <SectionLabel index={3}>flash daisy (dfu) — fallback</SectionLabel>
             <DaisyFlashSection
               release={selectedRelease}
               busy={espBusy}

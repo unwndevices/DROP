@@ -273,7 +273,7 @@ export const Wav2Datum: React.FC = () => {
       <div className="wav2datum__grid">
       {/* ── 01 SOURCE ─────────────────────────────────────── */}
       <section className="wav2datum__section wav2datum__section--source">
-        <SectionLabel index={1}>source</SectionLabel>
+        <SectionLabel>source</SectionLabel>
 
         <div className="wav2datum__source">
           <DropZone
@@ -304,7 +304,7 @@ export const Wav2Datum: React.FC = () => {
       <div className="wav2datum__column">
       {/* ── 02 ANALYSIS ───────────────────────────────────── */}
       <section className="wav2datum__section">
-        <SectionLabel index={2}>analysis</SectionLabel>
+        <SectionLabel index={1}>analysis</SectionLabel>
 
         <div className="wav2datum__controls">
           <div className="wav2datum__row">
@@ -377,7 +377,7 @@ export const Wav2Datum: React.FC = () => {
 
       {/* ── 03 PREVIEW ────────────────────────────────────── */}
       <section className="wav2datum__section">
-        <SectionLabel index={3}>preview</SectionLabel>
+        <SectionLabel index={2}>preview</SectionLabel>
 
         <Panel title="spectral preview" padded={false}>
           <div className="wav2datum__chart">
@@ -421,7 +421,7 @@ export const Wav2Datum: React.FC = () => {
 
       {/* ── 04 OUTPUT ─────────────────────────────────────── */}
       <section className="wav2datum__section">
-        <SectionLabel index={4}>output</SectionLabel>
+        <SectionLabel index={3}>output</SectionLabel>
 
         <div className="wav2datum__output">
           <label className="wav2datum__preset">

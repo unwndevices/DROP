@@ -90,7 +90,7 @@ export const DatumViewer: React.FC = () => {
 
       <div className="datum-viewer__grid">
         <section className="datum-viewer__section">
-          <SectionLabel index={1}>source</SectionLabel>
+          <SectionLabel>source</SectionLabel>
 
           <DropZone
             accept=".datum,.dat,.json,application/json"
@@ -140,7 +140,7 @@ export const DatumViewer: React.FC = () => {
         </section>
 
         <section className="datum-viewer__section">
-          <SectionLabel index={2}>preview</SectionLabel>
+          <SectionLabel index={1}>preview</SectionLabel>
 
           <Panel title="spectral preview" padded={false}>
             <div className="datum-viewer__chart">
