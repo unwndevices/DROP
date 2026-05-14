@@ -70,7 +70,7 @@
   padding: 4px 14px;
   font-family: var(--nfo-font-primary);
   font-weight: 400;
-  font-size: var(--nfo-t-body, 0.875rem);
+  font-size: var(--nfo-t-small);
   letter-spacing: 0.06em;
   text-transform: lowercase;
   color: var(--nfo-ink-3);
@@ -119,7 +119,7 @@
   border: 1px solid var(--nfo-border);
   background: var(--nfo-bg);
   font-family: var(--nfo-font-primary);
-  font-size: var(--nfo-t-body, 0.875rem);
+  font-size: var(--nfo-t-small);
   color: var(--nfo-ink-2);
   text-transform: lowercase;
   letter-spacing: 0.04em;

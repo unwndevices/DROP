@@ -47,7 +47,7 @@
 .firmware-notes h1,
 .firmware-notes h2,
 .firmware-notes h3 {
-  font-size: var(--nfo-t-body, 0.8125rem);
+  font-size: var(--nfo-t-small);
   margin: 0.4em 0 0.2em;
   text-transform: lowercase;
   color: var(--nfo-ink-1);
