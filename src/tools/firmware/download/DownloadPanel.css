@@ -39,6 +39,7 @@
 .download-row {
   display: flex;
   align-items: baseline;
+  flex-wrap: wrap;
   gap: 8px;
   font-size: var(--nfo-t-body, 0.8125rem);
 }
@@ -59,6 +60,7 @@
   text-decoration: underline;
   text-underline-offset: 3px;
   font-variant-numeric: tabular-nums;
+  word-break: break-all;
 }
 
 .download-row__link:hover {

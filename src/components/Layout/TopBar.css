@@ -15,6 +15,7 @@
   align-items: center;
   gap: var(--nfo-space-4, 16px);
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 /* Brand cluster */
@@ -48,15 +49,19 @@
   color: var(--nfo-ink-2);
 }
 
-/* Segmented selector — single bordered control housing all tool tabs. */
+/* Segmented selector — single bordered control housing all tool tabs.
+   Allows horizontal scroll when the viewport can't fit all segments. */
 .nfo-topbar__segmented {
   display: inline-flex;
   align-items: stretch;
   border: 1px solid var(--nfo-accent);
   background: var(--nfo-bg);
-  overflow: hidden;
   max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+
+.nfo-topbar__segmented::-webkit-scrollbar { display: none; }
 
 .nfo-topbar__seg {
   appearance: none;
@@ -156,6 +161,24 @@
   .nfo-topbar__marquee-track {
     animation: none;
     transform: translateX(0);
+  }
+}
+
+/* Mobile: drop the marquee so the segmented selector + theme toggle have
+   room. Trim the topbar gap and product label to keep the bar compact. */
+@media (max-width: 720px) {
+  .nfo-topbar {
+    gap: var(--nfo-space-2, 8px);
+  }
+
+  .nfo-topbar__left {
+    gap: var(--nfo-space-3, 12px);
+  }
+
+  .nfo-topbar__divider,
+  .nfo-topbar__product,
+  .nfo-topbar__marquee {
+    display: none;
   }
 }
 

@@ -5,30 +5,36 @@
   max-width: 1360px;
   width: 100%;
   margin: 0 auto;
-  padding: var(--nfo-space-4, 16px) var(--nfo-space-4, 16px) var(--nfo-space-7, 48px);
+  padding: var(--nfo-space-4, 16px);
   font-family: var(--nfo-font-primary, var(--ds-font-mono));
   color: var(--nfo-ink-1, var(--ds-color-text-primary));
-  height: 100%;
-  min-height: 0;
 }
 
 .firmware-tool__grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--nfo-space-5, 24px);
-  align-items: stretch;
-  flex: 1;
-  min-height: 0;
 }
 
+/* Desktop: lock the layout to the viewport so the release notes column
+   can flex-fill, and reserve ~160px of breathing room under the page. */
 @media (min-width: 960px) {
+  .firmware-tool {
+    height: 100%;
+    min-height: 0;
+    padding-bottom: 160px;
+  }
+
   .firmware-tool__grid {
     grid-template-columns: minmax(340px, 1fr) minmax(0, 1.3fr);
+    align-items: stretch;
+    flex: 1;
+    min-height: 0;
   }
-}
 
-.firmware-section--version {
-  min-height: 0;
+  .firmware-section--version {
+    min-height: 0;
+  }
 }
 
 .firmware-tool__column {
