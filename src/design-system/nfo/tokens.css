@@ -51,10 +51,13 @@
   --nfo-err:   #c23b22;
   --nfo-info:  #2e6098;
 
-  /* Fonts */
-  --nfo-font-primary:  'Fira Mono', 'Courier New', Courier, monospace;
+  /* Fonts — pixel-font experiment.
+     - primary: Pixelify Sans (pixel UI) with Fira Mono as the readable fallback.
+     - mono:    Fira Mono kept verbatim for code/data where pixel rendering hurts.
+     - wordmark: Instrument Serif for the "unwn" mark. */
+  --nfo-font-primary:  'Pixelify Sans', 'Fira Mono', 'Courier New', Courier, monospace;
   --nfo-font-mono:     'Fira Mono', 'Courier New', Courier, monospace;
-  --nfo-font-wordmark: 'Helvetica Neue Cyr', 'Helvetica Neue', Helvetica, sans-serif;
+  --nfo-font-wordmark: 'Instrument Serif', 'Helvetica Neue Cyr', 'Helvetica Neue', Helvetica, serif;
 
   --nfo-fw-regular: 400;
   --nfo-fw-medium:  500;
