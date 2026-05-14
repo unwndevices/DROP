@@ -65,9 +65,11 @@ export const TopBar: React.FC<TopBarProps> = ({
             className="nfo-topbar__marquee"
             aria-label={`latest stable: ${marqueeText}`}
           >
-            <div className="nfo-topbar__marquee-track">
-              <span className="nfo-topbar__marquee-item">{marqueeText}</span>
-              <span className="nfo-topbar__marquee-item" aria-hidden="true">{marqueeText}</span>
+            <div className="nfo-topbar__marquee-viewport">
+              <div className="nfo-topbar__marquee-track">
+                <span className="nfo-topbar__marquee-item">{marqueeText}</span>
+                <span className="nfo-topbar__marquee-item" aria-hidden="true">{marqueeText}</span>
+              </div>
             </div>
           </div>
         )}

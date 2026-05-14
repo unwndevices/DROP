@@ -104,9 +104,17 @@
 .nfo-topbar__marquee {
   position: relative;
   width: clamp(140px, 22vw, 280px);
-  overflow: hidden;
   border: 1px solid var(--nfo-border);
   background: var(--nfo-bg);
+  font-family: var(--nfo-font-primary);
+  font-size: var(--nfo-t-body, 0.875rem);
+  color: var(--nfo-ink-2);
+  text-transform: lowercase;
+  letter-spacing: 0.04em;
+}
+
+.nfo-topbar__marquee-viewport {
+  overflow: hidden;
   padding: 3px 0;
   mask-image: linear-gradient(
     to right,
@@ -122,21 +130,18 @@
     black calc(100% - 14px),
     transparent 100%
   );
-  font-family: var(--nfo-font-primary);
-  font-size: var(--nfo-t-small, 0.75rem);
-  color: var(--nfo-ink-2);
-  text-transform: lowercase;
-  letter-spacing: 0.04em;
 }
 
 .nfo-topbar__marquee-track {
   display: inline-flex;
-  gap: 2.5em;
   white-space: nowrap;
   animation: nfo-marquee-scroll 12s linear infinite;
   will-change: transform;
 }
 
+/* Each item carries its own trailing space so the two clones tile
+   seamlessly: at translateX(-50%) the second clone lands exactly where
+   the first started, with no gap-induced jump. */
 .nfo-topbar__marquee-item {
   display: inline-block;
   padding-right: 2.5em;
