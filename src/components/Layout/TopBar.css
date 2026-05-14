@@ -63,9 +63,9 @@
   background: transparent;
   border: 0;
   padding: 4px 14px;
-  font-family: var(--nfo-font-wordmark);
-  font-weight: 300;
-  font-size: var(--nfo-t-small, 0.8125rem);
+  font-family: var(--nfo-font-primary);
+  font-weight: 400;
+  font-size: var(--nfo-t-body, 0.875rem);
   letter-spacing: 0.06em;
   text-transform: lowercase;
   color: var(--nfo-ink-3);

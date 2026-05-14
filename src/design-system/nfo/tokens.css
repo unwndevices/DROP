@@ -51,12 +51,12 @@
   --nfo-err:   #c23b22;
   --nfo-info:  #2e6098;
 
-  /* Fonts — pixel-font experiment.
-     - primary: Pixelify Sans (pixel UI) with Fira Mono as the readable fallback.
-     - mono:    Fira Mono kept verbatim for code/data where pixel rendering hurts.
-     - wordmark: Instrument Serif for the "unwn" mark. */
-  --nfo-font-primary:  'Pixelify Sans', 'Fira Mono', 'Courier New', Courier, monospace;
-  --nfo-font-mono:     'Fira Mono', 'Courier New', Courier, monospace;
+  /* Fonts — pixel-font experiment v2 (VT323).
+     - VT323 is a monospaced CRT-pixel face, so it covers both primary and
+       mono roles without breaking column alignment.
+     - Wordmark uses Instrument Serif for the "unwn" mark only. */
+  --nfo-font-primary:  'VT323', 'Fira Mono', 'Courier New', Courier, monospace;
+  --nfo-font-mono:     'VT323', 'Fira Mono', 'Courier New', Courier, monospace;
   --nfo-font-wordmark: 'Instrument Serif', 'Helvetica Neue Cyr', 'Helvetica Neue', Helvetica, serif;
 
   --nfo-fw-regular: 400;

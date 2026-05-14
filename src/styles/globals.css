@@ -8,6 +8,15 @@
   box-sizing: border-box;
 }
 
+/* Native form controls don't inherit font-family by default — force them
+   to match the body so the pixel UI stack reaches every native widget. */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
 html {
   font-size: 16px;
   height: 100%;
