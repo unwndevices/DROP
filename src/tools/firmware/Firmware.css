@@ -5,7 +5,7 @@
   max-width: 1360px;
   width: 100%;
   margin: 0 auto;
-  padding: var(--nfo-space-4, 16px);
+  padding: var(--nfo-space-4, 16px) var(--nfo-space-4, 16px) var(--nfo-space-7, 48px);
   font-family: var(--nfo-font-primary, var(--ds-font-mono));
   color: var(--nfo-ink-1, var(--ds-color-text-primary));
   height: 100%;
