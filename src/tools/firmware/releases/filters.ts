@@ -43,3 +43,12 @@ export function filterReleases(
 export function latestStable(releases: Release[]): Release | undefined {
   return releases.find((r) => aboveFloor(r.version) && !isBeta(r.version));
 }
+
+/** Extract the human title from a release's first changelog heading.
+ *  Example: "### v1.0.0 - First Production Release" → "First Production Release". */
+export function releaseTitle(release: Release | undefined): string {
+  if (!release) return '';
+  const first = release.changelog[0] ?? '';
+  const m = first.match(/^#+\s*v?[\d.]+[a-z\d]*\s*[-—–:]\s*(.+?)\s*$/i);
+  return m ? m[1] : '';
+}

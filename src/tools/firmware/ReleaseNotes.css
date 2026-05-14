@@ -3,7 +3,8 @@
   font-size: var(--nfo-t-small, 0.75rem);
   line-height: 1.55;
   color: var(--nfo-ink-2, var(--ds-color-text-secondary));
-  max-height: 200px;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   padding-right: 4px;
 }

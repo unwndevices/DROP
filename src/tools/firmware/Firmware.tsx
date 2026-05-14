@@ -17,7 +17,6 @@ export const Firmware: React.FC = () => {
   const [showBetas, setShowBetas] = useState(false);
   const [selectedVersion, setSelectedVersion] = useState<string>('');
   const [useDaisyDebug, setUseDaisyDebug] = useState(false);
-  const [includeDaisyOnEsp, setIncludeDaisyOnEsp] = useState(true);
 
   // Track which section is mid-flash to lock the other.
   const [daisyBusy, setDaisyBusy] = useState(false);
@@ -110,32 +109,30 @@ export const Firmware: React.FC = () => {
         </section>
 
         <div className="firmware-tool__column">
-          <section className="firmware-section">
-            <SectionLabel index={2}>flash esp32 (serial)</SectionLabel>
-            <Esp32FlashSection
-              release={selectedRelease}
-              busy={daisyBusy}
-              onBusyChange={setEspBusy}
-              includeDaisy={includeDaisyOnEsp}
-              onToggleIncludeDaisy={setIncludeDaisyOnEsp}
-            />
-          </section>
-
-          <section className="firmware-section">
-            <SectionLabel index={3}>flash daisy (dfu)</SectionLabel>
-            <DaisyFlashSection
-              release={selectedRelease}
-              busy={espBusy}
-              onBusyChange={setDaisyBusy}
-            />
-          </section>
-
-          <section className="firmware-section">
-            <SectionLabel index={4}>download for microsd</SectionLabel>
+          <section className="firmware-section firmware-section--download">
+            <SectionLabel index={2}>download for microsd</SectionLabel>
             <DownloadPanel
               release={selectedRelease}
               useDaisyDebug={useDaisyDebug}
               onToggleDaisyDebug={setUseDaisyDebug}
+            />
+          </section>
+
+          <section className="firmware-section">
+            <SectionLabel index={3}>flash esp32 (serial)</SectionLabel>
+            <Esp32FlashSection
+              release={selectedRelease}
+              busy={daisyBusy}
+              onBusyChange={setEspBusy}
+            />
+          </section>
+
+          <section className="firmware-section">
+            <SectionLabel index={4}>flash daisy (dfu) — fallback</SectionLabel>
+            <DaisyFlashSection
+              release={selectedRelease}
+              busy={espBusy}
+              onBusyChange={setDaisyBusy}
             />
           </section>
         </div>

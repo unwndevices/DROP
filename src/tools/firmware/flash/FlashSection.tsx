@@ -102,8 +102,8 @@ export const DaisyFlashSection: React.FC<BaseProps> = ({
       </div>
 
       <p className="flash-section__hint">
-        daisy can be powered or unpowered. enter dfu mode: hold boot, tap
-        reset, release boot — the led pulses.
+        use only when the daisy can't be reached via the esp32 path. enter dfu
+        mode on the daisy: hold boot, tap reset, release boot — the led pulses.
       </p>
 
       <ProgressBar pct={progress} active={phase === 'flashing'} />
@@ -113,17 +113,10 @@ export const DaisyFlashSection: React.FC<BaseProps> = ({
   );
 };
 
-interface Esp32Props extends BaseProps {
-  includeDaisy: boolean;
-  onToggleIncludeDaisy: (next: boolean) => void;
-}
-
-export const Esp32FlashSection: React.FC<Esp32Props> = ({
+export const Esp32FlashSection: React.FC<BaseProps> = ({
   release,
   busy: externalBusy,
   onBusyChange,
-  includeDaisy,
-  onToggleIncludeDaisy,
 }) => {
   const flasherRef = useRef<Esp32Flasher | null>(null);
   const [phase, setPhase] = useState<Phase>('idle');
@@ -144,8 +137,6 @@ export const Esp32FlashSection: React.FC<Esp32Props> = ({
     }),
     [],
   );
-
-  const hasLittlefs = !!release?.platforms.littlefs;
 
   const connect = useCallback(async () => {
     setPhase('connecting');
@@ -171,7 +162,7 @@ export const Esp32FlashSection: React.FC<Esp32Props> = ({
     try {
       const app = await fetchBinary(release.platforms.esp32);
       let lfs: Blob | null = null;
-      if (includeDaisy && release.platforms.littlefs) {
+      if (release.platforms.littlefs) {
         setMessage({ kind: 'info', text: 'fetching daisy firmware (littlefs)…' });
         lfs = await fetchBinary(release.platforms.littlefs);
       }
@@ -188,26 +179,13 @@ export const Esp32FlashSection: React.FC<Esp32Props> = ({
       setMessage({ kind: 'err', text: (e as Error).message });
       setPhase('error');
     }
-  }, [release, includeDaisy, loggers]);
+  }, [release, loggers]);
 
   const canConnect = !externalBusy && !busy && !connected;
   const canFlash = !externalBusy && connected && !busy && !!release;
 
   return (
     <div className="flash-section">
-      <label className="flash-section__option">
-        <input
-          type="checkbox"
-          checked={includeDaisy}
-          onChange={(e) => onToggleIncludeDaisy(e.target.checked)}
-          disabled={busy || !hasLittlefs}
-        />
-        <span>
-          include daisy firmware (littlefs)
-          {!hasLittlefs && <em> — not available for this version</em>}
-        </span>
-      </label>
-
       <div className="flash-section__controls">
         <button
           type="button"
@@ -229,7 +207,8 @@ export const Esp32FlashSection: React.FC<Esp32Props> = ({
 
       <p className="flash-section__hint">
         plug in usb and pick the serial port — the esp32 enters bootloader
-        automatically.
+        automatically. the daisy firmware ships alongside (littlefs) and is
+        forwarded to the daisy on next boot.
       </p>
 
       <ProgressBar pct={progress} active={phase === 'flashing'} />

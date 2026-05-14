@@ -62,7 +62,8 @@ export const DownloadPanel: React.FC<DownloadPanelProps> = ({
   return (
     <div className="download-panel">
       <p className="download-panel__hint">
-        save each file to the microsd root. one click per file — no zip.
+        no power needed — pull the microsd from the module's back, copy both
+        files to the root, reinsert. one click per file, no zip.
       </p>
 
       {daisyDebugAvailable && (
