@@ -87,13 +87,7 @@ export const Firmware: React.FC = () => {
               />
               <span>show betas</span>
             </label>
-          </div>
 
-          <div className="firmware-version__meta">
-            {error && <StatusBadge kind="err">{error}</StatusBadge>}
-            {!error && fromCache && (
-              <StatusBadge kind="info">cached releases.json</StatusBadge>
-            )}
             {!error && !loading && (
               <button
                 type="button"
@@ -104,6 +98,15 @@ export const Firmware: React.FC = () => {
               </button>
             )}
           </div>
+
+          {(error || fromCache) && (
+            <div className="firmware-version__meta">
+              {error && <StatusBadge kind="err">{error}</StatusBadge>}
+              {!error && fromCache && (
+                <StatusBadge kind="info">cached releases.json</StatusBadge>
+              )}
+            </div>
+          )}
 
           <ReleaseNotes release={selectedRelease} />
         </section>

@@ -83,6 +83,13 @@
   border-left: 1px solid var(--nfo-accent);
 }
 
+/* Full label by default; the short label is exposed only on small viewports
+   below. Keeping both in the DOM means screen readers always announce the
+   full name regardless of which span is rendered. */
+.nfo-topbar__seg-short {
+  display: none;
+}
+
 .nfo-topbar__seg:hover:not(.is-active) {
   color: var(--nfo-ink-1);
 }
@@ -179,6 +186,20 @@
   .nfo-topbar__product,
   .nfo-topbar__marquee {
     display: none;
+  }
+
+  .nfo-topbar__seg-full {
+    display: none;
+  }
+
+  .nfo-topbar__seg-short {
+    display: inline;
+  }
+
+  .nfo-topbar__seg {
+    padding: 4px 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
 }
 

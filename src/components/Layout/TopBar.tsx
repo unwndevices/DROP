@@ -52,7 +52,10 @@ export const TopBar: React.FC<TopBarProps> = ({
               onClick={() => onSelectTool(tool)}
               title={tool.description}
             >
-              {tool.label}
+              <span className="nfo-topbar__seg-full">{tool.label}</span>
+              <span className="nfo-topbar__seg-short" aria-hidden="true">
+                {tool.shortLabel}
+              </span>
             </button>
           );
         })}

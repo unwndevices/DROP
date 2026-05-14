@@ -134,6 +134,7 @@
   padding: 2px 8px;
   cursor: pointer;
   text-transform: lowercase;
+  margin-left: auto;
 }
 
 .firmware-version__refresh:hover {

@@ -8,6 +8,8 @@ export interface ToolEntry {
   id: string;
   /** Lowercase mono label shown in the tab strip (NFO). */
   label: string;
+  /** Compact label shown in the tab strip on small viewports. */
+  shortLabel: string;
   /** Long-form description for tooltips / tool header subtitle. */
   description: string;
   /** Mounted component for the tool. */
@@ -23,18 +25,21 @@ export const TOOL_REGISTRY: ToolEntry[] = [
   {
     id: 'firmware',
     label: 'firmware',
+    shortLabel: 'fw',
     description: 'flash & download firmware for eisei',
     component: Firmware,
   },
   {
     id: 'wav2datum',
     label: 'wav2datum',
+    shortLabel: 'w2d',
     description: 'convert WAV audio files to spectral datum format',
     component: Wav2Datum,
   },
   {
     id: 'datum-viewer',
     label: 'datum viewer',
+    shortLabel: 'dv',
     description: 'import and preview spectral datum files',
     component: DatumViewer,
   },
