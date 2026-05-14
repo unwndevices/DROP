@@ -41,7 +41,6 @@ function blobToLatin1(buf: ArrayBuffer): string {
 export class Esp32Flasher {
   private port: SerialPort | null = null;
   private transport: Transport | null = null;
-  private loader: ESPLoader | null = null;
   private chipName = '';
 
   async connect(loggers: Esp32FlasherLoggers = {}): Promise<{ name: string }> {
@@ -73,7 +72,6 @@ export class Esp32Flasher {
 
     this.port = port;
     this.transport = transport;
-    this.loader = loader;
     return { name: `${this.chipName} connected` };
   }
 
@@ -154,7 +152,6 @@ export class Esp32Flasher {
     await loader.after('hard_reset');
 
     this.transport = transport;
-    this.loader = loader;
   }
 
   async disconnect(): Promise<void> {
@@ -172,7 +169,6 @@ export class Esp32Flasher {
       }
       this.port = null;
       this.transport = null;
-      this.loader = null;
       this.chipName = '';
     }
   }

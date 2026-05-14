@@ -34,8 +34,9 @@ export const Firmware: React.FC = () => {
     const stillVisible = visibleReleases.some((r) => r.version === selectedVersion);
     if (stillVisible) return;
 
-    const preferLatest =
-      latestId && visibleReleases.find((r) => r.version === latestId);
+    const preferLatest = latestId
+      ? visibleReleases.find((r) => r.version === latestId)
+      : undefined;
     const pick = preferLatest ?? latestStable(visibleReleases) ?? visibleReleases[0];
     setSelectedVersion(pick.version);
   }, [visibleReleases, latestId, selectedVersion]);
@@ -47,10 +48,6 @@ export const Firmware: React.FC = () => {
 
   return (
     <div className="firmware-tool">
-      <header className="firmware-tool__header">
-        <h1 className="firmware-tool__title">firmware</h1>
-      </header>
-
       <div className="firmware-tool__grid">
         <section className="firmware-section firmware-section--version">
           <SectionLabel index={1}>version</SectionLabel>
