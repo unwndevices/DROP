@@ -1,0 +1,85 @@
+.pot-scope {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nfo-space-3, 12px);
+}
+
+.pot-scope__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pot-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: var(--nfo-t-small, 0.75rem);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--nfo-ink-2);
+  background: transparent;
+  border: 1px solid var(--nfo-border, var(--ds-color-border));
+  border-radius: 0;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+
+.pot-chip:hover:not(.is-on) {
+  color: var(--nfo-ink-1);
+  border-color: var(--nfo-ink-3);
+}
+
+.pot-chip.is-on {
+  color: var(--nfo-bg);
+  background: var(--nfo-ink-1);
+  border-color: var(--nfo-ink-1);
+}
+
+.pot-chip__swatch {
+  width: 8px;
+  height: 8px;
+  display: inline-block;
+}
+
+.pot-scope__chart {
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+/* uplot canvas should fill the measured wrapper width. */
+.pot-scope__chart .uplot,
+.pot-scope__chart .u-wrap {
+  width: 100%;
+}
+
+.pot-scope__readouts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nfo-space-4, 16px);
+  font-size: var(--nfo-t-small, 0.75rem);
+  font-variant-numeric: tabular-nums;
+}
+
+.pot-readout {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--nfo-ink-2);
+}
+
+.pot-readout__swatch {
+  width: 8px;
+  height: 8px;
+  display: inline-block;
+}
+
+.pot-readout__k {
+  color: var(--nfo-ink-3);
+}
+
+.pot-readout__v {
+  color: var(--nfo-ink-1);
+}

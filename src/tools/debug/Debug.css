@@ -1,0 +1,76 @@
+.debug-tool {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nfo-space-5, 24px);
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: var(--nfo-space-4, 16px);
+  font-family: var(--nfo-font-primary, var(--ds-font-mono));
+  color: var(--nfo-ink-1, var(--ds-color-text-primary));
+}
+
+.debug-conn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nfo-space-3, 12px);
+}
+
+.debug-conn__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--nfo-space-2, 8px);
+}
+
+.debug-conn__status {
+  margin-left: auto;
+}
+
+.debug-btn {
+  font-family: inherit;
+  font-size: var(--nfo-t-body, 0.8125rem);
+  text-transform: lowercase;
+  letter-spacing: 0.06em;
+  color: var(--nfo-ink-1);
+  background: transparent;
+  border: 1px solid var(--nfo-border-strong, var(--ds-color-border));
+  border-radius: 0;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+
+.debug-btn:hover:not(:disabled) {
+  border-color: var(--nfo-accent, #da532c);
+  color: var(--nfo-accent, #da532c);
+}
+
+.debug-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.debug-hint {
+  margin: 0;
+  font-size: var(--nfo-t-small, 0.75rem);
+  color: var(--nfo-ink-3);
+}
+
+.debug-tool__cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nfo-space-5, 24px);
+}
+
+.debug-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nfo-space-3, 12px);
+  min-width: 0;
+}
+
+.debug-empty {
+  margin: 0;
+  font-size: var(--nfo-t-small, 0.75rem);
+  color: var(--nfo-ink-3);
+  padding: var(--nfo-space-4, 16px) 0;
+}

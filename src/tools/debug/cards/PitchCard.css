@@ -1,0 +1,76 @@
+.pitch-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.pitch-row {
+  display: grid;
+  grid-template-columns: 56px 64px 1fr minmax(150px, 240px);
+  align-items: center;
+  gap: var(--nfo-space-3, 12px);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--nfo-border-faint, var(--ds-color-border));
+}
+
+.pitch-row:last-child {
+  border-bottom: 0;
+}
+
+.pitch-row__idx {
+  color: var(--nfo-ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: var(--nfo-t-small, 0.75rem);
+}
+
+.pitch-row__note {
+  color: var(--nfo-ink-1);
+  font-weight: var(--nfo-fw-medium, 500);
+  font-variant-numeric: tabular-nums;
+}
+
+.pitch-row__freq {
+  color: var(--nfo-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.pitch-row__cents {
+  display: flex;
+  align-items: center;
+  gap: var(--nfo-space-2, 8px);
+}
+
+.pitch-row__cents-track {
+  position: relative;
+  flex: 1;
+  height: 14px;
+  border: 1px solid var(--nfo-border, var(--ds-color-border));
+  background: var(--nfo-surface);
+}
+
+.pitch-row__cents-mid {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--nfo-border-strong, var(--ds-color-border));
+}
+
+.pitch-row__cents-dot {
+  position: absolute;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  background: var(--nfo-accent, #da532c);
+  transform: translate(-50%, -50%);
+  transition: left 90ms linear;
+}
+
+.pitch-row__cents-val {
+  color: var(--nfo-ink-3);
+  font-size: var(--nfo-t-small, 0.75rem);
+  font-variant-numeric: tabular-nums;
+  min-width: 42px;
+  text-align: right;
+}
