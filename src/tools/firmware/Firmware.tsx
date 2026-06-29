@@ -41,6 +41,23 @@ export const Firmware: React.FC = () => {
     setSelectedVersion(pick.version);
   }, [visibleReleases, latestId, selectedVersion]);
 
+  // Hidden gesture: type "beta" to reveal (or hide) pre-release builds. Keeps
+  // the toggle out of the end-user UI while letting us dogfood betas via Drop.
+  useEffect(() => {
+    const secret = 'beta';
+    let buffer = '';
+    const onKeyDown = (e: KeyboardEvent) => {
+      // Ignore keystrokes aimed at form controls (the select swallows them).
+      const tag = (e.target as HTMLElement | null)?.tagName ?? '';
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (e.key.length !== 1) return;
+      buffer = (buffer + e.key.toLowerCase()).slice(-secret.length);
+      if (buffer === secret) setShowBetas((v) => !v);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
   const selectedRelease: Release | undefined = useMemo(
     () => visibleReleases.find((r) => r.version === selectedVersion),
     [visibleReleases, selectedVersion],
@@ -74,15 +91,6 @@ export const Firmware: React.FC = () => {
                 );
               })}
             </select>
-
-            <label className="firmware-version__beta">
-              <input
-                type="checkbox"
-                checked={showBetas}
-                onChange={(e) => setShowBetas(e.target.checked)}
-              />
-              <span>show betas</span>
-            </label>
 
             {!error && !loading && (
               <button

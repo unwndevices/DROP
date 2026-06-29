@@ -164,22 +164,6 @@
   outline-offset: 2px;
 }
 
-.firmware-version__beta {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--nfo-t-small, 0.75rem);
-  color: var(--nfo-ink-2);
-  text-transform: lowercase;
-  letter-spacing: 0.06em;
-  cursor: pointer;
-  user-select: none;
-}
-
-.firmware-version__beta input {
-  accent-color: var(--nfo-accent, #da532c);
-}
-
 .firmware-version__meta {
   display: flex;
   align-items: center;
