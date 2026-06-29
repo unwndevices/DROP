@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { SectionLabel, StatusBadge } from '../../design-system';
 import {
   filterReleases,
@@ -12,9 +12,20 @@ import { DaisyFlashSection, Esp32FlashSection } from './flash/FlashSection';
 import { DownloadPanel } from './download/DownloadPanel';
 import './Firmware.css';
 
+const BETA_UNLOCK_KEY = 'drop-firmware-show-betas';
+
+/** Whether the hidden beta gesture was unlocked in a previous session. */
+function readBetaUnlock(): boolean {
+  try {
+    return localStorage.getItem(BETA_UNLOCK_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
 export const Firmware: React.FC = () => {
   const { releases, latestId, loading, error, fromCache, refresh } = useReleases();
-  const [showBetas, setShowBetas] = useState(false);
+  const [showBetas, setShowBetas] = useState<boolean>(readBetaUnlock);
   const [selectedVersion, setSelectedVersion] = useState<string>('');
 
   // Track which section is mid-flash to lock the other.
@@ -41,6 +52,18 @@ export const Firmware: React.FC = () => {
     setSelectedVersion(pick.version);
   }, [visibleReleases, latestId, selectedVersion]);
 
+  // On beta unlock, jump to the newest build — the latest release is a beta.
+  const prevShowBetas = useRef(showBetas);
+  useEffect(() => {
+    if (showBetas && !prevShowBetas.current) {
+      const latest = latestId
+        ? visibleReleases.find((r) => r.version === latestId)
+        : undefined;
+      if (latest) setSelectedVersion(latest.version);
+    }
+    prevShowBetas.current = showBetas;
+  }, [showBetas, visibleReleases, latestId]);
+
   // Hidden gesture: type "beta" to reveal (or hide) pre-release builds. Keeps
   // the toggle out of the end-user UI while letting us dogfood betas via Drop.
   useEffect(() => {
@@ -57,6 +80,16 @@ export const Firmware: React.FC = () => {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
+
+  // Remember the unlock across sessions so the gesture is one-and-done.
+  useEffect(() => {
+    try {
+      if (showBetas) localStorage.setItem(BETA_UNLOCK_KEY, '1');
+      else localStorage.removeItem(BETA_UNLOCK_KEY);
+    } catch {
+      // ignore quota / privacy errors
+    }
+  }, [showBetas]);
 
   const selectedRelease: Release | undefined = useMemo(
     () => visibleReleases.find((r) => r.version === selectedVersion),
