@@ -109,27 +109,31 @@ export const Firmware: React.FC = () => {
 
         <div className="firmware-tool__column">
           <section className="firmware-section firmware-section--download">
-            <SectionLabel index={1}>download for microsd</SectionLabel>
+            <SectionLabel>download for microsd</SectionLabel>
             <DownloadPanel release={selectedRelease} />
           </section>
 
-          <section className="firmware-section">
-            <SectionLabel index={2}>flash esp32 (serial)</SectionLabel>
+          <details className="firmware-section firmware-section--collapsible">
+            <summary>
+              <SectionLabel>flash esp32 (serial)</SectionLabel>
+            </summary>
             <Esp32FlashSection
               release={selectedRelease}
               busy={daisyBusy}
               onBusyChange={setEspBusy}
             />
-          </section>
+          </details>
 
-          <section className="firmware-section">
-            <SectionLabel index={3}>flash daisy (dfu) — fallback</SectionLabel>
+          <details className="firmware-section firmware-section--collapsible">
+            <summary>
+              <SectionLabel>flash daisy (dfu) — fallback</SectionLabel>
+            </summary>
             <DaisyFlashSection
               release={selectedRelease}
               busy={espBusy}
               onBusyChange={setDaisyBusy}
             />
-          </section>
+          </details>
         </div>
       </div>
     </div>
