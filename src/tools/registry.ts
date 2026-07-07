@@ -17,6 +17,8 @@ export interface ToolEntry {
   component: React.ComponentType;
   /** Hidden from the tab strip but still resolvable by id (e.g. unstyled tools). */
   hidden?: boolean;
+  /** Only shown in the tab strip once the beta gesture is unlocked. */
+  beta?: boolean;
 }
 
 /**
@@ -36,6 +38,7 @@ export const TOOL_REGISTRY: ToolEntry[] = [
     shortLabel: 'dbg',
     description: 'live telemetry & debug for eisei',
     component: Debug,
+    beta: true,
   },
   {
     id: 'wav2datum',
@@ -54,6 +57,11 @@ export const TOOL_REGISTRY: ToolEntry[] = [
 ];
 
 export const VISIBLE_TOOLS = TOOL_REGISTRY.filter((t) => !t.hidden);
+
+/** Tools shown in the tab strip, minus beta-gated ones unless unlocked. */
+export function betaVisibleTools(unlocked: boolean): ToolEntry[] {
+  return VISIBLE_TOOLS.filter((t) => unlocked || !t.beta);
+}
 
 export const ACTIVE_TOOL_STORAGE_KEY = 'drop-active-tool';
 

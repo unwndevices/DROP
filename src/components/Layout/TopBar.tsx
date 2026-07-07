@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import { Sun, Moon } from 'lucide-react';
-import { VISIBLE_TOOLS, type ToolEntry } from '../../tools/registry';
+import { betaVisibleTools, type ToolEntry } from '../../tools/registry';
 import { useTheme } from '../../hooks/useTheme';
+import { useBetaUnlock } from '../../hooks/useBetaUnlock';
 import { useReleases, latestStable, releaseTitle } from '../../tools/firmware/releases';
 import './TopBar.css';
 
@@ -15,6 +16,8 @@ export const TopBar: React.FC<TopBarProps> = ({
   onSelectTool,
 }) => {
   const { mode, toggle } = useTheme();
+  const unlocked = useBetaUnlock();
+  const tools = betaVisibleTools(unlocked);
   const { releases } = useReleases();
   const ThemeIcon = mode === 'light' ? Moon : Sun;
   const nextLabel = mode === 'light' ? 'switch to dark' : 'switch to light';
@@ -40,7 +43,7 @@ export const TopBar: React.FC<TopBarProps> = ({
           role="radiogroup"
           aria-label="tools"
         >
-        {VISIBLE_TOOLS.map((tool) => {
+        {tools.map((tool) => {
           const selected = tool.id === activeToolId;
           return (
             <button

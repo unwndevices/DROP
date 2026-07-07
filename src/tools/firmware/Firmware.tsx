@@ -10,22 +10,12 @@ import {
 import { ReleaseNotes } from './ReleaseNotes';
 import { DaisyFlashSection, Esp32FlashSection } from './flash/FlashSection';
 import { DownloadPanel } from './download/DownloadPanel';
+import { useBetaUnlock } from '../../hooks/useBetaUnlock';
 import './Firmware.css';
-
-const BETA_UNLOCK_KEY = 'drop-firmware-show-betas';
-
-/** Whether the hidden beta gesture was unlocked in a previous session. */
-function readBetaUnlock(): boolean {
-  try {
-    return localStorage.getItem(BETA_UNLOCK_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
 
 export const Firmware: React.FC = () => {
   const { releases, latestId, loading, error, fromCache, refresh } = useReleases();
-  const [showBetas, setShowBetas] = useState<boolean>(readBetaUnlock);
+  const showBetas = useBetaUnlock();
   const [selectedVersion, setSelectedVersion] = useState<string>('');
 
   // Track which section is mid-flash to lock the other.
@@ -63,33 +53,6 @@ export const Firmware: React.FC = () => {
     }
     prevShowBetas.current = showBetas;
   }, [showBetas, visibleReleases, latestId]);
-
-  // Hidden gesture: type "beta" to reveal (or hide) pre-release builds. Keeps
-  // the toggle out of the end-user UI while letting us dogfood betas via Drop.
-  useEffect(() => {
-    const secret = 'beta';
-    let buffer = '';
-    const onKeyDown = (e: KeyboardEvent) => {
-      // Ignore keystrokes aimed at form controls (the select swallows them).
-      const tag = (e.target as HTMLElement | null)?.tagName ?? '';
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      if (e.key.length !== 1) return;
-      buffer = (buffer + e.key.toLowerCase()).slice(-secret.length);
-      if (buffer === secret) setShowBetas((v) => !v);
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
-
-  // Remember the unlock across sessions so the gesture is one-and-done.
-  useEffect(() => {
-    try {
-      if (showBetas) localStorage.setItem(BETA_UNLOCK_KEY, '1');
-      else localStorage.removeItem(BETA_UNLOCK_KEY);
-    } catch {
-      // ignore quota / privacy errors
-    }
-  }, [showBetas]);
 
   const selectedRelease: Release | undefined = useMemo(
     () => visibleReleases.find((r) => r.version === selectedVersion),
