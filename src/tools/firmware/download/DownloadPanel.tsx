@@ -62,7 +62,7 @@ export const DownloadPanel: React.FC<DownloadPanelProps> = ({ release }) => {
         />
         <DownloadRow
           label="esp32"
-          url={release.platforms.esp32}
+          url={release.platforms.esp32_app}
           filename={espFilename(release.version)}
         />
       </ul>
@@ -70,7 +70,7 @@ export const DownloadPanel: React.FC<DownloadPanelProps> = ({ release }) => {
   );
 };
 
-const DownloadRow: React.FC<{ label: string; url: string; filename: string }> = ({
+const DownloadRow: React.FC<{ label: string; url?: string; filename: string }> = ({
   label,
   url,
   filename,
@@ -80,7 +80,7 @@ const DownloadRow: React.FC<{ label: string; url: string; filename: string }> = 
 
   const onClick = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (busy) return;
+    if (busy || !url) return;
     setBusy(true);
     setError(null);
     try {
@@ -91,6 +91,19 @@ const DownloadRow: React.FC<{ label: string; url: string; filename: string }> = 
       setBusy(false);
     }
   };
+
+  // No microSD-flashable asset for this release (pre-v1.0.8b3): the only
+  // published esp32 binary is the merged image, which boot-loops the module
+  // if installed via the `.esp` path — never offer it here.
+  if (!url) {
+    return (
+      <li className="download-row">
+        <span className="download-row__label">{label}</span>
+        <span className="download-row__arrow" aria-hidden="true">→</span>
+        <StatusBadge kind="warn">no microsd image — use serial flash</StatusBadge>
+      </li>
+    );
+  }
 
   return (
     <li className="download-row">
