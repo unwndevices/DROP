@@ -50,8 +50,7 @@ export const DownloadPanel: React.FC<DownloadPanelProps> = ({ release }) => {
   return (
     <div className="download-panel">
       <p className="download-panel__hint">
-        no power needed — pull the microsd from the module's back, copy both
-        files to the root, reinsert. one click per file, no zip.
+        Pull the microsd from the module's back, copy both files to the root, reinsert and power up. A couple of reboots may be necessary for the update to succeed. 
       </p>
 
       <ul className="download-panel__list">
