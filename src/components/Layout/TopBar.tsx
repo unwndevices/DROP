@@ -4,6 +4,11 @@ import { betaVisibleTools, type ToolEntry } from '../../tools/registry';
 import { useTheme } from '../../hooks/useTheme';
 import { useBetaUnlock } from '../../hooks/useBetaUnlock';
 import { useReleases, latestStable, releaseTitle } from '../../tools/firmware/releases';
+import {
+  setSelectedManualFile,
+  useManuals,
+  useSelectedManualFile,
+} from '../../tools/manual';
 import './TopBar.css';
 
 interface TopBarProps {
@@ -19,6 +24,9 @@ export const TopBar: React.FC<TopBarProps> = ({
   const unlocked = useBetaUnlock();
   const tools = betaVisibleTools(unlocked);
   const { releases } = useReleases();
+  const manualActive = activeToolId === 'manual';
+  const { manuals, loading: manualsLoading } = useManuals(manualActive);
+  const selectedManualFile = useSelectedManualFile();
   const ThemeIcon = mode === 'light' ? Moon : Sun;
   const nextLabel = mode === 'light' ? 'switch to dark' : 'switch to light';
 
@@ -66,18 +74,39 @@ export const TopBar: React.FC<TopBarProps> = ({
       </div>
 
       <div className="nfo-topbar__actions">
-        {marqueeText && (
-          <div
-            className="nfo-topbar__marquee"
-            aria-label={`latest stable: ${marqueeText}`}
+        {manualActive ? (
+          <select
+            className="nfo-topbar__manual-select"
+            value={selectedManualFile ?? manuals[0]?.file ?? ''}
+            onChange={(e) => setSelectedManualFile(e.target.value)}
+            disabled={manuals.length === 0}
+            aria-label="manual version"
           >
-            <div className="nfo-topbar__marquee-viewport">
-              <div className="nfo-topbar__marquee-track">
-                <span className="nfo-topbar__marquee-item">{marqueeText}</span>
-                <span className="nfo-topbar__marquee-item" aria-hidden="true">{marqueeText}</span>
+            {manuals.length === 0 && (
+              <option value="">
+                {manualsLoading ? 'loading…' : 'no manuals'}
+              </option>
+            )}
+            {manuals.map((m) => (
+              <option key={m.file} value={m.file}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+        ) : (
+          marqueeText && (
+            <div
+              className="nfo-topbar__marquee"
+              aria-label={`latest stable: ${marqueeText}`}
+            >
+              <div className="nfo-topbar__marquee-viewport">
+                <div className="nfo-topbar__marquee-track">
+                  <span className="nfo-topbar__marquee-item">{marqueeText}</span>
+                  <span className="nfo-topbar__marquee-item" aria-hidden="true">{marqueeText}</span>
+                </div>
               </div>
             </div>
-          </div>
+          )
         )}
         <button
           type="button"

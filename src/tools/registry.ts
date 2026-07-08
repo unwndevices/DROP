@@ -3,6 +3,7 @@ import { DatumViewer } from './datum-viewer/DatumViewer';
 import { Wav2Datum } from './wav2datum/Wav2Datum';
 import { Firmware } from './firmware';
 import { Debug } from './debug';
+import { Manual } from './manual';
 
 export interface ToolEntry {
   /** Stable id used for routing + localStorage. */
@@ -31,6 +32,13 @@ export const TOOL_REGISTRY: ToolEntry[] = [
     shortLabel: 'fw',
     description: 'flash & download firmware for eisei',
     component: Firmware,
+  },
+  {
+    id: 'manual',
+    label: 'manual',
+    shortLabel: 'man',
+    description: 'user manual for eisei',
+    component: Manual,
   },
   {
     id: 'debug',
