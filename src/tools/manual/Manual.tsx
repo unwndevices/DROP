@@ -13,6 +13,21 @@ import './Manual.css';
  */
 const objectUrlCache = new Map<string, string>();
 
+/**
+ * Mobile browsers can't render PDFs inside an iframe — iOS Safari paints a
+ * single non-scrollable page, Android Chrome nothing at all — so offer
+ * open/download actions there instead. `pdfViewerEnabled` covers desktop
+ * browsers with inline viewing turned off.
+ */
+function canInlinePdf(): boolean {
+  const mobile =
+    /iphone|ipad|ipod|android/i.test(navigator.userAgent) ||
+    // iPadOS masquerades as macOS, but is the only "Mac" with multitouch.
+    (navigator.maxTouchPoints > 1 && /mac/i.test(navigator.platform));
+  if (mobile) return false;
+  return navigator.pdfViewerEnabled ?? true;
+}
+
 async function fetchPdfObjectUrl(url: string): Promise<string> {
   const cached = objectUrlCache.get(url);
   if (cached) return cached;
@@ -46,6 +61,7 @@ export const Manual: React.FC = () => {
 
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const inline = useMemo(canInlinePdf, []);
 
   useEffect(() => {
     if (!manual) {
@@ -83,11 +99,33 @@ export const Manual: React.FC = () => {
       )}
 
       {pdfUrl && manual ? (
-        <iframe
-          className="manual-tool__frame"
-          src={pdfUrl}
-          title={`eisei manual ${manual.label}`}
-        />
+        inline ? (
+          <iframe
+            className="manual-tool__frame"
+            src={pdfUrl}
+            title={`eisei manual ${manual.label}`}
+          />
+        ) : (
+          <div className="manual-tool__fallback">
+            <p className="manual-tool__fallback-hint">
+              pdf preview isn't available in this browser — open the manual in
+              a new tab or save it to your device.
+            </p>
+            <div className="manual-tool__fallback-actions">
+              <a
+                className="manual-tool__link"
+                href={pdfUrl}
+                target="_blank"
+                rel="noopener"
+              >
+                open manual
+              </a>
+              <a className="manual-tool__link" href={pdfUrl} download={manual.file}>
+                download pdf
+              </a>
+            </div>
+          </div>
+        )
       ) : (
         !status && (
           <div className="manual-tool__placeholder">
