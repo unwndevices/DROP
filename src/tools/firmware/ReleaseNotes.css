@@ -52,3 +52,27 @@
   text-transform: lowercase;
   color: var(--nfo-ink-1);
 }
+
+/* Release date, shown directly beneath the title heading. */
+.firmware-notes__date {
+  margin: 0 0 0.8em;
+  color: var(--nfo-ink-3, var(--ds-color-text-tertiary));
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+
+/* Section labels (New Features, Behavior Changes, …), promoted from bold
+   lines to `#### ` headings — highlighted to stand apart from the body. */
+.firmware-notes h4 {
+  font-size: var(--nfo-t-small);
+  font-weight: 700;
+  margin: 1em 0 0.3em;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--nfo-ink-1);
+}
+
+/* First section heading shouldn't push away from the date. */
+.firmware-notes h4:first-child {
+  margin-top: 0.2em;
+}
